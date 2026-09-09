@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Committee Application | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container page-content committee-page">
+      <h1>Committee Application</h1>
+      <p>
+        Apply to serve on a volunteer committee. The Board forwards applications to the
+        committee chairs.
+      </p>
+
+      <form id="committee-form" class="committee-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="committee-first">First Name</label>
+            <input type="text" id="committee-first" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label for="committee-last">Last Name</label>
+            <input type="text" id="committee-last" name="lastName" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="committee-email">Email</label>
+          <input type="email" id="committee-email" name="email" required>
+        </div>
+
+        <fieldset class="form-group">
+          <legend>Have you participated in an ECR committee previously?</legend>
+          <div class="form-radios">
+            <label><input type="radio" name="previous" value="Yes" required> Yes</label>
+            <label><input type="radio" name="previous" value="No" checked> No</label>
+          </div>
+        </fieldset>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="committee-phone">Phone</label>
+            <input type="tel" id="committee-phone" name="phone">
+          </div>
+          <div class="form-group">
+            <label for="committee-years">Years you have been a member</label>
+            <input type="number" id="committee-years" name="years" min="0" step="1" required>
+          </div>
+        </div>
+
+        <fieldset class="form-group">
+          <legend>Select committee(s) you are interested in</legend>
+          <div class="form-check-list">
+            <label><input type="checkbox" name="committees" value="Finance"> Finance</label>
+            <label><input type="checkbox" name="committees" value="Facilities/Land Use"> Facilities/Land Use</label>
+            <label><input type="checkbox" name="committees" value="Outdoors"> Outdoors</label>
+            <label><input type="checkbox" name="committees" value="Rules"> Rules</label>
+            <label><input type="checkbox" name="committees" value="IT/Communications"> IT/Communications</label>
+          </div>
+        </fieldset>
+
+        <div class="form-group">
+          <label for="committee-why">Why are you interested in the selected committee(s)?</label>
+          <textarea id="committee-why" name="why" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="committee-experience">What experience do you have to contribute to the selected committee(s)?</label>
+          <textarea id="committee-experience" name="experience" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="committee-comments">Other comments</label>
+          <textarea id="committee-comments" name="comments" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <p id="committee-message" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="board-back">
+        <a href="board-information.html">Board Information</a>
+      </p>
+    </div>
+  </main>
+  <script src="js/committee.js"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

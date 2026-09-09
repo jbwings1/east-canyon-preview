@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fourth Restated Bylaws | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html" class="active">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>Fourth Restated Bylaws</h1>
+        <p class="policy-section-nav"><a href="policy-appendix.html">Previous</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <p class="policy-intro">
+          Adopted October 9, 2025.
+          <a href="files/policies/fourth-restated-bylaws.pdf" target="_blank" rel="noopener noreferrer">Download PDF</a>
+        </p>
+        <article class="policy-document">
+<p>FOURTH RESTATED BYLAWS OF EAST CANYON RESORT</p>
+<p>Pursuant to the provisions of the Utah Non-profit Corporation and Co-operative Association Act and the Bylaws of East Canyon Resort, as initially adopted on September 23, 1988, the following are the Fourth Restated Bylaws of East Canyon Resort adopted October 9, 2025</p>
+<h2 id="article-1">ARTICLE 1</h2>
+<h3>MEMBERSHIP</h3>
+<h3 id="bylaw-1-01">1.01</h3>
+<p>Qualification of Members. Those individuals, corporations and other entities which purchase or receive one or more of the classes of membership interests pursuant to the Rules and Regulations established by the Board of Directors shall become a member of the Corporation.</p>
+<h3 id="bylaw-1-02">1.02</h3>
+<p>Stock Ownership. Stock certificates shall be issued to the members.</p>
+<h3 id="bylaw-1-03">1.03</h3>
+<p>Members of Record. The Corporation secretary or designate by the Board, shall maintain a current record of the names and addresses of all members. It shall be the responsibility of the members to notify the Corporation in writing, of any change of address or of any transfer of the certificates.</p>
+<h3 id="bylaw-1-04">1.04</h3>
+<p>Addition of New Members. Except as limited by the Articles of Incorporation and by agreement, the Board of Directors shall have the right to issue memberships in addition to those issued or to be issued at the time of the Corporation's creation pursuant to the Plan of Reorganization, up to the authorized number of shares, at the prices and at the terms which the Board from time to time determines, provided that prior to such issuance there exist sufficient improvements and facilities of the Corporation so that said issuance does not significantly injure any of the other members or is permitted pursuant to the Plan of Reorganization.</p>
+<h3 id="bylaw-1-05">1.05</h3>
+<p>Rights. Members of each class shall have such rights to the use of the assets and properties of the Corporation as provided for such class in the Articles of Incorporation, herein, and in the Rules and Regulations of the Corporation adopted by the Board of Directors.</p>
+<h3 id="bylaw-1-06">1.06</h3>
+<p>Classes of Memberships. The Corporation will have class "A", "B", "C", "D", “F”, “G”, “H”, “I”, “L”, “M”, “O”, “P”, and “Q”, and such other classes as may be authorized from time to time by the Board of Directors. Existing classes of stock may from time to time be eliminated and merged with or converted into other classes or grouped into certain classifications for specified purposes. Each membership shall be represented by a separate class of stock. Each Membership will have the following rights: The use of all other Corporation facilities and property, subject to such reservation rules and any special fees or charges established by the Board of Directors as outlined in the Rules and Regulations; With the exception of “O”, “P” and “Q” memberships, the use of any campsite subject to such reservation requirements and the frequency of use limitations as may be established by the Board of Directors from time to time, which requirements and limitations shall be set forth in the Rules and Regulations. Membership Classes “A”, “B”, “C”, “F”, “G” and “H” purchased prior to September 21, 2017, will have relative rights as to the use of the Corporation's condo suites and RV Park usage rights as provided for in "The Plan of Reorganization" and the "Rules and Regulations", and as adopted by the Board of Directors. Class “D” has all rights including relative rights and RV Park usage rights, but not the use of the Corporation's condo suites. Memberships purchased after September 21, 2017, will not have Relative Rights. Class "A" stock shall have a right to ten (10) days use of the condo suites and RV Park use rights. Class “B” stock shall have a right to eight (8) days use of the condo suites and RV Park use rights. Class “C” stock shall have a right to four (4) days use of the condo suites and RV Park use rights. Class “D” stock shall have RV Park use rights. Class “F” stock shall have a right to seven (7) days use of the condo suites and RV Park use rights. Class “G” stock shall have a right to fourteen (14) days use of the condo suites and RV Park use rights. Class “H” and “I” stock shall have use as outlined in the “Rules and Regulations”. Class “L” stock shall have RV Park use rights. Class “M” stock shall have a right to seven (7) days use of the condo suites and RV Park use rights. Class “O” shall have a right to seven (7) days use of the condo suites, but not RV Park use rights. Class “P” shall have a right to fourteen (14) days use of the condo suites, but not RV Park use rights. Class “Q” shall have a fixed week in the condo suites, but not RV Park use rights. The specific rights of each class and the use of the facilities are as specified in the Corporation's Rules and Regulations as adopted or as may be amended from time to time by the Board of Directors.</p>
+<h3 id="bylaw-1-07">1.07</h3>
+<p>Stock Ownership by Trusts. In the event any stock in the Corporation is now or hereafter owned by a trust or similar person or entity for the primary benefit of person(s) other than said owner, said trust or other owner may and shall designate no more than two (2) primary beneficiaries of said trust or other ownership which beneficiaries shall be husband and wife to each other.</p>
+<h2 id="article-ii">ARTICLE II</h2>
+<h3>TRANSFERABILITY</h3>
+<p>Membership and the stock representing membership may be transferred from time to time provided, however, prior to any proposed transfer, the membership and stock to be transferred must first be offered to the Corporation. Said offer to the Corporation will disclose the proposed purchases and will be offered at the same price and terms as would be received by the member pursuant to the proposed transfer. The corporation shall have thirty (30) days from receipt of such offer to accept the same. If the Corporation does not timely accept such offer, then the proposed transfer of membership and stock may occur provided it is to a person or entity previously disclosed to the corporation and for the price and terms contained in this offer to the Corporation. The above to the contrary notwithstanding, membership in stock may be donated to any family member, or may be inherited at the death of any member without first satisfying the above first right of refusal. A transfer fee will be charged upon each transfer of membership and stock. The Board of Directors may set the transfer fee and provide any other rules and regulations concerning the transfer which it deems advisable.</p>
+<h2 id="article-iii">ARTICLE III</h2>
+<h3>MEETINGS OF THE MEMBERS</h3>
+<h3 id="bylaw-3-01">3.01</h3>
+<p>Annual Meeting. The annual meeting of members shall be held for the purpose of electing new Directors, receiving reports on the past year's performance of the Corporation from the Board of Directors and the corporate officers, and transacting such other business as may properly come before the meeting. The Board of Directors may from time to time, by resolution, designate or change the date and time for the annual meeting of the members. The above to the contrary notwithstanding, the Board of Directors may, rather than having an election at the annual meeting of members, mail out or distribute to the voting members a ballot which allows such members to vote, by mail or hand delivery, for the directorships who would otherwise be filled at the annual meeting. The persons receiving the greatest number of votes within the period given by the Board of Directors shall, even if constituting less than a majority of the members entitled to vote, be elected to fulfill the vacancies. The above notwithstanding does not prevent the Board of Directors from filling vacancies on the Board for unexpired terms.</p>
+<h3 id="bylaw-3-02">3.02</h3>
+<p>Special Meetings. Special meetings of the members may be called by the Board of Directors or upon written request of members holding not less than forty percent (40%) of the total votes of the Corporation, such written request to state the purpose or purposes of the meeting and to be delivered to the Chairman of the Board of Directors.</p>
+<h3 id="bylaw-3-03">3.03</h3>
+<p>Place of Meetings. The Board of Directors may designate any place as the place of meeting for any annual meeting or special meeting. If no designation is made, the place of meeting shall be at the principal office of the Corporation.</p>
+<h3 id="bylaw-3-04">3.04</h3>
+<p>Notice of Meetings. The Board of Directors shall cause written or printed notice of the time, place, and purposes of all meetings of the members, whether annual or special, to be delivered, not less than ten (10) days prior to the meeting, to each member of record entitled to vote at such meeting. If mailed, such notice shall be deemed to be delivered when deposited in the United States mail addressed to the member at his registered address, with first class postage thereon prepaid. Each member shall register with the Corporation his current mailing address for purposes of notice hereunder. Such registered address may be changed from time to time by notice in writing to the Corporation</p>
+<h3 id="bylaw-3-05">3.05</h3>
+<p>Quorum. At any meeting of the members, the members and proxy holders in attendance shall, whether or not a majority is present, constitute a quorum.</p>
+<h3 id="bylaw-3-06">3.06</h3>
+<p>Proxies. At each meeting of the members, the representative of each member entitled to vote shall be entitled to vote in person or by proxy; provided, however, that the right to vote by proxy shall exist only where the instrument authorizing such proxy to act shall have been executed by the member itself or by its attorney thereunto duly authorized in writing. Such instrument authorizing a proxy to act shall be delivered at the beginning of the meeting to the secretary of the Corporation or to such officer or person who may be acting as secretary of the meeting. The secretary of the meeting shall enter a record of all such proxies in the minutes of the meeting.</p>
+<h3 id="bylaw-3-07">3.07</h3>
+<p>Votes. With respect to each matter submitted to vote of the members, each member entitled to vote at the meeting shall have the right to cast, in person or by proxy, the number of votes pertaining to the number of shares of stock held by the member. A majority of the votes entitled to be cast by the members present or represented by proxy at a meeting at which a quorum is present shall be necessary for the adoption of any matter voted on by the members, unless a greater proportion is required by the Articles of Incorporation, these Bylaws or Utah law. No cumulative voting is allowed for elective positions.</p>
+<h3 id="bylaw-3-08">3.08</h3>
+<p>Waiver of Irregularities. All inaccuracies and irregularities in calls or notices of meetings and in the manner of voting, form of proxies, validity of credentials, and method of ascertaining members present shall be deemed waived if no objection thereto is made at the meeting.</p>
+<h2 id="article-iv">ARTICLE IV</h2>
+<h3>BOARD OF DIRECTORS</h3>
+<h3 id="bylaw-4-01">4.01</h3>
+<p>General Powers. The business of Corporation shall be governed by the Board of Directors. The Board of Directors may exercise all of the powers of the Corporation, whether derived from law or the Articles of Incorporation, except which powers as are by law, by the Articles of Incorporation or by these Bylaws vested solely in the members.</p>
+<h3 id="bylaw-4-02">4.02</h3>
+<p>Number and Qualifications. The number of Directors of the Corporation shall be at least five (5), but in no event be more than nine (9). Each Director must be a member in good standing, having all contractual payments, maintenance fees, fines or special assessments current year round. There shall be at least one Director who is an owner of a Stock Class having condo rights and at least one Director who is an owner of a Stock Class having only RV Park rights. For purposes of this provision, the above Class of Stock shall be defined as including the following: CLASSES having Condo Suite Rights shall include: Classes “A”, “B”, “C”, “F”, “G”, “H”, “I”, “M”, “O”, “P” and “Q”, and other classes having condo rights as may be authorized by the Board of Directors. CLASSES having only RV Park rights shall include: Classes “D” and “L”, and other classes having only RV Park rights as may be authorized by the Board of Directors. This Bylaw takes precedence over Bylaw 3.01, which states: The persons receiving the greatest number of votes within the period given by the Board of Directors shall, even if constituting less than a majority of the members entitled to vote, be elected to fulfill the vacancies.</p>
+<h3 id="bylaw-4-03">4.03</h3>
+<p>Tenure and Election of Board of Directors. Except for the initial elected Board of Directors, each Board member shall be elected by the members entitled to vote to a three (3) year term. Each Member shall be entitled to vote all of his shares for each Director position being filled, but cannot cumulate his votes for all Director positions being filled and utilized such cumulative total for the election of one such director. The initial elected Board shall be elected to one, two or three year terms so that each year thereafter on third (1/3) of the Directors are elected. Board members can serve for a maximum of three (3) consecutive terms. The initial Board of Directors shall be elected within 30 days of the filing of the Articles of Incorporation.</p>
+<h3 id="bylaw-4-04">4.04</h3>
+<p>Chairman of the Board of Directors. The Board of Directors shall select from its members, after the annual meeting of the members, a Chairman and Vice Chairman who will be responsible for the management of the Board activities and coordination with the operating organization.</p>
+<h3 id="bylaw-4-05">4.05</h3>
+<p>Meetings and Notice. There will be at least four (4) meetings of the Board of Directors each year. One of which shall be held without other notice than this Bylaw. A special meeting of the Board of Directors may be called by the Chairman of the Board at the request of the President or a quorum of the Directors. The Chairman of the Board may fix any place agreeable to the Board as the place for holding a regular or special meeting. Notice of any meeting shall be given at least ten (10) days prior by written notice and mailed to each Director at his registered address. If mailed, such notice shall be deemed to be delivered when deposited in the United States mail so addressed with first class postage thereon prepaid. Any Director may waive notice of a meeting.</p>
+<h3 id="bylaw-4-06">4.06</h3>
+<p>Quorum and Manner of Acting. Fifty percent (50%) of then authorized number of Directors shall constitute a quorum for the transaction of business at any meeting of the Board of Directors. The Directors shall act only as a Board, and individual Directors shall have no powers as such. Individual Directors have no authority to compel the behavior or demand the services of any officer, employee, or third-party of the Corporation.</p>
+<h3 id="bylaw-4-07">4.07</h3>
+<p>Board of Director Meetings by Conference Telephone. The Board of Directors or any designated committee of the Corporation, may participate in a board or committee meeting by means of a conference telephone or similar communications equipment, provided all persons entitled to participate in the meeting received proper notice of the telephone meeting, and provided all persons participating in the meeting can hear each other at the same time. A director participating in a conference telephone meeting is deemed present in person at the meeting. The chairperson of the meeting may establish reasonable rules as to conducting the meeting by phone.</p>
+<h3 id="bylaw-4-08">4.08</h3>
+<p>Compensation. No Director shall receive compensation for any service that he may render to the Corporation as Director; however, Directors may be reimbursed for expenses incurred in performance of their duties as Directors.</p>
+<h3 id="bylaw-4-09">4.09</h3>
+<p>Resignation. A Director may resign at any time by delivering a written resignation to the Chairman of the Board of Directors. Unless otherwise specified therein, such resignation shall take effect on delivery.</p>
+<h3 id="bylaw-4-10">4.10</h3>
+<p>Removal. Any Director may be removed at any time for just cause by the affirmative vote of seventy-five percent (75%) of the existing members of the Board of Directors duly called for such purpose. For purposes of this section, just cause shall include, but not be limited to, failure to maintain good standing as a member, the individual exercise or attempted exercise of powers reserved to officers of the Corporation or the Board of Directors as a whole, or the interference with or commandeering of Corporation resources or employees without prior authorization of the Board of Directors. Notwithstanding satisfaction of any other qualifications for office, any Director who is removed for a failure to maintain good standing is forever barred from holding position as a Director in the future.</p>
+<h3 id="bylaw-4-11">4.11</h3>
+<p>Suspension. Any Director may be suspended at any time by the affirmative vote of at least seventy-five percent (75%) of the existing members of the Board of Directors not being considered for suspension. During such suspension, Director may not take part in any votes, special meetings or executive sessions of the Board of Directors, but may sit in during normal director meetings as a member of the resort. A suspension is effective as long as reasonably necessary under the circumstances, during which time the Board will conduct an investigation regarding the suspension and possible removal of the Director from the Board pursuant to Section 4.10. If after investigation it is determined that just cause exists for removal, the Board of Directors may elect to suspend a Director in lieu of removal for an additional period of no more than 90 days. In the event suspension occurs during the normal period of Director re-elections, and the Director is not up for re-election, elections will proceed as if Director was still on the Board. If Director is ultimately removed following regular re-election, the candidate with the next highest votes during that election period may be appointed. If suspension occurs during normal period of re-elections and Director is up for re-election, Director may run for re-election, but if is ultimately removed from the Board, the candidate with the next highest votes during that election period may be appointed.</p>
+<h3 id="bylaw-4-12">4.12</h3>
+<p>Vacancies in Directorships. If any vacancy shall occur in the Board of Directors by reason of the death, resignation or removal of a Director, the remaining members of the Board shall fill such vacancy, and the Directors then in office shall continue to act, pending receipt of the vacancy-filling. Any Director elected or appointed hereunder to fill a vacancy shall serve for the remainder of the term of his predecessor, and the partial term shall not be considered as a term of the new director for purposes of 4.03.</p>
+<h3 id="bylaw-4-13">4.13</h3>
+<p>Informal Action by Directors. Any action that is required or permitted to be taken at a meeting of the Board of Directors may be taken without a meeting, if a consent in writing setting forth the action so taken shall be signed by all of the Directors.</p>
+<h3 id="bylaw-4-14">4.14</h3>
+<p>Conflict of Interest. Because the members of the Board of Directors are fiduciaries, no Board member shall participate or vote in any Board decision from which said Director might expect to profit financially in a way other than that which affects all other members of the Corporation. Except for the Initial Board of Directors, no Board member shall while so serving as a Board member also serve as an officer, employee, independent contractor or supplier of the Corporation, unless he receives no compensation for also serving in such additional capacity.</p>
+<h3 id="bylaw-4-15">4.15</h3>
+<p>More than 3 absences by a Director in an election year (September – September) from a regularly scheduled and properly noticed meeting of the Board of Directors may result in removal from the Board as per Section 4.10. A Director’s first point of contact for notification of such absence shall be the Chairman of the Board of Directors. A Director is not considered absent if present (either in person or through an authorized electronic means) for at least seventy-five percent (75%) of the total duration of the meeting, as measured from the time the meeting is called to order to the time of final adjournment, but not to be measured in separate increments of time.</p>
+<h2 id="article-v">ARTICLE V</h2>
+<h3>COMMITTEES</h3>
+<h3 id="bylaw-5-01">5.01</h3>
+<p>Designation of Standing or Special Committees. The Board of Directors may from time to time by resolution designate such committees as it may deem appropriate in carrying out its duties, responsibilities, functions and powers. The membership of each such committee designated hereunder shall include at least two (2) Directors and such other Directors as may be necessary to carry out its function. No committee member shall receive compensation for services rendered to the Corporation as a committee member; however, committee members may be reimbursed for expenses incurred in the performance of their duties as committee members. The members and chairman of each committee shall be appointed by the Board of Directors.</p>
+<h3 id="bylaw-5-02">5.02</h3>
+<p>Proceedings of Committees. Each committee may meet at such places and at such times and upon such notice as the members of the committee may from time to time determine. Each committee shall keep a record of its proceedings and regularly report such proceedings to the Board of Directors.</p>
+<h3 id="bylaw-5-03">5.03</h3>
+<p>Resignations and Removals. Any member of any committee designated hereunder by the Board of Directors may resign at any time by delivering a written resignation to the Chairman of the Board of Directors or to the presiding officer of the committee of which he is a member. Unless otherwise specified therein, such resignation shall take effect upon delivery. The Board of Directors may at any time, for cause or without cause, remove any member of any committee designated by it hereunder.</p>
+<h3 id="bylaw-5-04">5.04</h3>
+<p>Vacancies in Committees. If any vacancies shall occur in any committee designated by the Board of Directors hereunder due to disqualification, death, resignation, removal or otherwise, the remaining members shall, until filling of such vacancy, constitute the then total authorized membership of the committee and provided that two or more members are remaining, may continue to act. The Chairman of the Board of Directors may fill such vacancy by the appointment of a replacement.</p>
+<h2 id="article-vi">ARTICLE VI</h2>
+<h3>OFFICERS</h3>
+<h3 id="bylaw-6-01">6.01</h3>
+<p>Number and Qualification. The officers of the Corporation shall be a President, a Secretary and such other officers as may from time to time be appointed by the Board of Directors. The Board of Directors shall appoint all officers, each of who shall have such title, hold office for such period, have such authority, and perform such duties as the Board of Directors may designate or delegate.</p>
+<h3 id="bylaw-6-02">6.02</h3>
+<p>Resignation and Removal. Any officer may resign at any time by delivering a written resignation to the President or Chairman of the Board of Directors. Unless otherwise specified therein, such resignation shall take effect on delivery. Any officer may be removed by the Board of Directors at any time, for or without cause.</p>
+<h3 id="bylaw-6-03">6.03</h3>
+<p>Vacancies and Newly Created Offices. If any vacancy shall occur in any office by reason of death, resignation, removal, disqualification or any other cause, or if a new office shall be created, such vacancies or newly created offices may be filled by the Board of Directors at any regular or special meeting.</p>
+<h3 id="bylaw-6-04">6.04</h3>
+<p>The President. The President is the Chief Operating Officer of the Corporation and shall be responsible for the day-to-day operations of the Corporation. The President shall sign on behalf of the Corporation all conveyances, documents, and contracts which are within the scope of authority delegated to him, or with prior approval of the board of Directors, and shall do and perform all other acts and duties that the Board may require of him.</p>
+<h3 id="bylaw-6-05">6.05</h3>
+<p>The Secretary. The Secretary shall keep the minutes of the Corporation and shall maintain such books and records of these Bylaws, the Rules and Regulation, and any resolution of the Board of Directors, may require him to keep. The Secretary shall be custodian of the seal of the Corporation, if any, and shall affix such seal, if any, to all papers and instruments requiring the same. The Secretary shall do and perform such other duties as the President and the Board of Directors may require of him, or her.</p>
+<h3 id="bylaw-6-06">6.06</h3>
+<p>Direction, oversight and discipline of employees of the Corporation shall be exclusively confined to the officers. No individual Director may compel any officer, employee, or third- party to perform any duties without the consent of the Board of Directors.</p>
+<h2 id="article-vii">ARTICLE VII</h2>
+<h3>INDEMNIFICATION</h3>
+<h3 id="bylaw-7-01">7.01</h3>
+<p>Specific Indemnification. The Corporation shall indemnify any Director or officer or any former Director or officer of the Corporation, or any person who may have served at the request of the Corporation as a Director, director or officer of another Corporation or entity (whether for profit or not for profit), against expenses actually and necessarily incurred by him in connection with the defense of any action, suit or proceeding in which is made a party by reason of being or having been such Director, director or officer, except in relation to matters to which he, or she shall be adjudged in such action, suit or proceeding to be liable for intentional misconduct in the performance of duty.</p>
+<h3 id="bylaw-7-02">7.02</h3>
+<p>General Indemnification. In addition to the specific indemnification provided in Section 7.01 hereof, the Corporation shall indemnify all Directors and officers and all former Directors and officers and all persons who may have served at the request of the Corporation as a Director, director or officer of another Corporation or entity (whether for profit or not for profit), to the fullest extent permitted by Utah law as the same may hereafter be amended, modified or adopted. The Corporation, its officers and Directors shall be fully protected in taking any action or making any payment or in refusing to do so in reliance upon the advice of counsel. The indemnification provided for in this Article VII shall not be deemed to be exclusive of any other right to which those indemnified, or seeking indemnification, may be entitled under any bylaw, agreement, vote of the members, vote of disinterested Directors, or otherwise.</p>
+<h2 id="article-viii">ARTICLE VIII</h2>
+<h3>FISCAL POLICIES</h3>
+<h3 id="bylaw-8-01">8.01</h3>
+<p>Fiscal Year. The fiscal year of the Corporation shall be determined by the Board of Directors.</p>
+<h3 id="bylaw-8-02">8.02</h3>
+<p>Audit. The books of the Corporation shall be audited annually by the individual or firm selected by the Board of Directors. The audit report shall be presented at the annual meeting of the members.</p>
+<h3 id="bylaw-8-03">8.03</h3>
+<p>Dissolution. In the event that the Corporation is dissolved, its assets shall be distributed to its members.</p>
+<h3 id="bylaw-8-04">8.04</h3>
+<p>Seal. The Board of Directors may by resolution provide a corporate seal which shall be circular in form and shall have inscribed thereon the name of the Corporation, the state of incorporation, and the words "Corporate Seal".</p>
+<h3 id="bylaw-8-05">8.05</h3>
+<p>Sale or Encumbrance of Property. In addition to the requirements of Utah law regarding the sale or encumbrance of substantially all of the assets of the Corporation, the Corporation shall not sell, convey, mortgage or encumber its interest in real property, without the prior approval of the members in the manner provided for in Bylaw 3.07 above.</p>
+<h2 id="article-ix">ARTICLE IX</h2>
+<h3>POLICIES, PLAN AND PROCEDURES</h3>
+<h3 id="bylaw-9-01">9.01</h3>
+<p>Policies, plans and procedures. Policies, plans and procedures that are fundamental to the business, member relations and employee performance and moral shall be subject to review and approval by the Board of Directors, before they may be implemented. The Board of Directors may delegate any or all of the following policies, plans, and procedures to a management company hired by the Board of Directors. These include, but are not limited to:</p>
+<ul><li>Annual financial and operating plan</li><li>Accounting of operating costs</li><li>Compensation plans and policies</li><li>Termination of key personnel</li><li>Annual performance evaluation of all personnel</li><li>Business ethics policy</li><li>Conflict of interest policy</li><li>Travel expense policy for employees and Directors</li><li>Delegation of authority and approval of authority Handling, retention and release of information pertaining to members</li><li>Rights of individual members</li><li>Data processing documentation requirements, operating procedures, data security and backup requirements and system modification control</li><li>Assessments, annual maintenance fees and members' dues.</li></ul>
+<h2 id="article-x">ARTICLE X</h2>
+<h3>MAINTENANCE FEES</h3>
+<h3 id="bylaw-10-01">10.01</h3>
+<p>Maintenance Fees. The Board of Directors shall, in its sole discretion, determine, levy and collect annual maintenance fees against all assessable stock of the Corporation. Said fees shall be paid by shareholders as and when due. The Board shall equitably distribute annual maintenance costs amongst all assessable classes of stock in proportion to their interests and rights as they appear. Maintenance fees shall be levied equally against shares within each class of stock.</p>
+<h3 id="bylaw-10-02">10.02</h3>
+<p>Assessments. The Board of Directors may, in its sole discretion, determine, levy and collect assessments for any business purpose, including but not limited to special maintenance fees, against assessable stock of the Corporation. Said assessments shall be paid by shareholder as and when due. The Board in its sole discretion, may levy assessments against one or any combination of assessable classes of stock. Assessments shall be levied equally against shares within each class of stock.</p>
+<h3 id="bylaw-10-03">10.03</h3>
+<p>Procedure for Levying and Collecting. The Board shall establish rules and procedures for levying and collecting maintenance fees and other assessments as the Board deems appropriate. The Board shall further establish remedies and related procedures for invoking the same in the event of default in the payment of dues, maintenance fees and assessments, which remedies may include, but are not limited to (i) suspension and/or termination of membership rights and privileges, and/or (ii) forfeiture, foreclosure or other termination of stock and other ownership rights and privileges, and/or (iii) other remedies available under State law.</p>
+<h2 id="article-xi">ARTICLE XI</h2>
+<h3>AMENDMENT OF BYLAWS</h3>
+<h3 id="bylaw-11-01">11.01</h3>
+<p>Amendments. These Bylaws may be amended at any meeting of the Board of Directors by an affirmative vote of a majority of all Directors, provided that the amendment has been submitted in writing to each member of the Board of Directors prior to such meetings. The above to the contrary, notwithstanding, this section, Section 4.02 entitled the "Number and Qualification of Directors", Section 4.09 entitled "Resignation", Section 4.10 entitled “Removal” and/or Section 10.01 entitled "Maintenance Fees", or the adoption of a new section which is in conflict with, or supplements of any of such sections, requires, in addition to the above; the affirmative vote of 75% of the existing Board of Directors. In addition, any provision of these bylaws which provided for approval of the members may only be amended if approved by the members in the manner provided for in said provision.</p>
+<h2 id="article-xii">ARTICLE XII</h2>
+<h3>INTERPRETATION</h3>
+<p>Except as otherwise provided herein or required by the content hereof, singular shall include the plural, the plural shall include the singular, the whole shall include any part thereof, and any gender shall include all other genders. The section headings contained herein are for convenience and reference only and are not intended to define or limit the scope of any provision of these Bylaws.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-appendix.html">Previous</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

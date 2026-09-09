@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1. PURPOSE AND AUTHORITY | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html" class="active">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>1. PURPOSE AND AUTHORITY</h1>
+        <p class="policy-section-nav"><a href="policy-section-2.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<p>The following Rules and Regulations are made for the safety and enjoyment of all Members, Owners and Visitors of East Canyon Resort (ECR). They are adopted by the Board of Directors as provided for in the Bylaws of ECR. ECR may enforce these Rules and Regulations by any or all of these methods: immediate fine, verbal warning, written warning, no action, or refer the matter to the Board of Directors for suspension or termination of Members' privileges.</p>
+<h3 id="sec-1-1">1.1. Penalties</h3>
+<p>The penalty for violation of any Rule or Regulation shall be itemized in Appendix A, which is incorporated herein by reference. Penalties may be assessed for each violation, incident, or repetition of a violation. The continuance of a condition is a violation for each day the condition continues.</p>
+<h3 id="sec-1-2">1.2. Number and Sex</h3>
+<p>Any reference to a person by sex shall be deemed a reference to both sexes. Any reference to one person shall be understood as applying to all persons of the same class.</p>
+<h3 id="sec-1-3">1.3. Volunteer Staff</h3>
+<p>Resort Management may appoint Volunteer Staff from time to time who may be exempt from reservation and use restrictions during the course of their duties.</p>
+<h3 id="sec-1-4">1.4. Liability</h3>
+<p>Anyone entering ECR property assumes the risk of loss, damage, injury or theft. ECR is not liable for any of the above.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-2.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

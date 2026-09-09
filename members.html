@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members | East Canyon Resort</title>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb7"></script>
+  <script>
+    (function () {
+      var next = location.search || "";
+      try {
+        var user = typeof Auth !== "undefined" && Auth.getCurrentUser();
+        if (user && user.accountKind === "admin") {
+          location.replace("admin.html");
+          return;
+        }
+        if (user && Auth.canAccessMembers(user) && !Auth.needsPasswordChange(user)) {
+          location.replace("member-home.html");
+          return;
+        }
+      } catch (err) {}
+      location.replace("login.html" + next + location.hash);
+    })();
+  </script>
+</head>
+<body>
+  <p><a href="login.html">Continue to Members</a></p>
+</body>
+</html>

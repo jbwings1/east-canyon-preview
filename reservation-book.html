@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Book an RV site, condo, or family reunion stay at East Canyon Resort.">
+  <title>Book a Stay | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site13">
+</head>
+<body class="page-visitor page-reservations" data-reservation-mode="book">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html" class="active">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide reservation-page">
+      <p class="admin-back"><a href="reservations.html">← My reservations</a></p>
+
+      <section id="request-form" class="reservation-form-section">
+        <h1 id="booking-form-title">Book a new stay</h1>
+        <p class="reservation-form-intro">
+          Choose your dates and type, select an open unit on the map, then complete the booking.
+        </p>
+        <p id="editing-banner" class="stay-length-notice" hidden role="status"></p>
+
+        <form id="reservation-form" class="reservation-form reservation-form--compact" novalidate>
+          <input type="hidden" id="res-preferred-spot" name="preferredSpot" value="">
+
+          <div class="form-row form-row--4">
+            <div class="form-group">
+              <label for="res-checkin">Check-in <span class="label-optional">(within 60 days)</span></label>
+              <input type="date" id="res-checkin" name="checkIn" required>
+            </div>
+            <div class="form-group">
+              <label for="res-checkout">Check-out</label>
+              <input type="date" id="res-checkout" name="checkOut" required>
+            </div>
+            <div class="form-group">
+              <label for="res-type">Reservation type</label>
+              <select id="res-type" name="type" required>
+                <option value="">Select type</option>
+                <option value="condo">Condo</option>
+                <option value="family-reunion">Family reunion</option>
+                <option value="rv">RV</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="res-guests">Guests</label>
+              <input type="number" id="res-guests" name="guests" min="1" max="30" value="2" required>
+            </div>
+          </div>
+
+          <p id="stay-length-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
+
+          <div class="form-row form-row--4">
+            <div class="form-group">
+              <label for="res-name">Full name</label>
+              <input type="text" id="res-name" name="name" autocomplete="name" required>
+            </div>
+            <div class="form-group">
+              <label for="res-member-id">Member ID <span class="label-optional">(max 2 upcoming)</span></label>
+              <input type="text" id="res-member-id" name="memberId" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+              <label for="res-email">Email</label>
+              <input type="email" id="res-email" name="email" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+              <label for="res-phone">Phone</label>
+              <input type="tel" id="res-phone" name="phone" autocomplete="tel" required>
+            </div>
+          </div>
+
+          <p id="member-reservation-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
+
+          <div class="form-row form-row--details">
+            <div class="form-group" id="rv-details-group">
+              <label for="res-rig">RV length</label>
+              <select id="res-rig" name="rig">
+                <option value="">Select length</option>
+                <option value="25">25'</option>
+                <option value="30">30'</option>
+                <option value="35">35'</option>
+                <option value="40">40'</option>
+                <option value="45">45'</option>
+                <option value="50">50'</option>
+                <option value="55">55'</option>
+                <option value="60">60'</option>
+                <option value="65">65'</option>
+                <option value="70">70'</option>
+                <option value="75">75'</option>
+              </select>
+            </div>
+            <div class="form-group form-group--grow">
+              <label for="res-notes">Notes <span class="label-optional">(optional)</span></label>
+              <input type="text" id="res-notes" name="notes" placeholder="Accessibility, pets, preferred area, etc.">
+            </div>
+          </div>
+
+          <div class="form-group form-group--inline" id="preferred-spot-display" hidden>
+            <p class="selected-spot-banner">
+              Selected: <strong id="selected-spot-label"></strong>
+              <button type="button" id="clear-spot" class="btn-link">Clear</button>
+            </p>
+          </div>
+        </form>
+      </section>
+
+      <section id="rv-availability" class="reservation-map-section">
+        <h2 id="map-section-title">Booking Map</h2>
+        <p id="map-date-summary" class="reservation-map-summary">
+          Click any RV site, condo, or family reunion site — details open over the map. Pick dates and reservation type to book. Drag to pan, scroll or +/- to zoom.
+        </p>
+        <div class="map-layout reservation-map-layout reservation-map-layout--solo">
+          <div class="map-panel">
+            <div class="reservation-map-toolbar">
+              <div class="map-legend" id="map-legend" aria-label="Map legend">
+                <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+                <span class="legend-item" data-status="partial"><span class="legend-swatch partial"></span> Partially booked</span>
+                <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+                <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
+              </div>
+              <div class="map-zoom-controls" aria-label="Map zoom controls">
+                <button type="button" class="map-zoom-btn" id="map-zoom-out" aria-label="Zoom out">-</button>
+                <button type="button" class="map-zoom-btn map-zoom-btn--reset" id="map-zoom-reset" aria-label="Reset zoom">100%</button>
+                <button type="button" class="map-zoom-btn" id="map-zoom-in" aria-label="Zoom in">+</button>
+              </div>
+            </div>
+            <div class="reservation-map-stack">
+              <div class="reservation-map-viewport" id="map-viewport">
+                <div class="map-zoom-stage" id="map-zoom-stage">
+                  <div class="campground-map-frame">
+                    <p class="map-image-fallback" hidden>
+                      Add the campground map as <code>pix/map.png</code> to show the real site layout.
+                    </p>
+                    <img
+                      src="pix/map.png"
+                      alt="East Canyon Resort RV site map"
+                      class="campground-map-photo"
+                      id="campground-map-photo"
+                    >
+                    <svg id="campground-map" class="campground-map-overlay" role="img" aria-label="RV site availability overlay">
+                      <g id="spots-layer"></g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="map-site-overlay-shell" id="map-detail-shell" hidden>
+                <button type="button" class="map-site-overlay-backdrop" id="map-detail-backdrop" aria-label="Close site details"></button>
+                <aside
+                  class="map-unit-detail spot-detail map-site-overlay"
+                  id="map-unit-detail"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Site details"
+                  aria-live="polite"
+                ></aside>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reservation-submit">
+          <p id="booking-signin-notice" class="stay-length-notice" hidden>
+            <a href="login.html?next=reservation-book.html">Sign in</a> to complete a booking.
+          </p>
+          <button type="submit" class="btn btn-primary btn-full" id="complete-booking-btn" form="reservation-form">Complete Booking</button>
+          <button type="button" id="cancel-edit-btn" class="btn btn-outline btn-full" hidden>Cancel</button>
+          <p id="booking-confirmed" class="booking-confirmed" hidden>Booking confirmed</p>
+          <button type="button" id="book-another-btn" class="btn btn-outline btn-full" hidden>Clear form</button>
+          <p id="reservation-message" class="form-message" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/map-units-generated.js"></script>
+  <script src="js/spots-data.js?v=6"></script>
+  <script src="js/campground-map.js?v=8"></script>
+  <script src="js/map-zoom.js"></script>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb16"></script>
+  <script src="js/reservations.js?v=32"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

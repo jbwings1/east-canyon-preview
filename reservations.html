@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View and manage your East Canyon Resort reservations.">
+  <title>My Reservations | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site13">
+</head>
+<body class="page-visitor page-reservations">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html" class="active">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide reservation-page">
+      <p class="admin-back"><a href="member-home.html">← Members home</a></p>
+
+      <div class="reservation-intro">
+        <section class="overview">
+          <h1>My reservations</h1>
+          <p>
+            East Canyon Resort offers RV camping with full hookups, furnished condominium rentals,
+            and group sites for reunions and special gatherings – all on private land in the Morgan
+            canyon country.
+          </p>
+          <p>
+            Choose what fits your trip and book online. When a site or unit is open for your dates,
+            your reservation is confirmed immediately. Manage your stays here, or check which sites
+            are taken in the next 90 days.
+          </p>
+        </section>
+
+        <section class="reservation-steps" aria-label="How reservations work">
+          <h2>How it works</h2>
+          <ol>
+            <li><strong>Choose</strong> condo, family reunion, or RV and pick your dates.</li>
+            <li><strong>Select</strong> an open unit on the map that matches your reservation type.</li>
+            <li><strong>Book</strong> online – if it is available, your reservation is confirmed right away.</li>
+            <li><strong>Manage</strong> stays here — click a booking to view, edit, or delete it.</li>
+          </ol>
+        </section>
+      </div>
+
+      <p id="hub-status" class="form-message" role="status" aria-live="polite"></p>
+      <p id="hub-booking-notice" class="stay-length-notice" hidden role="status"></p>
+
+      <p class="reservation-hub-actions">
+        <a href="reservation-book.html" class="btn btn-primary" id="hub-book-link">Book a new stay</a>
+      </p>
+
+      <section class="reservation-form-section" id="hub-list-section" aria-label="Your bookings">
+        <h2>Your bookings</h2>
+        <div id="hub-booking-list" class="reservation-card-list">
+          <p class="dashboard-empty">Loading…</p>
+        </div>
+      </section>
+
+      <section class="reservation-form-section" id="hub-occupancy-section" aria-label="Site availability">
+        <h2>Sites taken (next 90 days)</h2>
+        <p class="reservation-form-intro">
+          Pick from and to dates to see which sites are taken. Members see occupancy only — not who booked.
+          Click a colored site for booked dates in your range — details open over the map.
+          <span id="hub-occupancy-admin-note" hidden> Admins also see member names and booking details.</span>
+        </p>
+        <div class="form-row form-row--4 occupancy-date-row">
+          <div class="form-group">
+            <label for="occupancy-from">From</label>
+            <input type="date" id="occupancy-from" required>
+          </div>
+          <div class="form-group">
+            <label for="occupancy-to">To</label>
+            <input type="date" id="occupancy-to" required>
+          </div>
+          <div class="form-group">
+            <label for="occupancy-rig">RV length <span class="label-optional">(optional)</span></label>
+            <select id="occupancy-rig" name="occupancy-rig">
+              <option value="">Any length</option>
+              <option value="25">25'</option>
+              <option value="30">30'</option>
+              <option value="35">35'</option>
+              <option value="40">40'</option>
+              <option value="45">45'</option>
+              <option value="50">50'</option>
+              <option value="55">55'</option>
+              <option value="60">60'</option>
+              <option value="65">65'</option>
+              <option value="70">70'</option>
+              <option value="75">75'</option>
+            </select>
+          </div>
+          <div class="form-group occupancy-check-wrap">
+            <label>&nbsp;</label>
+            <button type="button" class="btn btn-primary" id="occupancy-check-btn">Check bookings</button>
+          </div>
+        </div>
+        <p id="occupancy-message" class="form-message" role="status" aria-live="polite"></p>
+        <div class="map-legend occupancy-legend" id="occupancy-map-legend" aria-label="Map legend">
+          <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+          <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+          <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
+        </div>
+        <div id="occupancy-map-wrap" class="occupancy-map-wrap" hidden>
+          <div class="map-layout reservation-map-layout reservation-map-layout--solo">
+            <div class="map-panel">
+              <div class="reservation-map-toolbar">
+                <div class="map-zoom-controls" aria-label="Map zoom controls">
+                  <button type="button" class="map-zoom-btn" id="occupancy-zoom-out" aria-label="Zoom out">-</button>
+                  <button type="button" class="map-zoom-btn map-zoom-btn--reset" id="occupancy-zoom-reset" aria-label="Reset zoom">100%</button>
+                  <button type="button" class="map-zoom-btn" id="occupancy-zoom-in" aria-label="Zoom in">+</button>
+                </div>
+              </div>
+              <div class="reservation-map-stack">
+                <div class="reservation-map-viewport" id="occupancy-map-viewport">
+                  <div class="map-zoom-stage" id="occupancy-zoom-stage">
+                    <div class="campground-map-frame">
+                      <img
+                        src="pix/map.png"
+                        alt="East Canyon Resort site map"
+                        class="campground-map-photo"
+                        id="occupancy-map-photo"
+                      >
+                      <svg id="occupancy-campground-map" class="campground-map-overlay" role="img" aria-label="Site occupancy overlay">
+                        <g id="occupancy-spots-layer"></g>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <div class="map-site-overlay-shell" id="occupancy-detail-shell" hidden>
+                  <button type="button" class="map-site-overlay-backdrop" id="occupancy-detail-backdrop" aria-label="Close site details"></button>
+                  <aside
+                    class="map-unit-detail spot-detail map-site-overlay"
+                    id="occupancy-unit-detail"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Site details"
+                    aria-live="polite"
+                  ></aside>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/map-units-generated.js"></script>
+  <script src="js/spots-data.js?v=6"></script>
+  <script src="js/campground-map.js?v=8"></script>
+  <script src="js/map-zoom.js"></script>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb16"></script>
+  <script src="js/reservation-hub.js?v=17"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

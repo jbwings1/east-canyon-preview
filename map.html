@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive campground map — view RV and condo availability at East Canyon Resort.">
+  <title>Site Map | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <header class="page-header">
+        <p class="section-label">Campground Map</p>
+        <h1>Find your spot</h1>
+        <p class="page-intro">
+          Click any RV site or condo for availability. Green is open for your full stay; yellow is partially booked; red is fully booked.
+        </p>
+      </header>
+
+      <div class="map-layout">
+        <div class="map-panel">
+          <div class="map-legend" id="map-legend" aria-label="Map legend">
+            <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+            <span class="legend-item" data-status="partial"><span class="legend-swatch partial"></span> Partially booked</span>
+            <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+          </div>
+
+          <div class="campground-map-frame map-scroll">
+            <p class="map-image-fallback" hidden>
+              Add the campground map as <code>pix/map.png</code> to show the real site layout.
+            </p>
+            <img
+              src="pix/map.png"
+              alt="East Canyon Resort RV site map"
+              class="campground-map-photo"
+              id="campground-map-photo"
+            >
+            <svg id="campground-map" class="campground-map-overlay" role="img" aria-label="Campground site availability overlay">
+              <g id="spots-layer"></g>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="spot-detail" id="spot-detail">
+          <p class="spot-detail-placeholder">Select a site on the map to see details.</p>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <script src="js/map-units-generated.js"></script>
+  <script src="js/spots-data.js"></script>
+  <script src="js/campground-map.js"></script>
+  <script src="js/map.js"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

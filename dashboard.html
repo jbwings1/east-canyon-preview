@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your East Canyon Resort member profile — contact details, site, and bookings.">
+  <title>Member Profile | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html" class="active">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <header class="page-header">
+        <p class="section-label" id="account-type-label">Account</p>
+        <h1 id="welcome-name">Member Profile</h1>
+        <p><a href="member-home.html">Members home</a> · <a href="admin.html" data-admin-link hidden>Admin</a> · <button type="button" id="logout-btn" class="btn-link">Sign Out</button></p>
+      </header>
+
+      <div class="dashboard-grid">
+        <section class="dashboard-card dashboard-card--wide" id="profile-card">
+          <h2>Profile</h2>
+          <form id="profile-form" class="profile-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profile-member-id">Member ID</label>
+                <input type="text" id="profile-member-id" disabled>
+              </div>
+              <div class="form-group">
+                <label for="profile-login">Login</label>
+                <input type="text" id="profile-login" disabled>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profile-username">Username</label>
+                <input type="text" id="profile-username" disabled>
+              </div>
+              <div class="form-group">
+                <label for="profile-name">Full name</label>
+                <input type="text" id="profile-name" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profile-email">Email</label>
+                <input type="email" id="profile-email" required>
+              </div>
+              <div class="form-group">
+                <label for="profile-phone">Phone</label>
+                <input type="tel" id="profile-phone" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-address">Address</label>
+              <input type="text" id="profile-address" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profile-city">City</label>
+                <input type="text" id="profile-city" required>
+              </div>
+              <div class="form-group">
+                <label for="profile-state">State</label>
+                <input type="text" id="profile-state" required maxlength="2">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-zip">Zip</label>
+              <input type="text" id="profile-zip" required>
+            </div>
+            <div class="form-group">
+              <label for="profile-type">Type</label>
+              <select id="profile-type">
+                <option value="">Select type</option>
+                <option value="condo">Condo</option>
+                <option value="family-reunion">Family reunion</option>
+                <option value="rv">RV</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="profile-rv">RV / rig details</label>
+              <input type="text" id="profile-rv">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Profile</button>
+            <p id="profile-message" class="form-message" role="status"></p>
+          </form>
+        </section>
+
+        <section class="dashboard-card" id="spot-card">
+          <h2>Your Site</h2>
+          <div id="spot-content"></div>
+        </section>
+
+        <section class="dashboard-card" id="bookings-card">
+          <h2>Bookings</h2>
+          <div id="bookings-content"></div>
+        </section>
+
+        <section class="dashboard-card dashboard-card--wide" id="password-card">
+          <h2>Change Password</h2>
+          <form id="password-form" class="profile-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="current-password">Current password</label>
+                <input type="password" id="current-password" autocomplete="current-password" required>
+              </div>
+              <div class="form-group">
+                <label for="new-password">New password</label>
+                <input type="password" id="new-password" autocomplete="new-password" required minlength="8">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="confirm-password">Confirm new password</label>
+              <input type="password" id="confirm-password" autocomplete="new-password" required minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Password</button>
+            <p id="password-message" class="form-message" role="status"></p>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="js/spots-data.js"></script>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb16"></script>
+  <script src="js/dashboard.js?v=sb2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

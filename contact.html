@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Information | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container page-content page-content--wide">
+      <h1>Contact Information</h1>
+      <p>
+        Call, email, or send a message below. Physical address:
+        8896 South Highway 65, Morgan, UT 84050.
+        Mailing address: PO Box 228, Henefer, UT 84033.
+      </p>
+
+      <div class="contact-grid">
+        <section>
+          <h2>Front Desk / Store</h2>
+          <p>Monday–Saturday: 9 AM – 9 PM<br>Sunday: 9 AM – 5 PM</p>
+          <p><a href="tel:+18013599030">(801) 359-9030</a>, option 5</p>
+        </section>
+        <section>
+          <h2>Reservations</h2>
+          <p>Monday–Friday: 9 AM – 4 PM<br>Closed holidays</p>
+          <p><a href="tel:+18013599030">(801) 359-9030</a>, option 1</p>
+        </section>
+        <section>
+          <h2>Member Services</h2>
+          <p>Monday–Friday: 9 AM – 5 PM<br>Closed holidays</p>
+          <p><a href="tel:+18013599030">(801) 359-9030</a>, option 3</p>
+        </section>
+        <section>
+          <h2>Special Events</h2>
+          <p>
+            <a href="tel:+18013599030">(801) 359-9030</a>, option 2<br>
+            <a href="mailto:specialevents@eastcanyon.com">specialevents@eastcanyon.com</a>
+          </p>
+        </section>
+        <section>
+          <h2>Management</h2>
+          <p><a href="tel:+18013599030">(801) 359-9030</a>, ext. 207</p>
+        </section>
+        <section>
+          <h2>Social media</h2>
+          <p>
+            <a href="https://www.instagram.com/eastcanyonresort/" target="_blank" rel="noopener noreferrer">Instagram</a><br>
+            <a href="https://www.facebook.com/eastcanyonresortUT" target="_blank" rel="noopener noreferrer">Facebook</a><br>
+            <a href="https://twitter.com/east_canyon" target="_blank" rel="noopener noreferrer">X / Twitter</a>
+          </p>
+        </section>
+      </div>
+
+      <h2>Directions from Salt Lake International Airport</h2>
+      <h3>Summer</h3>
+      <p>
+        Take I-80 East. After a brief crossover on I-15 South, continue east on I-80.
+        Travel up Parley’s Canyon on I-80 East to the East Canyon Exit 134, Highway 65.
+        Turn left at the end of the exit and stay on Highway 65 for 14 miles.
+        Highway 65 goes to the top of Big Mountain and then drops down to East Canyon.
+        The resort is on your left.
+      </p>
+      <h3>Winter</h3>
+      <p>
+        Take I-80 East. After a brief crossover on I-15 South, continue east on I-80.
+        Travel past Park City and Echo Reservoir and take I-84 West, exit 168.
+        Take exit 115 at Henefer and turn left. In Henefer, follow the signs and turn left onto Highway 65 South.
+        After about 8 miles, turn left at the fork in the road. Continue on Highway 65 for 4.5 miles to East Canyon Resort;
+        the resort is on the right. Highway 65 North over Big Mountain is closed from about November 15 through May 15.
+        The resort remains accessible through Henefer or Morgan during the closure.
+      </p>
+      <p><a href="winter-access.html">Winter access details</a></p>
+
+      <h2>Have a question?</h2>
+      <form id="contact-form" class="committee-form">
+        <fieldset class="form-group">
+          <legend>Are you currently a member?</legend>
+          <div class="form-radios">
+            <label><input type="radio" name="member" value="Yes" required> Yes</label>
+            <label><input type="radio" name="member" value="No" checked> No</label>
+          </div>
+        </fieldset>
+        <div class="form-group">
+          <label for="contact-name">Name</label>
+          <input type="text" id="contact-name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="contact-email">Email</label>
+          <input type="email" id="contact-email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="contact-message">Message</label>
+          <textarea id="contact-message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <p id="contact-status" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </main>
+  <script src="js/contact.js"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

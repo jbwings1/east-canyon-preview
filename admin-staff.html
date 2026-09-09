@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Staff | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Staff</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <h2>Create staff admin</h2>
+          <p class="admin-help">
+            Level 1 can create lower-level staff with office emails and assigned tasks.
+            Staff passwords are separate from any personal member login.
+          </p>
+          <form id="admin-create-staff-form" class="auth-form admin-form">
+            <div class="form-group">
+              <label for="staff-name">Full name</label>
+              <input type="text" id="staff-name" required>
+            </div>
+            <div class="form-group">
+              <label for="staff-email">Office email</label>
+              <input type="email" id="staff-email" required>
+            </div>
+            <div class="form-group">
+              <label for="staff-phone">Phone</label>
+              <input type="tel" id="staff-phone">
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="staff-level">Level</label>
+                <select id="staff-level" required>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="staff-seat">Seat letter</label>
+                <input type="text" id="staff-seat" placeholder="a" maxlength="2" required>
+              </div>
+              <div class="form-group">
+                <label for="staff-code">Staff code</label>
+                <input type="text" id="staff-code" placeholder="A-002" required>
+              </div>
+            </div>
+            <fieldset class="admin-task-fieldset">
+              <legend>Assigned tasks</legend>
+              <label><input type="checkbox" name="staff-task" value="members"> Members</label>
+              <label><input type="checkbox" name="staff-task" value="passwords"> Passwords</label>
+              <label><input type="checkbox" name="staff-task" value="reservations_view"> Reservations view</label>
+              <label><input type="checkbox" name="staff-task" value="reservations_manage"> Reservations manage</label>
+              <label><input type="checkbox" name="staff-task" value="website"> Website</label>
+            </fieldset>
+            <div class="form-group">
+              <label for="staff-temp-password">Temporary password</label>
+              <input type="text" id="staff-temp-password" required minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary">Create staff login</button>
+          </form>
+          <p id="admin-create-staff-result" class="form-message" role="status" aria-live="polite"></p>
+
+          <h3 class="admin-subhead">Staff directory</h3>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Level / seat</th>
+                  <th>Tasks</th>
+                </tr>
+              </thead>
+              <tbody id="admin-staff-body">
+                <tr><td colspan="5">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb5"></script>
+  <script src="js/admin-common.js?v=sb6"></script>
+  <script src="js/admin-staff.js?v=sb6"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

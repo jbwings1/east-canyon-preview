@@ -1,0 +1,3 @@
+-- Applied via Supabase MCP apply_migration: admin_member_access_flow
+-- Adds account_kind, member_id, admin levels/tasks, site_alerts, and
+-- blocks admin self-bookings. See project history for full SQL.

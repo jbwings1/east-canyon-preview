@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8. FAMILY REUNION AREAS (FRA) | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html" class="active">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>8. FAMILY REUNION AREAS (FRA)</h1>
+        <p class="policy-section-nav"><a href="policy-section-7.html">Previous</a> | <a href="policy-section-9.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h3 id="sec-8-1">8.1. Family/Special Events</h3>
+<p>A Member in Good Standing may reserve an FRA. The limit on the number of RVs allowed in each FRA is as follows: FRA #1 and #2 - 2 RVs without hookups; Druby - 8 RVs without hookups; and Cottonwood Meadows - 3 RVs without hookups. See Schedule A for penalty.</p>
+<h3 id="sec-8-2">8.2. Frequency</h3>
+<p>Reservations for FRAs may be made up to one (1) year prior to the date of the desired Reservation. RV</p>
+<p>Members may also make an RV Reservation up to a year (365 days) in advance for the same period of time provided they have a FRA reservation. This RV reservation will not count against the members limit of two (2) RV reservations on the books at a time. If a FRA reservation is cancelled or changed, the RV Reservation will be cancelled and a new RV Reservation cannot be made until at least three (3) days has elapsed. Reservations may be made no more frequently than every other year per Membership Unit. After January 2nd any Member may make a FRA Reservation for the same calendar year regardless of when his last Reservation was made. Amended May 2024.</p>
+<h3 id="sec-8-3">8.3. Fee</h3>
+<p>A FRA Fee will be charged for each Family Reunion Area reserved. The areas should be left free of litter and food waste. See Appendix B for FRA fee and maximum capacity. See Appendix A for penalty.</p>
+<h3 id="sec-8-4">8.4. Cancellation</h3>
+<p>Reservations may be cancelled up to twenty-one (21) days in advance of the check-in date without any penalty. If it's within the twenty-one (21) days a fine may be assessed for the cancellation. See Appendix A for penalty.</p>
+<h4 id="sec-8-4-1">8.4.1. No Show</h4>
+<p>A No Show fine may be assessed if the FRA site goes unused any night reserved. See Appendix A for penalty.</p>
+<h3 id="sec-8-5">8.5. Special Events</h3>
+<p>Social and Special Events are to be booked in the designated Special Events areas. Special events shall not be held in the FRA.</p>
+<h3 id="sec-8-6">8.6. RV Power Use</h3>
+<p>Power outlets in the FRA are not to</p>
+<p>be used by RV in the FRA at any time. See Appendix A for penalty.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-7.html">Previous</a> | <a href="policy-section-9.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

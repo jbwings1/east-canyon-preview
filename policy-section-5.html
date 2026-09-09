@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5. CONDO RESERVATIONS | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html" class="active">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>5. CONDO RESERVATIONS</h1>
+        <p class="policy-section-nav"><a href="policy-section-4.html">Previous</a> | <a href="policy-section-6.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h3 id="sec-5-1">5.1. Regular Time</h3>
+<h4 id="sec-5-1-1">5.1.1. Good Standing</h4>
+<p>A Condo Member in Good Standing may reserve Condos for Regular Time on a first come-first served basis, subject to the following restrictions:</p>
+<h4 id="sec-5-1-2">5.1.2. Reservations</h4>
+<p>Reservations may be made Three Hundred and Sixty-Five (365) days in advance by the Primary Member only. However, Reservations are limited to one (1) weekend in the Winter and one (1) weekend in the Summer. Members wanting Reservations for the same time period the following year must make that Reservation any time after check-out.</p>
+<h4 id="sec-5-1-3">5.1.3. Reservations 21 Days or Less</h4>
+<p>Reservations made 21 days or less in advance may be made for any available time regardless of whether a Weekend is included or not.</p>
+<h4 id="sec-5-1-4">5.1.4. Members with 14 Days</h4>
+<p>Rescinded 5/24/22</p>
+<h4 id="sec-5-1-5">5.1.5. Special Allowance for Trade Weeks</h4>
+<p>Certain weeks may be Reserved only for trade through RCI or Trading Places Legacy up to 24 months prior to the desired Reservation start date and according to the rules of the banking organization. Any members wishing to bank time must be current on their maintenance fees at the time of the request or it will not be approved. To bank time for any future year, at the time of the deposit request all Maintenance Fees must be prepaid for that year at the current Maintenance Fee rate. Any difference in cost when the Maintenance Fees for that future year are decided by the Board of Directors will be billed according to normal procedure and must be paid immediately.</p>
+<h4 id="sec-5-1-6">5.1.6. Regular Time Condo Cleaning</h4>
+<p>Members' first regular time stay of the financial year will have a free cleaning fee. Every regular time stay after will be charged a cleaning fee. See Appendix B for fee. Amended February 2024.</p>
+<h4 id="sec-5-1-7">5.1.7. Summer/Winter Split</h4>
+<p>Members may use half of their Regular Time in the Summer Season. All of the Regular Time may be used in the Winter Season. Members who have only four (4) days of Regular Time may use their full number of days anytime during the year.</p>
+<h4 id="sec-5-1-8">5.1.8. No Carry-Over</h4>
+<p>When the Reservation Year ends all remaining unused Regular Time is cancelled. There is no accrual of time from one Reservation Year to the next.</p>
+<h4 id="sec-5-1-9">5.1.9. No Show- Failure to occupy a Condo reserved for</h4>
+<p>Regular Time by 9:00 pm on the SECOND day of the Reservation, unless arrangements are made with ECR for later arrival, will result in Cancellation of the Reservation. The full period of the Reservation will be considered as used Regular Time for that Reservation Year and will be counted as a stay. Amended March 21, 2024.</p>
+<h4 id="sec-5-1-10">5.1.10. Cancellation</h4>
+<p>A Regular Time Reservation must be canceled at least two (2) days prior to the start of the Reservation period in order to avoid the Cancellation Fee. Cancellations less than two (2) calendar days before the scheduled Check In time will result in the Late Cancellation Fee being assessed. When any reserved Regular Time days are cancelled, the Member must wait three (3) business days before making a Bonus Time Reservation. See Appendix A for penalty.</p>
+<h3 id="sec-5-2">5.2. Bonus Time</h3>
+<h4 id="sec-5-2-1">5.2.1. Restrictions and Fee</h4>
+<p>A Full Member in Good Standing entitled to Bonus Time may request Bonus Time use of a Condo. Bonus Time may be reserved up to 28 days in advance for a two (2) to seven (7) day stay. See Appendix B for Bonus Time fee.</p>
+<h4 id="sec-5-2-2">5.2.2. - Rescinded 10/22/15</h4>
+<h4 id="sec-5-2-3">5.2.3. No Show- Failure to occupy a Condo reserved for</h4>
+<p>Bonus Time by 9:00 pm on the first day of the Reservation, unless arrangements are made with ECR for later arrival, will result in cancellation of the Reservation and a No Show Fee will be assessed. See Appendix A for penalty.</p>
+<h4 id="sec-5-2-4">5.2.4. Cancellation</h4>
+<p>A Bonus Time Reservation may be</p>
+<p>cancelled more than two (2) days prior to the start of the Reservation period without charge. Cancellations two (2) or less calendar days before the scheduled check in time will result in the Late Cancellation Fee being assessed. See Appendix A for penalty.</p>
+<h4 id="sec-5-2-5">5.2.5. Bonus Time May Not Be Rented or Given Away -</h4>
+<p>If the Full Member is absent from the condo, a fine will be assessed. See Appendix A for penalty.</p>
+<h3 id="sec-5-3">5.3. Waiting Lists</h3>
+<p>On request, a Member in Good Standing can be put on a Waiting List for Bonus Time or Regular Time for a specific date(s) if he leaves a phone number. ECR will attempt to contact the Member at that number should a Unit become available. Requests for Regular Time are given priority over Bonus Time or multiple Condo requests. If the Member cannot be reached or does not confirm a Reservation within an hour of the notification, the Member's name will be taken off the Waiting List.</p>
+<h3 id="sec-5-4">5.4. RCI/VRI Exchange</h3>
+<p>Rescinded 04/01/2021</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-4.html">Previous</a> | <a href="policy-section-6.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

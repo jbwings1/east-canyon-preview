@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Align map spots | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page-map-align page-map-edit">
+  <a class="map-align-back" href="reservations.html">← Reservations</a>
+
+  <div class="map-align-stage" id="map-align-stage">
+    <div class="campground-map-frame map-align-frame">
+      <img
+        src="pix/map.png"
+        alt="East Canyon Resort RV site map"
+        class="campground-map-photo"
+        id="campground-map-photo"
+      >
+      <svg id="campground-map" class="campground-map-overlay" aria-hidden="true">
+        <g id="spots-layer"></g>
+        <g id="handles-layer"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="map-align-panel" id="map-edit-toolbar">
+    <p class="map-align-panel-title" id="map-align-drag-handle" title="Drag to move this panel">Align map click areas</p>
+
+    <div class="map-align-mode">
+      <button type="button" class="map-align-mode-btn is-active" data-mode="rv">RV sites</button>
+      <button type="button" class="map-align-mode-btn" data-mode="condo">Condos</button>
+      <button type="button" class="map-align-mode-btn" data-mode="reunion">Family sites</button>
+    </div>
+
+    <p class="map-align-prompt" id="align-prompt">Pick a site, then drag each <strong>blue corner</strong> to match the yellow pad.</p>
+
+    <div class="map-edit-controls">
+      <label><span id="align-unit-label">Site</span> <select id="map-edit-site"></select></label>
+    </div>
+
+    <div class="map-align-nav">
+      <button type="button" class="btn btn-outline btn-sm" id="align-prev">← Prev</button>
+      <button type="button" class="btn btn-outline btn-sm" id="align-next">Next →</button>
+      <button type="button" class="btn btn-outline btn-sm" id="align-reset-box">Reset box</button>
+    </div>
+
+    <label class="map-edit-check">
+      <input type="checkbox" id="map-edit-show-boxes" checked>
+      Show shapes &amp; handles
+    </label>
+
+    <pre class="map-edit-output" id="map-edit-output">Select a unit and drag the four corners.</pre>
+
+    <div class="map-align-actions">
+      <button type="button" class="btn btn-outline btn-sm" id="map-copy-coords">Copy corners</button>
+      <button type="button" class="btn btn-primary btn-sm" id="map-download-json">Save JSON</button>
+      <button type="button" class="btn btn-outline btn-sm" id="map-apply-help">How to apply</button>
+    </div>
+    <p class="map-align-help-text" id="apply-help" hidden>
+      1. Click <strong>Save JSON</strong> when done.<br>
+      2. In terminal: <code id="apply-command">node scripts/apply-coordinates.js map-coordinates.json</code><br>
+      3. Refresh the reservations page.
+    </p>
+  </div>
+
+  <script src="js/map-units-generated.js?v=20260814"></script>
+  <script src="js/spots-data.js?v=20260814"></script>
+  <script src="js/campground-map.js?v=20260814"></script>
+  <script src="js/map-align.js?v=20260814b"></script>
+</body>
+</html>

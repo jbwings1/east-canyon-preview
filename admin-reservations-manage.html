@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Reservations | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Manage reservations</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <h2>Make a reservation for a member</h2>
+          <p class="admin-help">You cannot book for yourself while signed in as admin.</p>
+          <form id="admin-create-booking-form" class="auth-form admin-form">
+            <div class="form-group">
+              <label for="booking-member">Member</label>
+              <select id="booking-member" required>
+                <option value="">Select member…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="booking-type">Type</label>
+              <select id="booking-type" required>
+                <option value="condo">Condo</option>
+                <option value="family-reunion">Family reunion</option>
+                <option value="rv">RV</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="booking-spot">Spot / unit</label>
+              <input type="text" id="booking-spot" placeholder="Optional">
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="booking-check-in">Check in</label>
+                <input type="date" id="booking-check-in" required>
+              </div>
+              <div class="form-group">
+                <label for="booking-check-out">Check out</label>
+                <input type="date" id="booking-check-out" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="booking-notes">Notes</label>
+              <input type="text" id="booking-notes">
+            </div>
+            <button type="submit" class="btn btn-primary">Create reservation</button>
+          </form>
+          <p id="admin-create-booking-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Confirm or cancel bookings</h2>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="admin-bookings-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Type</th>
+                  <th>Spot</th>
+                  <th>Dates</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="admin-bookings-body">
+                <tr><td colspan="6">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb5"></script>
+  <script src="js/admin-common.js?v=sb6"></script>
+  <script src="js/admin-reservations-manage.js?v=sb6"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

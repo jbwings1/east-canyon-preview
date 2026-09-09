@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2. DEFINITIONS | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html" class="active">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>2. DEFINITIONS</h1>
+        <p class="policy-section-nav"><a href="policy-section-1.html">Previous</a> | <a href="policy-section-3.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h3 id="sec-2-1">2.1. Member</h3>
+<p>Unless otherwise stated, a Full Member, Designated Member, or Temporary Member will hereafter be referred to as Member(s).</p>
+<h4 id="sec-2-1-1">2.1.1. Full Member</h4>
+<p>An individual, a married couple as joint tenants, a corporation or business that has purchased or acquired at least one share of stock in ECR, are Full Members. Married couples may not act as two separate Members.</p>
+<h4 id="sec-2-1-2">2.1.2. Temporary Member</h4>
+<p>An individual occupying a Condo or the Family Reunion Area (FRA) for the following reasons: A) during a Full Member's Regular Time in the absence of the Full Member, or B) on a VRI or RCI exchange, or C) as a Renter or Invitee of ECR.</p>
+<h4 id="sec-2-1-3">2.1.3. Designated Member</h4>
+<p>An individual, designated by a corporation owning a corporate share, to exercise the membership rights of the corporation as described in Section 3 herein.</p>
+<h4 id="sec-2-1-4">2.1.4. Relative Rights Member</h4>
+<p>An individual who is 1) at least 21 years of age, and 2) is the parent or child of a Full Member who has Relative Rights as described in the ECR Bylaws, or is designated a Relative Rights by a Corporate Member, and 3) has paid the Annual Relative Rights Fee.</p>
+<h4 id="sec-2-1-5">2.1.5. Non-Member</h4>
+<p>Any person not specifically designated as a Member or in other words, a person of the general public.</p>
+<h3 id="sec-2-2">2.2. Member in Good Standing</h3>
+<p>A Member with no outstanding Fines, Fees, or Assessments.</p>
+<h3 id="sec-2-3">2.3. Membership Unit</h3>
+<p>A Full Member has one (1) Membership Unit for each share of ECR stock owned. A Temporary Member has Use Rights of one (1) Membership Unit.</p>
+<h3 id="sec-2-4">2.4. Guest</h3>
+<p>An individual using Resort facilities by personal invitation of a Member in Good Standing or at the invitation of ECR. This includes children of the Member.</p>
+<h3 id="sec-2-5">2.5. ECR</h3>
+<p>East Canyon Resort and its officers and employees acting in their official capacity.</p>
+<h3 id="sec-2-6">2.6. Reservation</h3>
+<p>A Reservation is a period of no more than seven (7) consecutive days. All reservations must be made by the Primary Member.</p>
+<h4 id="sec-2-6-1">2.6.1. Same-Day Reservation</h4>
+<p>A Reservation made by phone during reservation hours or after hours in person at the check-in desk for an occupancy beginning on the same day.</p>
+<h4 id="sec-2-6-2">2.6.2. - Rescinded 02/27/2020</h4>
+<h4 id="sec-2-6-3">2.6.3. RV Park Bonus Time Reservation</h4>
+<p>A Reservation for the RV Park of no more than three nights, which is made after paying the Daily Bonus Time fee for an occupancy to begin immediately. This is not considered an Advanced Reservation.</p>
+<h3 id="sec-2-7">2.7. Condo Bonus Time</h3>
+<p>A Reservation for a Condo which does not use Regular Time and has a Bonus Time fee.</p>
+<h3 id="sec-2-8">2.8. Regular Time</h3>
+<p>The days a Member is entitled to occupy a Condo according to his Class of Membership.</p>
+<h3 id="sec-2-9">2.9. Availability</h3>
+<p>A Condo or RV Park Site is available when no Member or Guest has been checked in and assigned to occupy it and no Reservation for it exists for that time.</p>
+<h3 id="sec-2-10">2.10. Summer Season</h3>
+<p>Summer Season is the inclusive period of time from May 15th to September 15th.</p>
+<h3 id="sec-2-11">2.11. Winter Season</h3>
+<p>Winter Season is the inclusive period of time from September 16th to May 14th.</p>
+<h3 id="sec-2-12">2.12. Reservation Year</h3>
+<p>The Reservation Year begins April 1st and ends the following March 31st.</p>
+<h3 id="sec-2-13">2.13. Recreational Vehicle (RV)</h3>
+<p>A Recreational Vehicle (RV) is any vehicle made for or intended to be used for habitation, pulled behind a vehicle or motorized including but not limited to a motor home, van/camper conversion, truck-mounted camper, travel trailer or tent trailer. Seats that recline or can be removed for sleeping do not alone qualify a vehicle as an RV.</p>
+<h3 id="sec-2-14">2.14. Tent</h3>
+<p>A Tent is a shelter of canvas, or the like, free standing or supported by poles and fastened by cords to pegs driven into the ground. This does not include products that only provide shade.</p>
+<h3 id="sec-2-15">2.15. RV Park</h3>
+<p>The RV Park is that area where RV pads with utility hookups have been built, with their adjoining common areas and roads.</p>
+<h3 id="sec-2-16">2.16. RV Use</h3>
+<p>RV Use is the right of a Full Member or Relative Rights Member to reserve and occupy a site in the RV Park.</p>
+<h3 id="sec-2-17">2.17. Wilderness Area</h3>
+<p>The Wilderness Area is the unimproved portions of ECR land, including campsites, trails, and unimproved roads.</p>
+<h3 id="sec-2-18">2.18. Resort</h3>
+<p>The Resort is the real and personal property owned by ECR and offered for use by Members, Invitees and/or Renters.</p>
+<h3 id="sec-2-19">2.19. Fine</h3>
+<p>A Fine is an assessment on a specific person imposed as a penalty for the violation of a Rule or Regulation. Fines are specified in Appendix A.</p>
+<h3 id="sec-2-20">2.20. Fee</h3>
+<p>A Fee is an assessment on a specific person imposed for the Use of a particular service or facility. Fees are specified in Appendix B, the Fee Schedule, and are available upon request or by visiting your Member's login page on the website.</p>
+<h3 id="sec-2-21">2.21. Weekend</h3>
+<p>Weekends are any part of the period from Friday after the start of check in time through Sunday before check out time.</p>
+<h3 id="sec-2-22">2.22. Condo</h3>
+<p>A Condo is one (1) of the thirty-two (32) dwelling units commonly known as a condominium.</p>
+<h3 id="sec-2-23">2.23. RV Park Site</h3>
+<p>An RV Park Site is an RV pad in the developed RV Park including a graveled or paved parking area with hookups, the landscaped area around it and any ECR personal property provided there for Visitor's use.</p>
+<h3 id="sec-2-24">2.24. Visitor</h3>
+<p>A Visitor is any person on Resort property who is not an ECR employee.</p>
+<h3 id="sec-2-25">2.25. Wilderness Campsite</h3>
+<p>A Wilderness Campsite is an area in Druby or Bernice Canyons designated as a Campsite.</p>
+<h3 id="sec-2-26">2.26. Family Reunion Area (FRA)</h3>
+<p>A Family Reunion Area (FRA) is a Fee area on Resort property designated for group use.</p>
+<h3 id="sec-2-27">2.27. Special Events Area</h3>
+<p>A Special Events Area is a Fee area designated for group day use for meetings, festivities, weddings, or other approved gatherings.</p>
+<h3 id="sec-2-28">2.28. Over Limit Fine</h3>
+<p>An Over Limit Fine is a fine imposed whenever more people than allowed by the rules occupy any reserved area.</p>
+<h3 id="sec-2-29">2.29. Relative Rights</h3>
+<p>Relative Rights (RR) is the privilege of allowing family members to purchase an annual Relative Rights membership as regulated herein.</p>
+<h3 id="sec-2-30">2.30. Off Highway Vehicles (OHV)</h3>
+<p>Off Highway Vehicles include any motorized vehicle which does not meet Utah State qualifications to be licensed for road use. This includes, but is not limited to, street legal OHVs, snowmobiles, 4-wheelers, ATVs, tractors or other</p>
+<p>agricultural vehicles, non-street legal motorcycles (OHMs), golf carts, or any other non-street legal motorized vehicles. Vehicles designed to carry disabled persons are excluded.</p>
+<h3 id="sec-2-31">2.31. Unimproved Roads</h3>
+<p>Roads, trails, or paths on the Resort ten (10) feet wide, or more, which may be graded or graveled but have not been paved. This includes all roads outside of the improved areas around the Condos and RV Park.</p>
+<h3 id="sec-2-32">2.32. Holidays</h3>
+<p>For purposes of these Rules and Regulations, Holidays are: New Year's, Easter, Memorial Day, July 4th, July 24th, Labor Day, UEA Weekend, Thanksgiving and Christmas. Weekends surrounding the holiday are included in all holiday reservation regulations.</p>
+<h3 id="sec-2-33">2.33. Roof Top Tent</h3>
+<p>A collapsible shelter of fabric (such as nylon or canvas) stretched and sustained by poles and used for camping outdoors which has been mounted on top of a vehicle roof.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-1.html">Previous</a> | <a href="policy-section-3.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

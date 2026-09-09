@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor page-visitor-home">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+<header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html" class="active">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container visitor-layout">
+      <section class="overview">
+        <h1 id="member-greeting">Welcome</h1>
+        <p>
+          This is your members area for East Canyon Resort.
+        </p>
+        <dl class="member-profile-summary" id="member-profile-summary"></dl>
+      </section>
+
+      <nav class="visitor-links" aria-label="Member links">
+        <a href="admin.html" class="visitor-link-wide" data-admin-link hidden>Admin</a>
+        <a href="dashboard.html" class="visitor-link-wide">Edit Profile</a>
+        <a href="reservations.html" class="visitor-link-wide">Reservations</a>
+        <a href="hunting-information.html" class="visitor-link-wide">Hunting Information</a>
+        <a href="board-information.html" class="visitor-link-wide">Board Information</a>
+        <a href="policies-and-rules.html" class="visitor-link-wide">Policies and Rules</a>
+        <a href="alerts.html" class="visitor-link-wide">Current Alerts</a>
+        <div class="visitor-links-grid">
+          <a href="activities.html">Activities</a>
+          <a href="pictures.html">Pictures</a>
+          <a href="amenities.html">Amenities</a>
+          <a href="winter-access.html">Winter Access</a>
+        </div>
+        <div class="visitor-links-grid">
+          <a href="history.html">History</a>
+          <a href="wildlife.html">Wildlife</a>
+          <a href="condo-rentals.html">Condo Rentals</a>
+          <a href="special-event-venues.html">Special Event Venues</a>
+          <a href="weddings.html">Weddings</a>
+          <a href="career-opportunities.html">Career Opportunities</a>
+        </div>
+        <button type="button" id="member-logout" class="visitor-link-wide">Sign Out</button>
+      </nav>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb7"></script>
+  <script src="js/member-home.js?v=sb2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

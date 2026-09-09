@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6. RV PARK RESERVATIONS | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html" class="active">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>6. RV PARK RESERVATIONS</h1>
+        <p class="policy-section-nav"><a href="policy-section-5.html">Previous</a> | <a href="policy-section-7.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h3 id="sec-6-1">6.1. Advanced Reservations</h3>
+<p>A Member in Good Standing with RV use may reserve an RV Park Site for up to seven (7) consecutive days. Reservations may be made 60 days in advance. Members are allowed to make Advanced Guest Reservations 5 days in advance in the RV Park. Amended November 14, 2024.</p>
+<h4 id="sec-6-1-1">6.1.1. Advanced Relative Rights Reservations</h4>
+<p>Relative</p>
+<p>Rights in Good Standing may reserve an RV Park Site fourteen (14) days in advance of check-in date for up to seven (7) consecutive days, which is considered one (1) reservation, for the same date(s) as a Full Member's reservation. Amended November 14, 2024.</p>
+<h3 id="sec-6-2">6.2. Rescinded 10/22/16</h3>
+<h3 id="sec-6-3">6.3. Occupancy Length</h3>
+<p>After fourteen (14) consecutive days of occupancy in the RV Park a Member must vacate all ECR property until at least seven (7) days have elapsed regardless of number of Memberships owned, including use by Relative Rights.</p>
+<h3 id="sec-6-4">6.4. Limitations</h3>
+<p>A Membership Unit may have no more than two (2) Advanced RV Park Reservations at any given time. During a stay in the RV Park, a Membership Unit may have only one (1) Advanced RV Park Reservation. Members with two (2) Advanced Reservations may use RV Park Bonus Time. (See Rule 6.12) Multiple Reservations for the same time period are not allowed for a single Membership Unit.</p>
+<h3 id="sec-6-5">6.5. Unoccupied Site</h3>
+<p>If anyone has been checked into a site and that site is left vacant overnight without prior arrangements with ECR, the remainder of the Reservation may be canceled by ECR without notice and a fine may be assessed. See Appendix A for penalty.</p>
+<h3 id="sec-6-6">6.6. No Show</h3>
+<p>Failure to check in and occupy a reserved RV Park Site by 9:00 pm on the first day of the Reservation, unless 1) prior arrangements are made with ECR for later arrival and 2) the Member is checked in by 10:00 am the following morning, may result in cancellation of the</p>
+<p>Reservation and a No Show Fee will be assessed. See Appendix A for penalty.</p>
+<h3 id="sec-6-7">6.7. Cancellation</h3>
+<p>An RV Park Reservation must be cancelled at least two (2) days prior to the start of the Reservation period in order to avoid the cancellation fee. Cancellations less than two (2) calendar days before the scheduled check in time may result in the Late Cancellation Fee being assessed. See Appendix A for penalty.</p>
+<h3 id="sec-6-8">6.8. Waiting List</h3>
+<p>On request, a Member in Good Standing can be put on a waiting list for an RV site for a specific date(s) if they leave a phone number. ECR will attempt to contact the Member at that number should a site become available. If the Member cannot be reached, the next Member on the waitlist will be called. If the Member cannot be reached or does not confirm a Reservation within an hour of the notification the Member's name will be taken off the waiting list. When Full Members are on the waiting list, Guest Reservations will not be accepted. Amended November 14, 2024.</p>
+<h3 id="sec-6-9">6.9. Holiday Reservation</h3>
+<p>Any request to reduce the length of stay for a Holiday Reservation will result in cancellation of the entire Reservation. The Member may call back after three (3) business days to make a new Reservation.</p>
+<h3 id="sec-6-10">6.10. RV Member Rental of Condos</h3>
+<p>RV Members may rent the Condos at the specified rental rate. Rental of the Condos may be requested twenty-one (21) days in advance. RV Member must be present during the rental time. Reservation may be a two (2) to seven (7) day stay. See</p>
+<p>Appendix B for fee. 6.11 - Rescinded 2/27/2020</p>
+<h3 id="sec-6-12">6.12. RV Park Bonus Time</h3>
+<p>If a Member has two (2) Advanced Reservations and wants to get an RV spot using Bonus Time, a Reservation can be made the day of occupancy for no more than three (3) days in length and is subject to the RV Park Bonus Time fee. RV Park Bonus Time cannot be given away and a Guest Reservation may not be made during an RV Park Bonus Time stay. See Appendix B for fee.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-5.html">Previous</a> | <a href="policy-section-7.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

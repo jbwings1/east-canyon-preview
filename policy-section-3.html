@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3. USE RIGHTS AND PRIVILEGES | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html" class="active">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>3. USE RIGHTS AND PRIVILEGES</h1>
+        <p class="policy-section-nav"><a href="policy-section-2.html">Previous</a> | <a href="policy-section-4.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<p>The Use Rights and Privileges of any person are limited to those specifically granted herein. All use of Resort facilities is subject to Availability and the current Rules and Regulations. Members Not in Good Standing may be excluded from any and all use of the Resort. No more than two (2) shares may be titled by one (1) Member. Resort Management reserves the right to close any portion of the Resort.</p>
+<h3 id="sec-3-1">3.1. All Members</h3>
+<p>Each Member in Good Standing is</p>
+<p>entitled to the use of any of the common facilities of the Resort and the Wilderness Areas.</p>
+<h3 id="sec-3-2">3.2. Member Classes</h3>
+<p>Each Member has the following Use Rights according to their class of Membership.</p>
+<h4 id="sec-3-2-1">3.2.1. Class A Member -Ten (10) days of Regular Time (5</h4>
+<p>Summer, 5 Winter), Unlimited Bonus Time (space available), Relative Rights, and RV Use.</p>
+<h4 id="sec-3-2-2">3.2.2. Class B Member</h4>
+<p>Eight (8) days of Regular Time (4 Summer, 4 Winter), Unlimited Bonus Time (space available), Relative Rights, and RV Use.</p>
+<h4 id="sec-3-2-3">3.2.3. Class C Member</h4>
+<p>Four (4) days of Regular Time (4 Summer), Unlimited Bonus Time (space available), Relative Rights, and RV Use</p>
+<h4 id="sec-3-2-4">3.2.4. Class D Member</h4>
+<p>RV Use and Relative Rights. Unlimited Bonus Time (space available).</p>
+<h4 id="sec-3-2-5">3.2.5. Class F Member</h4>
+<p>Seven (7) days of Regular Time (4 Summer, 3 Winter), Unlimited Bonus Time (space available), Relative Rights, and RV Use.</p>
+<h4 id="sec-3-2-6">3.2.6. Class G Member- Fourteen (14) days of Regular</h4>
+<p>Time (7 Summer, 7 Winter), Unlimited Bonus Time (space available), Relative Rights, and RV Use.</p>
+<h4 id="sec-3-2-7">3.2.7. Class H Corporate Member- Ten (10) days of</h4>
+<p>Regular Time (5 Summer, 5 Winter). Each year, the Corporation may designate up to four (4) officers, partners, directors, trustees, or employees of the Member</p>
+<p>Corporation as a Designated Member. A Designated Member has Bonus Time and RV Use with the restriction that only one of the Designated Members of the Corporation shall occupy, as a Member, the Wilderness Area campsites, RV Park or Condos at any given time. However, all four (4) may be on site at any one time for day use. Class H Members also may purchase up to ten (10) Annual Relative Rights.</p>
+<h4 id="sec-3-2-8">3.2.8. Class I Corporate Member</h4>
+<p>Ten (10) days of Regular Time (5 Summer, 5 Winter). Each year the Corporation may designate up to four (4) officers, partners, directors, directors, trustees, or employees of the Member Corporation as a Designated Member. A Designated Member has Bonus Time and RV Use with the restriction that only one (1) of the Designated Members of the Corporation shall occupy, as a Member, the Wilderness Area campsites, RV Park or Condos at any given time. However, all four may be on site at any one time for day use.</p>
+<h4 id="sec-3-2-9">3.2.9. Class L Member</h4>
+<p>RV Use and Unlimited Bonus Time (space available).</p>
+<h4 id="sec-3-2-10">3.2.10. Class M Member</h4>
+<p>Seven (7) days of Regular Time (4 Summer, 3 Winter) and Unlimited Bonus Time (space available), and RV Use.</p>
+<h4 id="sec-3-2-11">3.2.11. Class O Member</h4>
+<p>Seven (7) days of Regular Time (4 Summer, 3 Winter) and Unlimited Bonus Time (space available).</p>
+<h4 id="sec-3-2-12">3.2.12. Class P Member</h4>
+<p>Fourteen (14) days of Regular</p>
+<p>Time (7 Summer, 7 Winter), and Unlimited Bonus Time (space available).</p>
+<h4 id="sec-3-2-13">3.2.13. Class Q Member</h4>
+<p>Seven (7) days of Regular Time (4 Summer, 3 Winter) and Unlimited Bonus Time (space available). Regular Time may be used ONLY during the specific week of each year stated in the purchase agreement.</p>
+<h4 id="sec-3-2-14">3.2.14. Relative Rights Member</h4>
+<p>Relative Rights Members have the same Use Rights and Privileges as defined in this section (Section 3) as the Full Member with which they are associated except that Relative Rights Members have no Regular Time, Hunting rights, or the right to make Guest Reservations or bring Guests. Relative Rights may schedule Bonus Time up to twenty-one (21) days in advance. Relative Rights may be subject to other rules, such as Reservation policies, and fees as defined by ECR. The Relative Rights term is from April 1st through March 31st and has an Annual Fee. See Appendix B for fees.</p>
+<h4 id="sec-3-2-15">3.2.15. Temporary Member Condo or FRA -</h4>
+<p>A Temporary Member occupying a Condo or renting the Family Reunion Area has limited Use Rights during the period of the Reservation only. This Use includes all facilities but excludes the Wilderness Area. This does not apply to VRI or RCI exchange members who have Full Use Rights of all amenities and facilities, including the Wilderness Area.</p>
+<h3 id="sec-3-3">3.3. Guests</h3>
+<p>Guests may use Resort facilities only when accompanied by the inviting Member unless using Members' Regular Time in a Condo as a Temporary Member. One (1) Guest in an RV or up to three (3) tents</p>
+<p>may camp overnight in Druby or Bernice Canyon (fee applicable) only if the inviting Member is also camping overnight in the same campground. One (1) Guest may stay overnight in the Developed Area of the Resort RV Park (fee applicable) or Condos, and up to three (3) tents in the tent area (fee applicable), and the specified number of guests in the Family Reunion areas only if the inviting Member is also staying overnight in the Developed Area. Guest(s) shall always be accompanied by the Member when accessing ECR gates and Wilderness Area. Failure to be accompanied by the Member may result in removal from the property and a fine being assessed. See Appendix A for fine and Appendix B for fees.</p>
+<h3 id="sec-3-4">3.4. Member Responsibility- A Member is responsible for</h3>
+<p>all damages, fees, fines and penalties pertaining to, arising or resulting from, or under that Membership. If suspension of Resort use is part of any penalty imposed on such person(s), the suspension may also extend to the Member.</p>
+<h3 id="sec-3-5">3.5. Restriction on Purchasing New Membership -</h3>
+<p>Former Members may not purchase a new membership until one year after any forfeiture or withdrawal and only after all unpaid fees and fines are paid. 3.6 Trust Memberships - When a Membership is owned by a Trust, only the ECR Full Member is allowed to make Reservations and use the Membership according to ECR Rules and Regulations. Successor Trustees are not considered ECR Full Members.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-2.html">Previous</a> | <a href="policy-section-4.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board Information | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container board-layout">
+      <section class="board-members" aria-labelledby="board-members-heading">
+        <h1 id="board-members-heading">Board Members</h1>
+        <p class="board-note">
+          East Canyon Resort Board of Directors.
+          Please email first. If you are not sure who to contact, use the shared board address
+          <a href="mailto:ECRBoard@eastcanyon.com">ECRBoard@eastcanyon.com</a>.
+        </p>
+        <ul class="board-member-list">
+          <li>
+            <img src="pix/board/cody-barnes.jpg" alt="Cody Barnes">
+            <div>
+              <strong>Cody Barnes</strong>
+              <span>President</span>
+              <a href="tel:+18019400737">801-940-0737</a>
+              <a href="mailto:timberline76@gmail.com">timberline76@gmail.com</a>
+              <span class="board-member-committee">Executive Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/randy-upton.jpg" alt="Randy Upton">
+            <div>
+              <strong>Randy Upton</strong>
+              <span>Chairman</span>
+              <a href="tel:+14358283106">435-828-3106</a>
+              <a href="mailto:randyupton19@gmail.com">randyupton19@gmail.com</a>
+              <span class="board-member-committee">Executive Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/terry-nelson.jpg" alt="Terry Nelson">
+            <div>
+              <strong>Terry Nelson</strong>
+              <span>Vice Chairman</span>
+              <a href="tel:+18016417490">801-641-7490</a>
+              <a href="mailto:terryn@nelsonracing.net">terryn@nelsonracing.net</a>
+              <span class="board-member-committee">Outdoor &amp; Hunting Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/korey-vancott.jpg" alt="Korey Vancott">
+            <div>
+              <strong>Korey Vancott</strong>
+              <span>Secretary</span>
+              <a href="tel:+18015584725">801-558-4725</a>
+              <a href="mailto:kvancott7@gmail.com">kvancott7@gmail.com</a>
+              <span class="board-member-committee">IT / Communications Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/robert-watson.jpg" alt="Robert Watson">
+            <div>
+              <strong>Robert Watson</strong>
+              <a href="tel:+18015739267">801-573-9267</a>
+              <a href="mailto:rwatson001.rw@gmail.com">rwatson001.rw@gmail.com</a>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/bill-feveryear.jpg" alt="Bill Feveryear">
+            <div>
+              <strong>Bill Feveryear</strong>
+              <a href="tel:+18015925237">801-592-5237</a>
+              <a href="mailto:bfeveryear@backmantitle.com">bfeveryear@backmantitle.com</a>
+              <span class="board-member-committee">Finance Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/john-milano.jpg" alt="John Milano">
+            <div>
+              <strong>John Milano</strong>
+              <a href="tel:+18012097266">801-209-7266</a>
+              <a href="mailto:JRMilano@comcast.net">JRMilano@comcast.net</a>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/blake-housley.jpg" alt="Blake Housley">
+            <div>
+              <strong>Blake Housley</strong>
+              <a href="tel:+18014996910">801-499-6910</a>
+              <a href="mailto:bigtimberheating@gmail.com">bigtimberheating@gmail.com</a>
+              <span class="board-member-committee">Facilities &amp; Land Use Committee</span>
+            </div>
+          </li>
+          <li>
+            <img src="pix/board/toni-noerring.jpg" alt="Toni Noerring">
+            <div>
+              <strong>Toni Noerring</strong>
+              <a href="tel:+18015205543">801-520-5543</a>
+              <a href="mailto:noerring5@gmail.com">noerring5@gmail.com</a>
+              <span class="board-member-committee">Rules Committee</span>
+            </div>
+          </li>
+        </ul>
+        <p class="board-note">
+          <a href="files/board/board-member-sheet.pdf" target="_blank" rel="noopener noreferrer">Board member sheet (PDF)</a>
+        </p>
+      </section>
+
+      <div class="board-side">
+        <nav class="visitor-links" aria-label="Board links">
+          <a href="committee.html" class="visitor-link-wide">Volunteer Committee</a>
+          <a href="#board-resumes" class="visitor-link-wide">Board Candidate Resumes</a>
+          <a href="#annual-meeting-stream" class="visitor-link-wide">Annual Meeting Live Stream</a>
+        </nav>
+
+        <section class="board-committees" aria-labelledby="board-committees-heading">
+          <h2 id="board-committees-heading">Committees</h2>
+          <p class="board-note">
+            <a href="committee.html">Volunteer Committee application</a>
+          </p>
+          <dl class="board-committee-list">
+            <div>
+              <dt>Finance</dt>
+              <dd>
+                Oversight, recommendations, and guidance on East Canyon’s financial matters.
+                The committee helps keep the resort financially healthy through sound fiscal
+                management, strategic planning, transparent reporting to the Board, and
+                helping educate owners on resort finances.
+              </dd>
+            </div>
+            <div>
+              <dt>Rules</dt>
+              <dd>
+                Works with management and the Board to streamline and clarify the resort’s
+                rules and procedures. The goal is a clear, usable set of rules that reduces
+                confusion, settles process questions, and lets the resort conduct business
+                promptly.
+              </dd>
+            </div>
+            <div>
+              <dt>Outdoor &amp; Hunting</dt>
+              <dd>
+                Stewards local wildlife and habitat, promotes sustainable hunting, supports
+                conservation, and educates members on wildlife management. The committee
+                also reviews hunting rules, regulations, and tag allocations and makes
+                recommendations to the Board.
+              </dd>
+            </div>
+            <div>
+              <dt>Facilities &amp; Land Use</dt>
+              <dd>
+                Guides thoughtful development of the property: current and future land-use
+                needs, expansions or improvements, and a long-term plan for safe, well-maintained
+                facilities. Work is guided by sustainability, stewardship, and fiscal prudence.
+                This committee also helps organize member work days.
+              </dd>
+            </div>
+            <div>
+              <dt>IT / Communications</dt>
+              <dd>
+                Supports the resort’s technology needs by keeping information systems
+                reliable, secure, and accessible, and by providing a stable tech environment
+                for members and operations.
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="board-docs">
+        <section class="board-minutes" aria-labelledby="board-minutes-heading">
+          <h2 id="board-minutes-heading">Meeting Minutes</h2>
+          <p class="board-note">
+            Current and past minutes. PDF files are stored on this site.
+          </p>
+          <ul class="board-doc-list">
+            <li>
+              <a href="files/board/minutes-2026-02-26.pdf" target="_blank" rel="noopener noreferrer">February 26, 2026 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2026-01-23.pdf" target="_blank" rel="noopener noreferrer">January 23 &amp; 24, 2026 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-12-11.pdf" target="_blank" rel="noopener noreferrer">December 11, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-11-13.pdf" target="_blank" rel="noopener noreferrer">November 13, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-10-09.pdf" target="_blank" rel="noopener noreferrer">October 9, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-08-28.pdf" target="_blank" rel="noopener noreferrer">August 28, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-05-22.pdf" target="_blank" rel="noopener noreferrer">May 22, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/minutes-2025-03-27.pdf" target="_blank" rel="noopener noreferrer">March 27, 2025 minutes</a>
+            </li>
+            <li>
+              <a href="files/board/annual-meeting-2025-handout.pdf" target="_blank" rel="noopener noreferrer">2025 Annual Meeting handout</a>
+            </li>
+          </ul>
+        </section>
+
+        <section class="board-upcoming" aria-labelledby="board-upcoming-heading">
+          <h2 id="board-upcoming-heading">Upcoming Board Meetings</h2>
+          <p class="board-note">
+            Meetings begin at 6:00 PM unless noted. Zoom links and agendas are added here when they are ready.
+          </p>
+          <ul class="board-upcoming-list">
+            <li>
+              <strong>August 27, 2026</strong>
+              <span>ECR Event Center · 6:00 PM</span>
+            </li>
+            <li>
+              <strong>September 23, 2026</strong>
+              <span>Annual Meeting · ECR Lodge · 6:00 PM</span>
+            </li>
+            <li>
+              <strong>October 8, 2026</strong>
+              <span>Location TBD · 6:00 PM</span>
+            </li>
+            <li>
+              <strong>November 12, 2026</strong>
+              <span>Location TBD · 6:00 PM</span>
+            </li>
+            <li>
+              <strong>December 10, 2026</strong>
+              <span>Location TBD · 6:00 PM</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="board-upcoming" id="board-resumes" aria-labelledby="board-resumes-heading">
+          <h2 id="board-resumes-heading">Board Candidate Resumes</h2>
+          <p class="board-note">
+            2026 Annual Meeting — September 23, 2026. The official Notice &amp; Proxy will be mailed at a later date.
+          </p>
+          <p class="board-note">
+            If you are interested in serving on the East Canyon Resort Board of Directors, please submit your resume.
+            Include your name, location, why you want to serve, and your qualifications, in paragraph form.
+            Resumes must be limited to 250 words; if a resume is over 250 words, only the first 250 words will be published.
+            Resumes must be received by <strong>July 31, 2026</strong> to be on the ballot.
+          </p>
+          <p class="board-note">
+            Submit resumes to
+            PO Box 9150, Salt Lake City, UT 84109
+            or
+            <a href="mailto:caitlin.postlethwait@capitalvacations.com?subject=ECR%202026%20Resume">caitlin.postlethwait@capitalvacations.com</a>
+            with the subject line <strong>ECR 2026 Resume-[your name]</strong>.
+          </p>
+          <p class="board-note">
+            <a href="files/board/2026-board-resume-call.pdf" target="_blank" rel="noopener noreferrer">2026 resume call (PDF)</a>
+          </p>
+        </section>
+
+        <section class="board-upcoming" id="annual-meeting-stream" aria-labelledby="annual-meeting-stream-heading">
+          <h2 id="annual-meeting-stream-heading">Annual Meeting Live Stream</h2>
+          <p class="board-note">
+            The next annual meeting is September 23, 2026 at the ECR Lodge, 6:00 PM.
+            The live page currently still lists the 2021 annual meeting stream.
+          </p>
+          <p class="board-note"><strong>2021 Annual Meeting Live Stream</strong> — September 23, 2021 at 6:55 PM. If the stream is not showing, refresh the page.</p>
+          <div class="board-stream">
+            <iframe
+              src="https://www.youtube.com/embed/_5Ql_813gfg"
+              title="2021 Annual Meeting live stream"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
+          <p class="board-stream-actions">
+            <a href="https://forms.gle/7ogFitznC46EevLYA" target="_blank" rel="noopener noreferrer">Submit a question</a>
+            <a href="https://forms.gle/5nvTUF2GJBhuLUMw5" target="_blank" rel="noopener noreferrer">Vote</a>
+          </p>
+        </section>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

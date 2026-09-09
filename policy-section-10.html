@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10. GUEST POLICY | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html" class="active">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>10. GUEST POLICY</h1>
+        <p class="policy-section-nav"><a href="policy-section-9.html">Previous</a> | <a href="policy-section-11.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h3 id="sec-10-1">10.1. Guests</h3>
+<p>A Guest may use Resort facilities only when accompanied by the Inviting Member or when using Member's Time in the Condos. A Guest may only camp overnight in Druby or Bernice Canyon if the Inviting Member</p>
+<p>is also camping overnight in the same campground. Member shall accompany the Guest in the Wilderness Area and through the gates of the Wilderness Area at all times. A Guest may stay overnight in the Developed Area of the Resort (including RV Park, Condos, tent area and FRA) only if the Inviting Member is also staying overnight in the Developed Area. Members may bring Guests with them to use the facilities. Regular time in the Condos may be rented or given away to anyone 21 years of age or older or a married couple.</p>
+<h3 id="sec-10-2">10.2. Special Events Guest Fees</h3>
+<p>Use of amenities and facilities of the Resort may be assessed a fee as determined by the Board of Directors.</p>
+<h3 id="sec-10-3">10.3. Same Day Reservation</h3>
+<p>A Member in Good Standing with RV Use may make a Same Day Reservation for a Guest to use an RV Park Site or a Tent Site for up to (3) nights. The Member must occupy an RV Park Site or a Condo while the Guest occupies an RV Park Site. An RV Guest Daily Fee, for each day of the Reservation, must be paid at the beginning of the occupancy. See Appendix B for fee.</p>
+<h3 id="sec-10-4">10.4. Guest Use With Member</h3>
+<p>Members who have both Regular Time and RV Use may have Guests use one RV Park Site with a guest daily fee only while the Member is occupying a Condo during Regular Time.</p>
+<h3 id="sec-10-5">10.5. Member Responsibility</h3>
+<p>Members are responsible for the actions of their Guests and are financially responsible for the Fees and Fines of their Guests. (See Rule 3.4)</p>
+<h3 id="sec-10-6">10.6. Wilderness Guests</h3>
+<p>Using a Walk-Up Reservation, Members may have one (1) Wilderness Campsite or three (3) Guest tents. A Wilderness Guest Fee must be paid. See Appendix B for fee.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-9.html">Previous</a> | <a href="policy-section-11.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

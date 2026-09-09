@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hunting Information | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container page-content page-content--wide hunting-page">
+      <h1>Hunting Information</h1>
+      <p>
+        2026 hunting dates, hunts, applications, and rules for East Canyon Resort members.
+        Hunters must follow Utah DWR licensing and season rules in addition to ECR hunting rules.
+      </p>
+
+      <nav class="hunting-resources" aria-label="Hunting documents">
+        <a href="files/hunting/hunting-rules.pdf" target="_blank" rel="noopener noreferrer">Hunting Rules / Regs</a>
+        <a href="policy-appendix.html#appendix-c">Appendix C</a>
+        <a href="files/hunting/hunting-faq.pdf" target="_blank" rel="noopener noreferrer">FAQ</a>
+        <a href="files/hunting/2026-cow-elk-points.pdf" target="_blank" rel="noopener noreferrer">2026 Cow Elk Points</a>
+        <a href="files/hunting/2026-bull-elk-points.pdf" target="_blank" rel="noopener noreferrer">2026 Bull Elk Points</a>
+        <a href="files/hunting/2026-elk-draw-results.pdf" target="_blank" rel="noopener noreferrer">2026 Elk Draw Results</a>
+      </nav>
+
+      <p class="hunting-status">2026 application period is now closed.</p>
+
+      <h2>Important Hunting Dates — 2026</h2>
+      <div class="hunting-dates">
+        <article>
+          <h3>May 2</h3>
+          <p>Hunter Orientation — 8:00 AM</p>
+          <p>Work Day — 9:00 AM</p>
+        </article>
+        <article>
+          <h3>May 23 – June 4</h3>
+          <p>Hunt applications open May 23 at 9:00 AM.</p>
+          <p>Due by 11:59 PM on June 4.</p>
+        </article>
+        <article>
+          <h3>June 6</h3>
+          <p>Hunter Orientation, auction, and draw — 8:00 AM</p>
+          <p>Work Day — 9:00 AM</p>
+        </article>
+        <article>
+          <h3>June 20</h3>
+          <p>Payment information is emailed after this date.</p>
+          <p>Applications for tags are then locked in.</p>
+        </article>
+        <article>
+          <h3>August 1</h3>
+          <p>Hunter Orientation — 8:00 AM</p>
+          <p>Work Day — 9:00 AM</p>
+          <p>All work hours or payment must be completed by 5:00 PM.</p>
+        </article>
+      </div>
+      <p>
+        Hunters with incomplete hours will receive an invoice for payment the first week in August.
+      </p>
+
+      <h2>2026 Available Hunts at ECR</h2>
+
+      <h3>Deer</h3>
+      <p>Deer hunting is one tag per membership. This permit may be given to an immediate family member.</p>
+      <div class="hunting-table-wrap">
+        <table class="hunting-table">
+          <thead>
+            <tr>
+              <th>Hunt</th>
+              <th>Dates</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Archery</td>
+              <td>August 15 – September 11</td>
+            </tr>
+            <tr>
+              <td>Muzzleloader</td>
+              <td>September 23 – October 1</td>
+            </tr>
+            <tr>
+              <td>Early rifle</td>
+              <td>October 7 – 11</td>
+            </tr>
+            <tr>
+              <td>Late rifle (150 opening weekend)</td>
+              <td>October 17 – 25</td>
+            </tr>
+            <tr>
+              <td>Late muzzleloader</td>
+              <td>September 23 – October 1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Late-hunt opening weekend rifle deer permits are limited to the first 150 eligible memberships.
+        Each eligible primary member is limited to one hunting permit per membership for Saturday and Sunday, with no exceptions.
+      </p>
+
+      <h3>Limited-entry HAMSS bull elk</h3>
+      <div class="hunting-table-wrap">
+        <table class="hunting-table">
+          <thead>
+            <tr>
+              <th>Hunt</th>
+              <th>Dates</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Archery</td>
+              <td>August 15 – September 16</td>
+            </tr>
+            <tr>
+              <td>Muzzleloader</td>
+              <td>October 28 – November 5</td>
+            </tr>
+            <tr>
+              <td>Early rifle</td>
+              <td>October 3 – 9</td>
+            </tr>
+            <tr>
+              <td>Late rifle</td>
+              <td>October 10 – 16</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>No limited-entry or all-seasons youth hunts.</li>
+        <li>No HAMSS cow elk.</li>
+        <li>30 cow elk permits.</li>
+        <li>Bull elk permits: archery 12, rifle 12, and muzzleloader 12. Applicants are limited to one elk permit per primary membership and must choose a weapon when applying.</li>
+        <li>East Canyon Resort does not honor the State of Utah unlimited youth general-season elk permit on resort property.</li>
+      </ul>
+
+      <h2>Hunting Requirements</h2>
+      <ul>
+        <li>Be a full member in good standing, with a membership purchased prior to August 1, 2024.</li>
+        <li>Attend annual hunter orientation before your hunting season. Photo ID is required.</li>
+        <li>Complete 6 hours of approved service at ECR, or pay $240.00, by August 1, 2026 at 5:00 PM.</li>
+        <li>All state rules and licensing requirements apply.</li>
+        <li>All hunters must sign ECR hunting waivers before hunts.</li>
+      </ul>
+      <p>
+        Transferees issued a membership before August 1 of any given year have a two-season wait before hunting privileges begin.
+        Transferees issued a membership after August 1 have a three-season wait.
+      </p>
+      <p>
+        You will receive a confirmation email once an application is submitted.
+        Payment information is emailed after June 20, 2026. After that date, applications for tags are locked in.
+        All payments, work hours, or the work-hour payment are due by August 1, 2026 at 5:00 PM.
+      </p>
+
+      <h2>Fees if drawn</h2>
+      <ul>
+        <li>Bull elk: $100</li>
+        <li>Cow elk: $75</li>
+        <li>Deer buck: $65</li>
+        <li>Deer youth hunters (18 and younger): $65</li>
+        <li>Dedicated deer hunters: $100</li>
+        <li>Small game: $20 (cottontail rabbits, snowshoe hares, coyotes, and forest grouse)</li>
+        <li>Moose: $100</li>
+        <li>Bear: $100</li>
+        <li>Cougar, spot and stock: no fee</li>
+        <li>Cougar using dogs: $100 (refundable with proof of harvest; dogs must be on an active hunt, not for training)</li>
+      </ul>
+
+      <h2>Deer hunters</h2>
+      <p>Deer hunting is one tag per membership. All state tags are open for this permit.</p>
+
+      <h2>Elk hunters</h2>
+      <p>
+        If you are successful in the archery bull elk draw, ECR follows state regulation and allows harvest of either sex.
+      </p>
+      <p>
+        East Canyon Resort has one auction bull and one auction cow. The auction is held on June 6, 2026 at the hunter orientation meeting starting at 8:00 AM.
+        You or your representative must be present to bid, and payment is due at that time.
+        The winner of the bull elk auction tag may pick from all three seasons.
+        It is the hunter’s responsibility to purchase a state tag. All elk hunting rules and requirements apply.
+      </p>
+      <p>
+        A member eligible to hunt cow elk may begin the day after the archery hunt ends and hunt throughout the legal season, except:
+      </p>
+      <ul>
+        <li>No cow elk hunting on the opening weekend of the first rifle bull elk hunt (October 3–4), regardless of weapon.</li>
+        <li>No cow elk hunting on the opening weekend of the second rifle elk hunt (October 10–11), regardless of weapon.</li>
+        <li>No cow elk hunting during the muzzleloader bull elk hunt (October 28 – November 5), regardless of weapon.</li>
+        <li>Archery cow hunting begins after the archery bull hunt, on September 16.</li>
+      </ul>
+      <p>
+        East Canyon Resort uses an internal bull and cow elk bonus-point system. If you applied the previous year and were not drawn, you receive one point.
+      </p>
+
+      <h2>Other hunting notes</h2>
+      <ul>
+        <li>No doe harvest. No turkey harvest.</li>
+        <li>No running dogs on any ECR big-game hunts, except after December 1 with Outdoor Committee Chair or ECR manager approval above the Druby campground.</li>
+        <li>Pick up a hunting packet before your season. Carry the correct Utah licenses/permits and the ECR hunting permit. Wear your ECR hunting ID at all times.</li>
+        <li>Immediate family for assigned deer permits: the member’s parents, children, children’s spouses, or grandchildren. Those hunters must be accompanied by the ECR member they applied with.</li>
+        <li>Family members and guests must stay within voice range of the primary member they applied to hunt with.</li>
+        <li>Relative Rights members may not hunt on their own. They must use one of the full member’s deer tags and stay with that member.</li>
+        <li>No hunting on Saddlerock property.</li>
+        <li>Tree stands may be placed after August 1 and must be removed by December 1. One tree stand per hunter.</li>
+        <li>All hunters and non-hunters must wear DNR-approved hunter orange during any centerfire rifle hunts.</li>
+        <li>See
+          <a href="policy-appendix.html#appendix-c">Appendix C</a>
+          and the
+          <a href="files/hunting/hunting-rules.pdf" target="_blank" rel="noopener noreferrer">2026 hunting rules PDF</a>
+          for the full regulations.
+        </li>
+      </ul>
+
+      <h2>Hunting questions</h2>
+      <p>
+        Email, text, or call Outdoor &amp; Hunting Committee Chair
+        <strong>Terry Nelson</strong> at
+        <a href="mailto:terryn@nelsonracing.net">terryn@nelsonracing.net</a>
+        or
+        <a href="tel:+18016417490">(801) 641-7490</a>.
+      </p>
+      <p>Outdoor Committee contacts:</p>
+      <ul>
+        <li>Terry Nelson — <a href="tel:+18016417490">(801) 641-7490</a></li>
+        <li>Blake Housley — <a href="tel:+18014996910">(801) 499-6910</a></li>
+        <li>Cody Barnes — <a href="tel:+18019400737">(801) 940-0737</a></li>
+      </ul>
+      <p>
+        Report hunting violations, poaching, or trespassing to ECR Management, Security, or the Outdoor Committee Chair.
+        Morgan County Sheriff non-emergency dispatch:
+        <a href="tel:+18018290590">801-829-0590</a>
+        (for a wildlife issue, ask them to dispatch the on-call DNR wildlife officer).
+      </p>
+    </div>
+  </main>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

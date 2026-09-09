@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Login | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+</head>
+<body class="page-visitor page-login">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <h1 class="banner-title">Member Login</h1>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html" class="active">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content login-box">
+      <h1>Member Login</h1>
+      <div id="signed-in-panel" hidden>
+        <p id="signed-in-message"></p>
+        <p class="login-links">
+          <a id="signed-in-continue" href="member-home.html">Go to Members</a>
+          <button type="button" id="signed-in-logout" class="btn btn-primary btn-full">Sign Out</button>
+        </p>
+      </div>
+
+      <div id="signin-panel">
+        <form id="signin-form" class="auth-form">
+          <div class="form-group">
+            <label for="signin-email">Email or username</label>
+            <input type="text" id="signin-email" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="signin-password">Password</label>
+            <input type="password" id="signin-password" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        </form>
+        <p class="login-links">
+          <a href="create-account.html">Activate new account</a>
+          <a href="forgot-password.html">Forgot password</a>
+          <a href="admin-login.html">Admin sign in</a>
+        </p>
+        <details class="demo-login-help">
+          <summary>Sign-in help</summary>
+          <p>
+            Members can sign in with their username or personal email. New members first
+            <a href="create-account.html">activate</a> with member ID and temporary password,
+            then choose a username and password.
+          </p>
+          <p><button type="button" id="reset-site-data" class="btn btn-outline btn-full">Clear saved sign-in data</button></p>
+        </details>
+        <p id="auth-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb8"></script>
+  <script src="js/login.js?v=sb8"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

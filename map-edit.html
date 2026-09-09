@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Align RV spot click areas on the East Canyon Resort campground map.">
+  <title>Align Map Spots | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page-map-edit">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <header class="page-header">
+        <p class="section-label">Map alignment</p>
+        <h1>Align RV spot click boxes</h1>
+        <p class="page-intro">
+          Red boxes show where each site is clickable. Pick a site number, click the center of that yellow pad,
+          then copy the coordinates into <code>js/map-units-generated.js</code>.
+          <a href="map.html">Back to site map</a> · <a href="reservations.html">Reservations</a>
+        </p>
+      </header>
+
+      <div class="map-layout">
+        <div class="map-panel">
+          <div class="map-edit-toolbar" id="map-edit-toolbar">
+            <p class="map-edit-hint">
+              <strong>Step 1:</strong> Check <em>Show click boxes</em> below.
+              <strong>Step 2:</strong> Choose a site number.
+              <strong>Step 3:</strong> Click the center of that yellow RV pad on the map.
+            </p>
+            <div class="map-edit-controls">
+              <label>
+                Site
+                <select id="map-edit-site">
+                  <option value="1">1</option>
+                </select>
+              </label>
+              <label>W <input type="number" id="map-edit-w" value="22" min="8" max="80"></label>
+              <label>H <input type="number" id="map-edit-h" value="26" min="8" max="80"></label>
+              <label class="map-edit-check">
+                <input type="checkbox" id="map-edit-show-boxes" checked>
+                Show click boxes
+              </label>
+            </div>
+            <pre class="map-edit-output" id="map-edit-output">Red boxes = clickable areas. Click a yellow pad to capture coordinates.</pre>
+          </div>
+
+          <div class="campground-map-frame map-scroll">
+            <img
+              src="pix/map.png"
+              alt="East Canyon Resort RV site map"
+              class="campground-map-photo"
+              id="campground-map-photo"
+            >
+            <svg id="campground-map" class="campground-map-overlay" role="img" aria-label="Campground map alignment overlay">
+              <g id="spots-layer"></g>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="spot-detail" id="spot-detail">
+          <p class="spot-detail-placeholder">Coordinates appear in the panel above when you click a pad.</p>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/map-units-generated.js"></script>
+  <script src="js/spots-data.js"></script>
+  <script src="js/campground-map.js"></script>
+  <script src="js/map-edit.js"></script>
+  <script src="js/nav.js"></script>
+</body>
+</html>

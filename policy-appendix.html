@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appendix | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site2">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb2"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container policy-layout">
+      <aside class="policy-index">
+        <h2 class="policy-index-title">Index</h2>
+        <nav class="policy-index-nav" aria-label="Rule book sections">
+          <a href="policy-section-1.html">1. PURPOSE AND AUTHORITY</a>
+          <a href="policy-section-2.html">2. DEFINITIONS</a>
+          <a href="policy-section-3.html">3. USE RIGHTS AND PRIVILEGES</a>
+          <a href="policy-section-4.html">4. USE OF FACILITIES</a>
+          <a href="policy-section-5.html">5. CONDO RESERVATIONS</a>
+          <a href="policy-section-6.html">6. RV PARK RESERVATIONS</a>
+          <a href="policy-section-7.html">7. RV STORAGE AREAS</a>
+          <a href="policy-section-8.html">8. FAMILY REUNION AREAS (FRA)</a>
+          <a href="policy-section-9.html">9. WILDERNESS AREA</a>
+          <a href="policy-section-10.html">10. GUEST POLICY</a>
+          <a href="policy-section-11.html">11. CONDO RENTAL</a>
+          <a href="policy-section-12.html">12. PET POLICY</a>
+          <a href="policy-section-13.html">13. OHV/ATV/UTV POLICY</a>
+          <a href="policy-section-14.html">14. CONDUCT</a>
+          <a href="policy-section-15.html">15. FINES, FEES, AND ASSESSMENTS</a>
+          <a href="policy-section-16.html">16. APPEAL OR CONTEST</a>
+          <a href="policy-section-17.html">17. RIGHT TO IMPOSE FINES</a>
+          <a href="policy-appendix.html" class="active">Appendix</a>
+          <a href="policy-bylaws.html">Bylaws</a>
+        </nav>
+        <p class="policy-index-back"><a href="member-home.html">Back to Members</a></p>
+      </aside>
+      <section class="policy-main">
+        <h1>Appendix</h1>
+        <p class="policy-section-nav"><a href="policy-section-17.html">Previous</a> | <a href="policy-bylaws.html">Next</a></p>
+        <form class="policy-search" id="policy-search-form" role="search">
+          <label class="policy-search-label" for="policy-search-input">Search this section</label>
+          <div class="policy-search-row">
+            <input
+              type="search"
+              id="policy-search-input"
+              name="q"
+              placeholder="Search this section..."
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+            <button type="button" id="policy-search-prev" disabled>Prev</button>
+            <button type="button" id="policy-search-next" disabled>Next</button>
+            <button type="button" id="policy-search-clear">Clear</button>
+          </div>
+          <p class="policy-search-status" id="policy-search-status" aria-live="polite"></p>
+        </form>
+        <article class="policy-document">
+<h2 id="appendix-a">Appendix A - Penalty Summary</h2>
+<p>Listed fines from the East Canyon Resort Rules and Regulations. Amounts marked with * follow the Rule Book holiday/add-on notes.</p>
+<div class="policy-table-wrap">
+          <table class="policy-table">
+            <thead>
+              <tr>
+                <th scope="col">Section</th>
+                <th scope="col">Description</th>
+                <th scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>1.1</td>
+              <td>For any violation with no specified penalty</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>3.3</td>
+              <td>Unaccompanied Guest</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.8</td>
+              <td>Fines according to offense - minimum fine</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.9</td>
+              <td>Late Checkout - up to 4 hours unless prior arrangements are made</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.9</td>
+              <td>Late Checkout - up to 5:00 pm</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.1.9</td>
+              <td>Late Checkout - up to close of the check-out desk</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.9</td>
+              <td>Late Checkout - each additional day</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.10</td>
+              <td>1st violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.10</td>
+              <td>Any additional violations</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.1.11</td>
+              <td>Per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.12</td>
+              <td>Parking infraction</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.12</td>
+              <td>Blocking Wilderness road - towing cost plus up to</td>
+              <td>$1,000</td>
+            </tr>
+            <tr>
+              <td>4.1.14</td>
+              <td>Per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.1.19</td>
+              <td>Smoking - per incident for non-compliance of posted restrictions up to</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.20</td>
+              <td>Fires - per incident, all costs and damages related to the fire plus</td>
+              <td>$1,000</td>
+            </tr>
+            <tr>
+              <td>4.1.21</td>
+              <td>Damage - minimum per violation</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.24</td>
+              <td>Check-In - 1st offense</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.1.24</td>
+              <td>Check-In - 2nd offense, add 1 year suspension</td>
+              <td>$1,000</td>
+            </tr>
+            <tr>
+              <td>4.2.1</td>
+              <td>Hunting - may result in eviction, suspension of hunting privileges up to the end of the following year, possible suspension of up to all ECR privileges, and an immediate fine of</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.2.2</td>
+              <td>Immediate fine</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.2.3</td>
+              <td>Firearms - immediate fine</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.2.4</td>
+              <td>Poaching - immediate fine</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.2.5</td>
+              <td>Trespassing - possible suspension of usage of some or all ECR privileges or possible termination of membership, and</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.2.6</td>
+              <td>Overnight parking in undesignated wilderness areas</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.5.5</td>
+              <td>Pool/Hot Tub - per violation</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.7.1</td>
+              <td>Overnight over limit fee per person</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.7.2</td>
+              <td>Parking - per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.9.3</td>
+              <td>Parking - no parking on RV Park access roads</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.9.5</td>
+              <td>Per night</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.9.9</td>
+              <td>Utility hookups may be disconnected without notice and the offender may be asked to leave the Resort, and per violation penalty of</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.9.10</td>
+              <td>Any cost associated with sanitizing the water system, plus</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>4.9.11</td>
+              <td>No coverings on grass</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.9.12</td>
+              <td>Per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>4.9.13</td>
+              <td>Cost to repair any damage, plus</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>4.11</td>
+              <td>Unaccompanied Guest</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>5.1.10</td>
+              <td>Cancellation regular time - on 2nd offense and thereafter in the same fiscal year, add suspension of reservations for 30 days; on holidays, add $50</td>
+              <td>$75</td>
+            </tr>
+            <tr>
+              <td>5.2.3</td>
+              <td>No show bonus time - on 2nd offense and thereafter in the same fiscal year, add suspension of reservations for 30 days; on holidays, add $50</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>5.2.4</td>
+              <td>Cancellation bonus time - first untimely cancellation</td>
+              <td>$75</td>
+            </tr>
+            <tr>
+              <td>5.2.4</td>
+              <td>Cancellation bonus time - second untimely cancellation and any thereafter in the same fiscal year, add suspension of reservations for 30 days; on holidays, add $50</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>6.5</td>
+              <td>Unoccupied site - per night</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>6.5</td>
+              <td>Per night</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>6.5</td>
+              <td>Holiday additional per night</td>
+              <td>$50*</td>
+            </tr>
+            <tr>
+              <td>6.6</td>
+              <td>No show RV park - per night</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>6.7</td>
+              <td>RV cancellation less than two calendar days</td>
+              <td>$75*</td>
+            </tr>
+            <tr>
+              <td>6.7</td>
+              <td>Holiday additional</td>
+              <td>$50*</td>
+            </tr>
+            <tr>
+              <td>7.1</td>
+              <td>Long Term storage (added November 14, 2024)</td>
+              <td>$250 per month</td>
+            </tr>
+            <tr>
+              <td>7.4</td>
+              <td>Short term - each night</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>7.5</td>
+              <td>Parking Pass</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>8.1</td>
+              <td>FRA RV limit exceeded - per RV, per day</td>
+              <td>$150</td>
+            </tr>
+            <tr>
+              <td>8.3</td>
+              <td>Family Reunion Area violations</td>
+              <td>$1,000</td>
+            </tr>
+            <tr>
+              <td>8.4.1</td>
+              <td>Cancellation less than 21 days - per each day or night of the cancelled reservation, plus holiday additional per day $50*</td>
+              <td>Total of reservation plus $85-$125</td>
+            </tr>
+            <tr>
+              <td>8.6</td>
+              <td>FRA power outlets - per violation</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>9.1.1</td>
+              <td>Unattended site - per night</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>9.3</td>
+              <td>Wilderness occupancy limit - per guest per night</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>9.7.1</td>
+              <td>Tenting in undesignated area</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>12.1</td>
+              <td>Cost of cleaning and/or repair of damage, plus per-pet-per-day penalty of</td>
+              <td>(see rule)</td>
+            </tr>
+            <tr>
+              <td>12.2.1</td>
+              <td>Per day</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>12.2.4</td>
+              <td>Per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>13.1.2.1</td>
+              <td>Per violation</td>
+              <td>$250</td>
+            </tr>
+            <tr>
+              <td>13.3</td>
+              <td>Per violation</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>13.3.1(a)</td>
+              <td>Per month (added November 14, 2024)</td>
+              <td>(see rule)</td>
+            </tr>
+            <tr>
+              <td>13.3.2</td>
+              <td>Per violation</td>
+              <td>$100</td>
+            </tr>
+            <tr>
+              <td>13.6</td>
+              <td>Designated trails</td>
+              <td>$250</td>
+            </tr>
+            <tr>
+              <td>13.7</td>
+              <td>Per violation</td>
+              <td>$50</td>
+            </tr>
+            <tr>
+              <td>14.1</td>
+              <td>Disorderly Conduct - eviction and/or suspension of Resort use for 6 months or more and/or report to law enforcement; Board may consider further action up to termination; plus per violation penalty of up to</td>
+              <td>(see rule)</td>
+            </tr>
+            <tr>
+              <td>14.2</td>
+              <td>Alcohol/Drug Policy - eviction and/or suspension of Resort use for 6 months or more and/or report to law enforcement, plus per violation penalty of</td>
+              <td>(see rule)</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+<h2 id="appendix-c">Appendix C - Wildlife Hunting Rules &amp; Regulations</h2>
+<p>Fines amounts are set by the Committee, in coordination with the Board, and are based on the offense severity, number occurrences and minimum fine amount set for the rule.</p>
+<h3 id="c-1">C-1: Annual Hunting Requirements</h3>
+<p>*Complete/Submit Hunting Application: Deer Application: See website Elk Application: See website *Attend Annual Hunter Orientation BEFORE your Hunting Season Begins. *Donate 6 Hours of Service OR Donate $240.00 ($40 per Hour) by the 1st Saturday in August by 5:00 PM. *Be a Resort Member in Good Standing year round. *Deer &amp; Elk Hunters: Must be a primary member for two years prior to hunt. The member may assign the permit to an immediate family member. Refer to Rule C-20-1. *Bear &amp; Moose Must be a primary member for two years prior to hunt. Member hunt only. *ALL State Rules/Licensing requirements apply.</p>
+<h3 id="c-2">C-2: Hunter Orientation Meetings</h3>
+<p>Photo ID Required. Held at ECR the 1st Saturday in May at 8:00 am; 1st Saturday in June at 8:00 am; 1st Saturday in Aug. at 8:00 am; and Friday before the Late Rifle Deer Hunt at 7:00 pm. There will only be the (3) listed orientation meetings - NO EXCEPTIONS. Amended March 21, 2024</p>
+<h3 id="c-3">C-3: Mandatory Service</h3>
+<p>Each hunter must annually contribute a minimum of six (6) hours of service or contribute $240.00 to the Resort. Work Days are available to accomplish the service hours needed to hunt. If you cannot attend one of the designated Work Days to complete your hours, contact Outdoor Committee Chair or Vice Chair for more information and dates. All hours / payment needs to be completed/paid by 1st Saturday of August by 5:00 p.m. for ALL BIG GAME HUNTS.</p>
+<h3 id="c-4">C-4: &quot; Work Day&quot; Dates</h3>
+<p>1st Sat. of May 9:00am, 1st Sat. of June 9:00am, 1st Sat. of Aug. 9:00am</p>
+<h3 id="c-5">C-5: 2 Year Waiting Period.</h3>
+<p>In November of 2018 the resort implemented a two-year waiting period. Memberships transferred before August 1st of any given year will be given credit for the first year of the two-year waiting period. Memberships transferred after August 1st will not be eligible for the first-year credit.</p>
+<h3 id="c-6">C-6: Deer Rifle Opening Weekend</h3>
+<p>Late Hunt Opening weekend rifle deer permits are limited to the first 150 eligible memberships. Each primary member who is eligible for opening weekend (Saturday &amp; Sunday) is limited to one (1) hunting permit per membership, NO EXCEPTIONS. (See rule C-20)</p>
+<h3>Annual Fees per Hunter</h3>
+<h3 id="c-7">C-7: Small Game</h3>
+<p>$20.00 (which includes) Cottontail rabbits, snowshoe hares, coyotes, and forest grouse. All small game hunters must attend a hunter safety meeting as outlined in C-1.</p>
+<h3 id="c-8">C-8: Big Game</h3>
+<p>Includes all small game, and only the following animals listed:</p>
+<ul>
+  <li>Deer Buck: $65.00</li>
+  <li>Deer Youth Hunters: $65.00 (18 years &amp; younger)</li>
+  <li>Dedicated Deer Hunters: $100.00</li>
+  <li>Elk-Cow: $75.00</li>
+  <li>Elk-Bull: $100.00</li>
+  <li>Moose: $100.00</li>
+  <li>Bear: $100.00</li>
+  <li>Cougar hunting spot and stock: No fee</li>
+  <li>Cougar hunting using dogs: $100.00 (This fee is refundable with proof of harvest)</li>
+  <li>All hunters must sign ECR hunting waivers prior to all hunts</li>
+</ul>
+<h3 id="c-9">C-9: NO DOE HARVEST ALLOWED NO TURKEY HARVEST ALLOWED NO RUNNING DOGS ON AN...</h3>
+
+<h3 id="c-10">C-10: ECR Hunter Identification</h3>
+<p>Hunters need to pick up a hunting packet prior to their hunting season. Please see or call the Outdoor Committee Chair or Vice Chair to find out pick-up dates and times. It is required for each hunter to carry the appropriate Utah hunting licenses/permits and the ECR hunting permit. ECR Hunting ID cards are required to be worn by all hunters and must be visible at all times. Members must provide Photo ID if requested. Amended March 21, 2024</p>
+<h3 id="c-11">C-11: Security</h3>
+<p>ECR Hunting Security will be patrolling during all hunts. Please make sure you have your ECR Hunting ID visible and appropriate permits with you. If you see/know of the rules/laws being broken please report to the ECR Hunting Security or Resort Manager. Fines will be given and possible membership penalties can/will be applied. Trespassing by unauthorized hunters will be enforced.</p>
+<h3 id="c-12">C-12: Resort Road Access</h3>
+<p>Some or all roads may be closed during the hunting season due to weather &amp; other adverse conditions. Members cannot block access to any ECR roads and /or properties. Refer to Rules 4.1.6 &amp; 4.1.12 in the ECR Rule Book.</p>
+<h3>Permit Restrictions</h3>
+<h3 id="c-13">C-13: Bull Elk Permits</h3>
+<p>Archery (12), Rifle (12) and Muzzleloader (12). Applicants are limited to one (1) Elk permit per primary membership. Hunters must choose a weapon when applying, refer to rule C-1. East Canyon Resort is not honoring the new state of Utah unlimited youth general-season elk permit on East Canyon Resort property. For information regarding the limited entry youth Elk tag please contact one of the outdoor committee chairs.</p>
+<h3 id="c-14">C-14: Auctioned Bull and /or Cow Elk Permit</h3>
+<p>East Canyon Resort has one (1) auction Bull and one (1) auction Cow Permit. Auction will be held at the June Hunter Orientation meeting. You or a representative must be present to bid, and payment is due at the end of June Hunter Orientation meeting. The winner of the Bull Elk auction tag will be allowed to hunt the season coinciding with the state tag. All Elk Hunting requirements apply, refer to rule C-1. You must be a Primary Member, in Good Standing, year-round. Amended March 21, 2024</p>
+<h3 id="c-15">C-15: Cow Elk permits</h3>
+<p>(30) Applicants are limited to one (1) Cow Elk Permit, per primary membership, refer to rule C1. A member eligible to hunt cow elk on East Canyon Resort property, may begin hunting the following day after the archery hunt ends and hunt throughout the legal season. The following exceptions apply:</p>
+<ul>
+  <li>There is no cow elk hunting on the opening weekend of the 1st rifle bull elk hunt (regardless of weapon), the 2nd rifle elk hunt (regardless of weapon), and the muzzleloader bull elk hunt (regardless of weapon).</li>
+  <li>Archery cow hunters will begin after the archery bull hunt. Amended March 21, 2024</li>
+</ul>
+<h3 id="c-16">C-16: Elk Bonus Point System</h3>
+<p>East Canyon Resort has implemented an internal Bull &amp; Cow Elk Bonus Point System. If you applied for the previous year and were not drawn, you will receive one (1) point. If you have any questions, please contact the Outdoor Committee Chair or Vice Chair.</p>
+<h3 id="c-17">C-17: Bear Hunting</h3>
+<p>Baiting is allowed when followed by state guidelines and with ECR Outdoor Committee Chair and Resort Manager's approval. All hunters must attend a hunter safety meeting as outlined in C-1.</p>
+<h3 id="c-18">C-18: Moose hunting</h3>
+<p>If you draw a State Permit to hunt Moose at ECR, please contact the Outdoor Committee Chair or Vice Chair. All hunters must attend a hunter safety meeting as outlined in C-1.</p>
+<h3 id="c-19">C-19: Forest Grouse</h3>
+<p>Harvesting of forest grouse is limited to two grouse per hunter per day. No grouse hunting will be allowed during archery deer and archery elk seasons. All hunters must attend a hunter safety meeting as outlined in C-1.</p>
+<h3 id="c-20">C-20: Deer Hunting</h3>
+<p>2025 Regulation-Eligible members may apply for one (1) Deer permit, per membership. These permits may be given to an immediate family member. All state tags are open for this permit. Amended March 21,</p>
+<h3 id="c-20-1">C-20-1: Immediate family member includes</h3>
+<p>Member's parents, children, children's spouse, or grandchildren. All hunters must be accompanied by the ECR member they applied with.</p>
+<h3 id="c-21">C-21: Utah Hunting Mentoring Program (UHMP)</h3>
+<p>If you will be participating in the UHMP, please contact the Outdoor Committee Chair or Vice Chair. Must follow all state rules for UHMP. Amended March 21, 2024</p>
+<h3 id="c-22">C-22: Accompanying Family Members and Guests</h3>
+<p>All hunter's family members and Guests must be accompanied (meaning within voice range) by the primary member they applied to hunt with while Hunting ECR properties.</p>
+<h3 id="c-23">C-23: Access to Forest Service and Salt Lake City Corporation Properties: It...</h3>
+
+<h3 id="c-24">C-24: Tree Stands</h3>
+<p>Tree Stands may be placed after August 1st, and must be removed by Dec. 1st of the hunting season. Each hunter is limited to ONE tree stand. ECR will not be responsible for stolen or damaged hunting equipment.</p>
+<h3 id="c-25">C-25: ATV Registration</h3>
+<p>Every ATV/OHV must be inspected &amp; registered by ECR before accessing any ECR property. Registration and waivers must be renewed annually. All drivers and passengers must sign a waiver at the general store.</p>
+<h3 id="c-26">C-26: Saddlerock Property</h3>
+<p>No hunting is allowed on Saddlerock property.</p>
+<h3 id="c-27">C-27: Relative Rights</h3>
+<p>Relative Rights Member(s) are not allowed to hunt as a Relative Rights Member or hunt on their own. All Relative Rights Member(s) must hunt using one of the Full Members deer tags, which includes archery, muzzle or rifle tags, and must comply with Rule C-22 (above).</p>
+<h3 id="c-28">C-28: Salt / Mineral Blocks</h3>
+<p>The Resort Board has approved a moratorium on any placement of salt, commercial supplement or mineral block. Does not include those approved by Outdoors Committee Chair and Resort Manager.</p>
+<p>C-29 Hunter Orange: All hunters and non-hunters MUST wear DNR approved hunter organe during any centerfire rifle hunts</p>
+<h3 id="c-30">C-30: Hunting Violation</h3>
+<p>All violations including poaching, trespassing or rules need to be reported to ECR Management, Security or Outdoors Committee Chair. Morgan County Sheriff's Office Dispatch: NON- EMERGENCY: 801- 829-0590 (If this is concerning a wildlife issue ask them to dispatch the on-call DNR Wildlife Officer) Any wildlife wounded that crosses neighboring properties requires DWR authorization, along with neighboring landowner authority. Resort staff, members or committee members cannot authorize any action. And follow C-30. Please see this website for changes, updates, or additional information (or call).</p>
+<p class="policy-note">Appendix B (fees) is referenced in the Rule Book. Add it here when you want that schedule posted on this site.</p>
+        </article>
+        <p class="policy-section-nav"><a href="policy-section-17.html">Previous</a> | <a href="policy-bylaws.html">Next</a></p>
+      </section>
+    </div>
+  </main>
+  <script src="js/policy-search.js?v=1"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
