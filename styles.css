@@ -1582,17 +1582,13 @@ a:hover {
   border-radius: var(--radius);
 }
 
-/* Shared directory-row look: full-width rows and grid cells */
-.page-visitor .visitor-link-wide,
-.page-visitor .visitor-link-wide:link,
-.page-visitor .visitor-link-wide:visited,
-.page-visitor .visitor-link-wide:hover,
-.page-visitor .visitor-link-wide:active,
-.page-visitor .visitor-links-grid a,
-.page-visitor .visitor-links-grid a:link,
-.page-visitor .visitor-links-grid a:visited,
-.page-visitor .visitor-links-grid a:hover,
-.page-visitor .visitor-links-grid a:active {
+/* Shared directory-row look: one equal full-width link per row */
+.page-visitor .visitor-links > a,
+.page-visitor .visitor-links > a:link,
+.page-visitor .visitor-links > a:visited,
+.page-visitor .visitor-links > a:hover,
+.page-visitor .visitor-links > a:active,
+.page-visitor .visitor-links > button {
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -1608,30 +1604,21 @@ a:hover {
   background: transparent;
 }
 
-.page-visitor .visitor-link-wide:hover,
-.page-visitor .visitor-links-grid a:hover {
+.page-visitor .visitor-links > a[hidden] {
+  display: none;
+}
+
+.page-visitor .visitor-links > a:hover,
+.page-visitor .visitor-links > button:hover {
   background: rgba(28, 58, 50, 0.08);
   color: var(--color-accent);
 }
 
-.page-visitor button.visitor-link-wide {
+.page-visitor .visitor-links > button {
   font: inherit;
   cursor: pointer;
-  background: transparent;
   appearance: none;
   -webkit-appearance: none;
-}
-
-.page-visitor button.visitor-link-wide:hover {
-  background: rgba(28, 58, 50, 0.08);
-  color: var(--color-accent);
-}
-
-.page-visitor .visitor-link-wide + .visitor-links-grid,
-.page-visitor .visitor-links-grid + .visitor-links-grid,
-.page-visitor .visitor-links-grid + .visitor-link-wide,
-.page-visitor .visitor-links-grid + button.visitor-link-wide {
-  margin-top: 0.35rem;
 }
 
 /* Reservations landing */
@@ -3074,29 +3061,6 @@ a:hover {
   .reservation-card-actions .btn {
     width: 100%;
     text-align: center;
-  }
-}
-
-.page-visitor .visitor-links-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.12rem 0.2rem;
-  margin: 0;
-  padding: 0;
-}
-
-/* Odd last item spans both columns so nothing looks orphaned */
-.page-visitor .visitor-links-grid > :last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 420px) {
-  .page-visitor .visitor-links-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .page-visitor .visitor-links-grid > :last-child:nth-child(odd) {
-    grid-column: auto;
   }
 }
 
