@@ -83,7 +83,7 @@
         const name = p.full_name || p.email || "Member";
         const memberId = p.member_id || "—";
         return `<tr class="admin-row-link" data-href="${AdminCommon.escapeHtml(href)}" tabindex="0">
-          <td><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(memberId)}</a></td>
+          <td class="admin-col-member-id"><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(memberId)}</a></td>
           <td><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(name)}</a></td>
           <td>${AdminCommon.escapeHtml(p.username || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.email || "—")}</td>

@@ -2127,6 +2127,26 @@ a:hover {
   color: #5c564e;
 }
 
+/* Member ID column: keep class-prefixed IDs on one line */
+#admin-members-table .admin-col-member-id {
+  white-space: nowrap;
+  min-width: 8.5rem;
+  width: 1%;
+  vertical-align: middle;
+}
+
+#admin-members-table .admin-col-member-id a {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  #admin-members-table .admin-col-member-id {
+    /* Horizontal scroll via .admin-table-wrap; don't squeeze the ID */
+    min-width: 7.25rem;
+  }
+}
+
 .admin-actions {
   white-space: nowrap;
 }
@@ -4120,4 +4140,73 @@ img.logo {
 
 body.membership-override-open {
   overflow: hidden;
+}
+
+/* Admin Pictures gallery manager */
+.admin-gallery-section {
+  margin: 0 0 1.75rem;
+}
+
+.admin-gallery-count {
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #5c564e;
+}
+
+.admin-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.admin-gallery-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(28, 26, 23, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.admin-gallery-item img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  background: #efe8dc;
+}
+
+.admin-gallery-item-body {
+  padding: 0.75rem 0.85rem 0.9rem;
+}
+
+.admin-gallery-field {
+  display: block;
+  margin: 0 0 0.55rem;
+}
+
+.admin-gallery-field span {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5c564e;
+  margin-bottom: 0.2rem;
+}
+
+.admin-gallery-field input,
+.admin-gallery-field select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-gallery-item .admin-actions {
+  margin-top: 0.35rem;
+  white-space: normal;
+}
+
+.admin-gallery-item .admin-actions .btn-link[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
 }

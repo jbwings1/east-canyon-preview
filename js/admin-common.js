@@ -34,6 +34,13 @@ window.AdminCommon = {
       blurb: "Update the site alert notice.",
     },
     {
+      id: "pictures",
+      label: "Pictures",
+      href: "admin-pictures.html",
+      blurb: "Upload, reorder, or remove Pictures page gallery images.",
+      gate: "website",
+    },
+    {
       id: "staff",
       label: "Staff",
       href: "admin-staff.html",
@@ -130,7 +137,8 @@ window.AdminCommon = {
   renderHubButtons(container) {
     if (!container) return;
     container.innerHTML = this.TASKS.map((task) => {
-      if (!Auth.hasAdminTask(task.id)) return "";
+      const needed = task.gate || task.id;
+      if (!Auth.hasAdminTask(needed)) return "";
       return `<a class="admin-task-btn" href="${task.href}">
         <span class="admin-task-btn-label">${this.escapeHtml(task.label)}</span>
         <span class="admin-task-btn-blurb">${this.escapeHtml(task.blurb)}</span>

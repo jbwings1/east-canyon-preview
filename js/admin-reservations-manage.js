@@ -33,7 +33,7 @@
       .map((b) => {
         const type = Auth.reservationTypeLabel(b.reservation_type) || "—";
         const dates = b.check_in && b.check_out ? `${b.check_in} → ${b.check_out}` : "—";
-        const canConfirm = b.status !== "confirmed";
+        const canConfirm = b.status !== "confirmed" && b.status !== "cancelled";
         const canCancel = b.status !== "cancelled";
         return `<tr data-booking-id="${AdminCommon.escapeHtml(b.id)}">
           <td>${AdminCommon.escapeHtml(AdminCommon.memberLabel(profiles, b.user_id))}</td>

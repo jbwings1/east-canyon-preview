@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Pictures | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site28">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="admin.html">← Back to Admin</a></p>
+      <h1>Pictures</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          Manage gallery images on the public Pictures page.
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <h2>Upload image</h2>
+          <form id="admin-gallery-upload-form" class="auth-form admin-form">
+            <div class="form-group">
+              <label for="gallery-file">Image file</label>
+              <input type="file" id="gallery-file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="gallery-section">Section</label>
+                <select id="gallery-section" required></select>
+              </div>
+              <div class="form-group">
+                <label for="gallery-alt">Alt text</label>
+                <input type="text" id="gallery-alt" maxlength="200" placeholder="East Canyon Resort" value="East Canyon Resort">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </form>
+          <p id="admin-gallery-upload-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Gallery images</h2>
+          <p class="admin-help">Reorder within a section, edit alt text or section, or delete. New uploads go to Supabase Storage; existing site files keep their <code>pix/gallery/</code> paths.</p>
+          <p id="admin-gallery-list-status" class="form-message" role="status" aria-live="polite">Loading…</p>
+          <div id="admin-gallery-sections"></div>
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb5"></script>
+  <script src="js/admin-common.js?v=sb7"></script>
+  <script src="js/admin-pictures.js?v=sb7"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
