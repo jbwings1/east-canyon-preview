@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Close Member | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site14">
+  <link rel="stylesheet" href="styles.css?v=site15">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -31,7 +31,7 @@
 
   <main>
     <div class="container page-content">
-      <p class="admin-back"><a href="admin-members.html">← Members</a></p>
+      <p class="admin-back"><a id="delete-back-link" href="admin-members.html">← Members</a></p>
       <h1>Close or delete membership</h1>
       <p id="admin-denied" class="form-message error" hidden>
         This area is for resort administrators.
@@ -52,7 +52,7 @@
           <p id="delete-message" class="form-message" role="status" aria-live="polite"></p>
           <div class="reservation-hub-actions" id="delete-actions" hidden>
             <button type="button" class="btn btn-primary" id="confirm-delete-btn">Close membership</button>
-            <a href="admin-members.html" class="btn btn-outline">Keep membership</a>
+            <a id="keep-membership-link" href="admin-members.html" class="btn btn-outline">Keep membership</a>
           </div>
         </section>
       </div>
@@ -64,7 +64,7 @@
   <script src="js/supabase-client.js?v=sb2"></script>
   <script src="js/auth.js?v=sb17"></script>
   <script src="js/admin-common.js?v=sb7"></script>
-  <script src="js/admin-member-delete.js?v=sb9"></script>
+  <script src="js/admin-member-delete.js?v=sb10"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

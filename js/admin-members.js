@@ -79,22 +79,20 @@
       .map((p) => {
         const status = p.account_status || "active";
         const password = p.must_change_password ? "Temp / change required" : "Set";
-        const id = encodeURIComponent(p.id);
-        const isSelf = p.id && p.id === me.id;
-        const closeLabel = status === "closed" ? "Remove" : "Close";
-        const actions = isSelf
-          ? `<span class="admin-field-note">Your account</span>`
-          : `<a class="btn-link" href="admin-member-edit.html?id=${id}">Edit</a>` +
-            `<a class="btn-link" href="admin-member-delete.html?id=${id}">${closeLabel}</a>`;
-        return `<tr>
-          <td>${AdminCommon.escapeHtml(p.member_id || "—")}</td>
-          <td>${AdminCommon.escapeHtml(p.full_name || "—")}</td>
+        const href = `admin-member-edit.html?id=${encodeURIComponent(p.id)}`;
+        const name = p.full_name || p.email || "Member";
+        const memberId = p.member_id || "—";
+        return `<tr class="admin-row-link" data-href="${AdminCommon.escapeHtml(href)}" tabindex="0">
+          <td><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(memberId)}</a></td>
+          <td><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(name)}</a></td>
           <td>${AdminCommon.escapeHtml(p.username || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.email || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.phone || "—")}</td>
           <td>${AdminCommon.escapeHtml(AdminCommon.statusLabel(status))}</td>
           <td>${AdminCommon.escapeHtml(password)}</td>
-          <td class="admin-actions">${actions}</td>
+          <td class="admin-actions">
+            <a class="btn btn-outline btn-small" href="${AdminCommon.escapeHtml(href)}">Open</a>
+          </td>
         </tr>`;
       })
       .join("");
@@ -129,6 +127,21 @@
       membersBody.innerHTML = `<tr><td colspan="8">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
     }
   }
+
+  membersBody?.addEventListener("click", (event) => {
+    if (event.target.closest("a, button, input, select, label")) return;
+    const row = event.target.closest("tr[data-href]");
+    const href = row?.getAttribute("data-href");
+    if (href) window.location.href = href;
+  });
+  membersBody?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const row = event.target.closest("tr[data-href]");
+    const href = row?.getAttribute("data-href");
+    if (!href) return;
+    event.preventDefault();
+    window.location.href = href;
+  });
 
   searchInput?.addEventListener("input", () => {
     persistFilters();

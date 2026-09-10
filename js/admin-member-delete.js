@@ -8,6 +8,16 @@
   const actions = document.getElementById("delete-actions");
   const confirmBtn = document.getElementById("confirm-delete-btn");
   const userId = new URLSearchParams(window.location.search).get("id");
+  const memberHref = userId
+    ? `admin-member-edit.html?id=${encodeURIComponent(userId)}`
+    : "admin-members.html";
+  const backLink = document.getElementById("delete-back-link");
+  const keepLink = document.getElementById("keep-membership-link");
+  if (backLink && userId) {
+    backLink.href = memberHref;
+    backLink.textContent = "← Member";
+  }
+  if (keepLink && userId) keepLink.href = memberHref;
 
   function row(label, value) {
     return `<div><dt>${AdminCommon.escapeHtml(label)}</dt><dd>${AdminCommon.escapeHtml(value || "—")}</dd></div>`;

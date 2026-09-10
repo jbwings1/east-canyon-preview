@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Member | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site14">
+  <link rel="stylesheet" href="styles.css?v=site15">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -32,7 +32,7 @@
   <main>
     <div class="container page-content">
       <p class="admin-back"><a href="admin-members.html">← Members</a></p>
-      <h1>Edit member</h1>
+      <h1 id="member-page-title">Member</h1>
       <p id="admin-denied" class="form-message error" hidden>
         This area is for resort administrators.
         <a href="admin-login.html">Admin sign in</a>
@@ -45,9 +45,9 @@
         </p>
 
         <section class="admin-card">
-          <p class="admin-help">
-            Update the membership record after create or activation. Password changes stay on
-            the Passwords admin task.
+          <p id="member-page-summary" class="admin-help">
+            Opened from the members list. Change the record below, or close this membership.
+            Password resets stay on the Passwords admin task.
           </p>
           <form id="admin-edit-member-form" class="auth-form admin-form" hidden>
             <div class="form-group">
@@ -106,13 +106,26 @@
                 <option value="closed">Closed</option>
               </select>
               <p class="admin-field-note">
-                Closed or suspended blocks member sign-in. Use Close on the members list to
-                confirm a full close or unused-account delete.
+                Closed or suspended blocks member sign-in. Use Close or delete below to confirm
+                a full close or unused-account delete.
               </p>
             </div>
-            <button type="submit" class="btn btn-primary">Save member</button>
+            <div class="reservation-hub-actions">
+              <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
           </form>
           <p id="admin-edit-member-result" class="form-message" role="status" aria-live="polite"></p>
+
+          <div class="admin-member-danger" id="member-close-panel" hidden>
+            <h2>Close or delete membership</h2>
+            <p class="admin-danger-note">
+              Closing blocks website sign-in. Reservation history stays on file for admins.
+              Unused accounts with no bookings can be permanently deleted after you confirm.
+            </p>
+            <a class="btn btn-outline" id="member-close-link" href="admin-member-delete.html">
+              Close or delete this membership
+            </a>
+          </div>
         </section>
       </div>
     </div>
@@ -123,7 +136,7 @@
   <script src="js/supabase-client.js?v=sb2"></script>
   <script src="js/auth.js?v=sb17"></script>
   <script src="js/admin-common.js?v=sb7"></script>
-  <script src="js/admin-member-edit.js?v=sb9"></script>
+  <script src="js/admin-member-edit.js?v=sb10"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

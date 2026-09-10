@@ -2118,6 +2118,47 @@ a:hover {
   margin-right: 0.75rem;
 }
 
+.admin-table tr.admin-row-link {
+  cursor: pointer;
+}
+
+.admin-table tr.admin-row-link:hover,
+.admin-table tr.admin-row-link:focus-visible,
+.admin-table tr.admin-row-link:focus-within {
+  background: rgba(28, 58, 50, 0.06);
+}
+
+.admin-table tr.admin-row-link td a:not(.btn) {
+  color: #1c3a32;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-table tr.admin-row-link td a:not(.btn):hover,
+.admin-table tr.admin-row-link td a:not(.btn):focus-visible {
+  text-decoration: underline;
+}
+
+.admin-table .btn-small {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.88rem;
+}
+
+.admin-member-danger {
+  margin-top: 1.75rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(28, 26, 23, 0.12);
+}
+
+.admin-member-danger h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+}
+
+.admin-member-danger .btn {
+  margin-top: 0.25rem;
+}
+
 .admin-back {
   margin: 0 0 0.75rem;
 }

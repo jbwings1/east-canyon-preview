@@ -37,6 +37,35 @@
   document.getElementById("edit-status").value = member.account_status || "active";
   form.hidden = false;
 
+  const title = document.getElementById("member-page-title");
+  const summary = document.getElementById("member-page-summary");
+  const displayName = member.full_name || member.email || "Member";
+  if (title) title.textContent = displayName;
+  document.title = `${displayName} | East Canyon Resort`;
+  if (summary) {
+    const bits = [
+      member.member_id ? `Member ID ${member.member_id}` : null,
+      AdminCommon.statusLabel(member.account_status),
+    ].filter(Boolean);
+    summary.textContent =
+      bits.join(" · ") +
+      ". Change the record below, or close this membership. Password resets stay on the Passwords admin task.";
+  }
+
+  const closePanel = document.getElementById("member-close-panel");
+  const closeLink = document.getElementById("member-close-link");
+  if (member.id === me.id) {
+    if (closePanel) {
+      closePanel.hidden = false;
+      closePanel.innerHTML =
+        `<h2>Close or delete membership</h2>` +
+        `<p class="admin-danger-note">You cannot close or delete your own signed-in account from this page.</p>`;
+    }
+  } else if (closePanel && closeLink) {
+    closeLink.href = `admin-member-delete.html?id=${encodeURIComponent(userId)}`;
+    closePanel.hidden = false;
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     AdminCommon.showMessage(result, "", "");
