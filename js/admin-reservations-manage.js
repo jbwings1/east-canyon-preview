@@ -4,7 +4,9 @@
 
   const bookingsBody = document.getElementById("admin-bookings-body");
   const bookingMember = document.getElementById("booking-member");
+  const bookingType = document.getElementById("booking-type");
   const message = document.getElementById("admin-message");
+  const createForm = document.getElementById("admin-create-booking-form");
   let profiles = [];
   let bookings = [];
 
@@ -55,13 +57,46 @@
     renderBookings();
   }
 
-  document.getElementById("admin-create-booking-form")?.addEventListener("submit", async (e) => {
+  function evaluateSelectedMemberRights() {
+    if (typeof MembershipRights === "undefined") {
+      return { ok: true, violations: [] };
+    }
+    const memberUserId = bookingMember.value;
+    const profile = profiles.find((p) => p.id === memberUserId);
+    const memberId = profile?.member_id || "";
+    const reservationType = bookingType.value;
+    const checkIn = document.getElementById("booking-check-in").value;
+    const checkOut = document.getElementById("booking-check-out").value;
+    const existing = bookings.filter((b) => b.user_id === memberUserId);
+    return MembershipRights.validateBooking({
+      memberId,
+      reservationType,
+      checkIn,
+      checkOut,
+      existingBookings: existing,
+    });
+  }
+
+  createForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const result = document.getElementById("admin-create-booking-result");
     AdminCommon.showMessage(result, "", "");
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
+      const gate = evaluateSelectedMemberRights();
+      if (!gate.ok) {
+        const limitText = MembershipRights.formatViolations(gate.violations);
+        const override = await MembershipRights.showOverrideDialog(
+          `${limitText} As an admin you may override this class limit, or start over.`
+        );
+        if (!override) {
+          e.target.reset();
+          AdminCommon.showMessage(result, "Started over — reservation not saved.", "");
+          return;
+        }
+      }
+
       await Auth.createBookingForMember({
         memberUserId: document.getElementById("booking-member").value,
         reservationType: document.getElementById("booking-type").value,

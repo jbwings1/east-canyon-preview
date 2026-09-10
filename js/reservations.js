@@ -31,6 +31,7 @@ let occupancyRows = [];
 let occupancyFetchToken = 0;
 const reservationMode = document.body?.dataset?.reservationMode || "book";
 const editIdFromUrl = new URLSearchParams(window.location.search).get("id");
+const membershipClassNotice = document.getElementById("membership-class-notice");
 
 function goToReservationHub(ok) {
   const q = ok ? `?ok=${encodeURIComponent(ok)}` : "";
@@ -331,10 +332,159 @@ function unitMatchesReservationType(unit, type) {
   return false;
 }
 
+function bookingMemberIdForRights() {
+  const user = typeof Auth !== "undefined" ? Auth.getCurrentUser() : null;
+  const fromProfile = String(user?.memberId || "").trim();
+  if (fromProfile) return fromProfile;
+  return String(memberIdInput?.value || "").trim();
+}
+
+function membershipRightsAvailable() {
+  return typeof window.MembershipRights !== "undefined";
+}
+
+function evaluateMembershipRights({ reservationType, checkIn: stayIn, checkOut: stayOut } = {}) {
+  if (!membershipRightsAvailable()) {
+    return { ok: true, classCode: null, rights: null, violations: [] };
+  }
+  return window.MembershipRights.validateBooking({
+    memberId: bookingMemberIdForRights(),
+    reservationType: reservationType || typeSelect.value,
+    checkIn: stayIn || checkIn.value,
+    checkOut: stayOut || checkOut.value,
+    existingBookings: memberBookings,
+    excludeBookingId: editingBookingId,
+  });
+}
+
+function showMembershipClassNotice(text, isLimit) {
+  if (!membershipClassNotice) return;
+  if (!text) {
+    membershipClassNotice.hidden = true;
+    membershipClassNotice.textContent = "";
+    membershipClassNotice.classList.remove("stay-length-notice--limit");
+    return;
+  }
+  membershipClassNotice.hidden = false;
+  membershipClassNotice.textContent = text;
+  membershipClassNotice.classList.toggle("stay-length-notice--limit", Boolean(isLimit));
+}
+
+function syncMembershipTypeOptions() {
+  if (!membershipRightsAvailable() || !typeSelect) return;
+  const MR = window.MembershipRights;
+  const classCode = MR.parseClassFromMemberId(bookingMemberIdForRights());
+  const rights = MR.getRights(classCode);
+  const options = Array.from(typeSelect.options);
+
+  options.forEach((opt) => {
+    if (!opt.value) return;
+    if (reservationMode === "edit" && typeSelect.disabled) {
+      opt.disabled = false;
+      return;
+    }
+    if (!rights) {
+      opt.disabled = false;
+      return;
+    }
+    const gate = MR.typeAllowed(rights, opt.value);
+    opt.disabled = !gate.allowed;
+  });
+
+  if (rights && typeSelect.value && !(reservationMode === "edit" && typeSelect.disabled)) {
+    const gate = MR.typeAllowed(rights, typeSelect.value);
+    if (!gate.allowed) {
+      typeSelect.value = "";
+      clearPreferredSpot();
+      updateRvFields();
+    }
+  }
+
+  updateMembershipStayFeedback();
+}
+
+function updateMembershipStayFeedback() {
+  if (!membershipRightsAvailable()) return;
+  const MR = window.MembershipRights;
+  const classCode = MR.parseClassFromMemberId(bookingMemberIdForRights());
+  const rights = MR.getRights(classCode);
+  if (!classCode) {
+    showMembershipClassNotice("");
+    return;
+  }
+  if (!rights) {
+    showMembershipClassNotice(`Member ID class “${classCode}” is not in the use-rights table.`);
+    return;
+  }
+
+  const type = typeSelect.value;
+  const bits = [];
+  bits.push(`Class ${classCode}`);
+  if (rights.condoAllowed) {
+    if (rights.daysAnytime) {
+      bits.push(`${rights.summerDays} Regular condo day${rights.summerDays === 1 ? "" : "s"} anytime`);
+    } else {
+      bits.push(
+        `${rights.summerDays} Summer / ${rights.winterDays} Winter Regular condo day${
+          rights.summerDays + rights.winterDays === 1 ? "" : "s"
+        }`
+      );
+    }
+  } else {
+    bits.push("no Regular condo");
+  }
+  bits.push(rights.rvAllowed ? "RV allowed" : "RV not allowed");
+
+  let isLimit = false;
+  if (type) {
+    const gate = evaluateMembershipRights({
+      reservationType: type,
+      checkIn: checkIn.value,
+      checkOut: checkOut.value,
+    });
+    if (!gate.ok) {
+      isLimit = true;
+      bits.push(MR.formatViolations(gate.violations));
+    } else if (MR.isCondoReservationType(type) && rights.condoAllowed && checkIn.value && checkOut.value) {
+      const needed = MR.countStayNightsByBucket(checkIn.value, checkOut.value, rights);
+      const used = MR.usedCondoNightsByBucket(memberBookings, {
+        excludeBookingId: editingBookingId,
+        rights,
+      });
+      const remainParts = Object.keys(needed).map((key) => {
+        const season = key.split("|")[1];
+        const allotment =
+          season === "anytime" || rights.daysAnytime
+            ? rights.summerDays
+            : season === "summer"
+              ? rights.summerDays
+              : rights.winterDays;
+        const remaining = Math.max(0, (allotment || 0) - (used[key] || 0));
+        const label =
+          season === "anytime" ? "Regular" : season === "summer" ? "Summer" : "Winter";
+        return `${remaining} ${label} left`;
+      });
+      if (remainParts.length) bits.push(remainParts.join(", "));
+    }
+  }
+
+  showMembershipClassNotice(bits.join(" · "), isLimit);
+}
+
 function canBookSelectUnit(unit) {
   const type = typeSelect.value;
   if (!type) return false;
-  return unitMatchesReservationType(unit, type);
+  if (!unitMatchesReservationType(unit, type)) return false;
+  if (!membershipRightsAvailable()) return true;
+  const result = evaluateMembershipRights({
+    reservationType: type,
+    checkIn: checkIn.value,
+    checkOut: checkOut.value,
+  });
+  if (!result.ok && result.violations.some((v) => v.code === "type-disallowed")) {
+    return false;
+  }
+  return true;
 }
 
 CampgroundMap.init({
@@ -617,6 +767,7 @@ function updateMapAvailability() {
 async function syncAvailabilityFromDates() {
   await refreshOccupancyForSelectedDates();
   updateMapAvailability();
+  updateMembershipStayFeedback();
 }
 
 checkIn.addEventListener("change", () => {
@@ -627,13 +778,32 @@ checkIn.addEventListener("change", () => {
 checkOut.addEventListener("change", () => {
   syncAvailabilityFromDates();
 });
-memberIdInput?.addEventListener("input", updateMemberReservationNotice);
-memberIdInput?.addEventListener("change", updateMemberReservationNotice);
+memberIdInput?.addEventListener("input", () => {
+  updateMemberReservationNotice();
+  syncMembershipTypeOptions();
+});
+memberIdInput?.addEventListener("change", () => {
+  updateMemberReservationNotice();
+  syncMembershipTypeOptions();
+});
 typeSelect.addEventListener("change", () => {
   updateRvFields();
   clearPreferredSpot();
   updateMapAvailability();
   updateMemberReservationNotice();
+  syncMembershipTypeOptions();
+  const gate = evaluateMembershipRights({
+    reservationType: typeSelect.value,
+    checkIn: checkIn.value,
+    checkOut: checkOut.value,
+  });
+  if (!gate.ok && gate.violations.some((v) => v.code === "type-disallowed")) {
+    message.textContent = window.MembershipRights.formatViolations(gate.violations);
+    message.className = "form-message error";
+  } else if (message.classList.contains("error") && /Class\s+[A-Z]/.test(message.textContent || "")) {
+    message.textContent = "";
+    message.className = "form-message";
+  }
 });
 rigSelect?.addEventListener("change", () => {
   updateMapAvailability();
@@ -642,6 +812,7 @@ rigSelect?.addEventListener("change", () => {
 updateRvFields();
 updateMapAvailability();
 updateMemberReservationNotice();
+syncMembershipTypeOptions();
 
 function showConfirmedState(record) {
   const signedIn = typeof Auth !== "undefined" && Auth.getCurrentUser();
@@ -691,6 +862,7 @@ function startAnotherBooking() {
   const user = typeof Auth !== "undefined" ? Auth.getCurrentUser() : null;
   prefillFromProfile(user);
   updateMemberReservationNotice();
+  syncMembershipTypeOptions();
   checkIn?.focus();
 }
 
@@ -842,6 +1014,7 @@ function prefillFromProfile(user) {
     typeSelect.value = user.reservationType;
     updateRvFields();
   }
+  syncMembershipTypeOptions();
 }
 
 clearSpotBtn.addEventListener("click", clearPreferredSpot);
@@ -932,6 +1105,35 @@ form.addEventListener("submit", async (e) => {
     updateMemberReservationNotice();
     memberReservationNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     return;
+  }
+
+  const membershipGate = evaluateMembershipRights({
+    reservationType: data.type,
+    checkIn: data.checkIn,
+    checkOut: data.checkOut,
+  });
+  if (!membershipGate.ok) {
+    const limitText = window.MembershipRights.formatViolations(membershipGate.violations);
+    const asAdmin = typeof Auth !== "undefined" && Auth.isAdmin && Auth.isAdmin(user);
+    if (asAdmin) {
+      const override = pendingMembershipOverride
+        ? true
+        : await window.MembershipRights.showOverrideDialog(
+            `${limitText} As an admin you may override this class limit, or start over.`
+          );
+      pendingMembershipOverride = false;
+      if (!override) {
+        startAnotherBooking();
+        message.textContent = "Booking cancelled — class limit not overridden.";
+        message.className = "form-message";
+        return;
+      }
+    } else {
+      message.textContent = limitText;
+      message.className = "form-message error";
+      membershipClassNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
   }
 
   const typeLabels = {
@@ -1130,6 +1332,7 @@ form.addEventListener("submit", async (e) => {
   if (user) {
     await refreshMemberBookings();
   }
+  syncMembershipTypeOptions();
 
   if (reservationMode === "edit") {
     if (!editIdFromUrl) {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Your East Canyon Resort member profile — contact details, site, and bookings.">
   <title>Member Profile | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site2">
+  <link rel="stylesheet" href="styles.css?v=site26">
 </head>
 <body class="page-visitor">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -32,35 +32,34 @@
 
   <main class="page-main">
     <div class="container">
+      <p class="admin-back"><a href="member-home.html">← Members</a></p>
       <header class="page-header">
         <p class="section-label" id="account-type-label">Account</p>
         <h1 id="welcome-name">Member Profile</h1>
-        <p><a href="member-home.html">Members home</a> · <a href="admin.html" data-admin-link hidden>Admin</a> · <button type="button" id="logout-btn" class="btn-link">Sign Out</button></p>
+        <p><a href="admin.html" data-admin-link hidden>Admin</a> · <button type="button" id="logout-btn" class="btn-link">Sign Out</button></p>
       </header>
 
       <div class="dashboard-grid">
         <section class="dashboard-card dashboard-card--wide" id="profile-card">
           <h2>Profile</h2>
           <form id="profile-form" class="profile-form">
+            <div class="form-group">
+              <label for="profile-member-id">Member ID</label>
+              <input type="text" id="profile-member-id" disabled>
+            </div>
             <div class="form-row">
-              <div class="form-group">
-                <label for="profile-member-id">Member ID</label>
-                <input type="text" id="profile-member-id" disabled>
-              </div>
               <div class="form-group">
                 <label for="profile-login">Login</label>
                 <input type="text" id="profile-login" disabled>
               </div>
-            </div>
-            <div class="form-row">
               <div class="form-group">
                 <label for="profile-username">Username</label>
                 <input type="text" id="profile-username" disabled>
               </div>
-              <div class="form-group">
-                <label for="profile-name">Full name</label>
-                <input type="text" id="profile-name" required>
-              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-name">Full name</label>
+              <input type="text" id="profile-name" required>
             </div>
             <div class="form-row">
               <div class="form-group">

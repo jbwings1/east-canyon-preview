@@ -195,19 +195,21 @@ a:hover {
   z-index: 1;
   min-height: inherit;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(
-    to top,
-    rgba(16, 13, 10, 0.88) 0%,
-    rgba(16, 13, 10, 0.28) 48%,
-    rgba(16, 13, 10, 0.12) 100%
+    to bottom,
+    rgba(16, 13, 10, 0.42) 0%,
+    rgba(16, 13, 10, 0.55) 42%,
+    rgba(16, 13, 10, 0.72) 100%
   );
 }
 
 .home-hero-content {
   width: min(1100px, 92vw);
-  padding: 7.5rem 0 4rem;
+  padding: 6rem 0 4rem;
   color: #f7f2ea;
+  text-align: center;
 }
 
 .home-hero-eyebrow {
@@ -229,7 +231,7 @@ a:hover {
 }
 
 .home-hero-lead {
-  margin: 0;
+  margin: 0 auto;
   max-width: 38rem;
   font-size: clamp(1.05rem, 2vw, 1.22rem);
   line-height: 1.55;
@@ -240,6 +242,7 @@ a:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  justify-content: center;
 }
 
 .page-home .btn {
@@ -885,34 +888,41 @@ a:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 1rem 0.9rem;
+  padding: 0.55rem 0.45rem;
   background: #fff;
 }
 
 .page-visitor .policy-index-title {
-  margin: 0 0 0.65rem;
+  margin: 0 0 0.45rem;
+  padding: 0 0.25rem;
   font-size: 1rem;
 }
 
 .page-visitor .policy-index-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.12rem;
 }
 
+/* Match visitor directory-row link look */
 .page-visitor .policy-index-nav a,
 .page-visitor .policy-index-nav a:link,
 .page-visitor .policy-index-nav a:visited,
 .page-visitor .policy-index-nav a:hover,
 .page-visitor .policy-index-nav a:active {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   color: var(--color-accent);
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   line-height: 1.35;
   text-decoration: none;
   border: none;
   border-radius: 8px;
-  padding: 0.42rem 0.55rem;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  background: transparent;
 }
 
 .page-visitor .policy-index-nav a:hover,
@@ -923,7 +933,7 @@ a:hover {
 
 .page-visitor .policy-index-back {
   margin: 0.85rem 0 0;
-  font-size: 0.85rem;
+  padding: 0 0.25rem;
 }
 
 .page-visitor .policy-main {
@@ -1234,6 +1244,25 @@ a:hover {
   color: #fff;
 }
 
+.page-visitor .membership-rights-table th[scope="row"] {
+  background: #f3f0ea;
+  color: #1c1916;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page-visitor .membership-rights-table td {
+  font-size: 0.92rem;
+}
+
+@media (max-width: 640px) {
+  .page-visitor .membership-rights-table th,
+  .page-visitor .membership-rights-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
 .page-visitor .hunting-back {
   margin: 1.75rem 0 0;
 }
@@ -1539,56 +1568,50 @@ a:hover {
 .page-visitor .visitor-links {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.12rem;
   background: #fff;
   border: 1px solid var(--color-border);
-  padding: 0.85rem 0.7rem;
+  padding: 0.55rem 0.45rem;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
 .page-visitor-home .visitor-links {
   background: #fff;
-  padding: 0.85rem 0.7rem;
+  padding: 0.55rem 0.45rem;
   border-radius: var(--radius);
 }
 
+/* Shared directory-row look: full-width rows and grid cells */
 .page-visitor .visitor-link-wide,
 .page-visitor .visitor-link-wide:link,
 .page-visitor .visitor-link-wide:visited,
 .page-visitor .visitor-link-wide:hover,
-.page-visitor .visitor-link-wide:active {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.page-visitor .visitor-link-wide:active,
+.page-visitor .visitor-links-grid a,
+.page-visitor .visitor-links-grid a:link,
+.page-visitor .visitor-links-grid a:visited,
+.page-visitor .visitor-links-grid a:hover,
+.page-visitor .visitor-links-grid a:active {
+  display: block;
   width: 100%;
   box-sizing: border-box;
   color: var(--color-accent);
   font-weight: 600;
   font-size: 0.95rem;
+  line-height: 1.35;
   text-decoration: none;
   border: none;
   border-radius: 8px;
-  padding: 0.62rem 0.75rem;
+  padding: 0.55rem 0.7rem;
   text-align: left;
   background: transparent;
 }
 
-.page-visitor .visitor-link-wide::after {
-  content: "→";
-  font-weight: 400;
-  opacity: 0.45;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-
-.page-visitor .visitor-link-wide:hover {
+.page-visitor .visitor-link-wide:hover,
+.page-visitor .visitor-links-grid a:hover {
   background: rgba(28, 58, 50, 0.08);
   color: var(--color-accent);
-}
-
-.page-visitor .visitor-link-wide:hover::after {
-  opacity: 0.9;
-  transform: translateX(3px);
 }
 
 .page-visitor button.visitor-link-wide {
@@ -1602,6 +1625,13 @@ a:hover {
 .page-visitor button.visitor-link-wide:hover {
   background: rgba(28, 58, 50, 0.08);
   color: var(--color-accent);
+}
+
+.page-visitor .visitor-link-wide + .visitor-links-grid,
+.page-visitor .visitor-links-grid + .visitor-links-grid,
+.page-visitor .visitor-links-grid + .visitor-link-wide,
+.page-visitor .visitor-links-grid + button.visitor-link-wide {
+  margin-top: 0.35rem;
 }
 
 /* Reservations landing */
@@ -2256,8 +2286,36 @@ a:hover {
 }
 
 .admin-subhead {
-  margin: 1.5rem 0 0.75rem;
-  font-size: 1.15rem;
+  margin: 0 0 0.65rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #1c3a32;
+}
+
+.page-admin .admin-link-section {
+  margin: 1.75rem 0 0;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(28, 26, 23, 0.1);
+}
+
+.page-admin .admin-link-section:first-of-type {
+  margin-top: 1.1rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Directory links inside the admin content card (no nested white box) */
+.page-admin .admin-site-links {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page-admin .admin-task-grid {
+  margin-top: 0.35rem;
 }
 
 .admin-toolbar {
@@ -3022,28 +3080,24 @@ a:hover {
 .page-visitor .visitor-links-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.15rem 0.35rem;
-  padding: 0.15rem 0;
+  gap: 0.12rem 0.2rem;
+  margin: 0;
+  padding: 0;
 }
 
-.page-visitor .visitor-links-grid a,
-.page-visitor .visitor-links-grid a:link,
-.page-visitor .visitor-links-grid a:visited,
-.page-visitor .visitor-links-grid a:hover,
-.page-visitor .visitor-links-grid a:active {
-  color: var(--color-accent);
-  font-weight: 600;
-  font-size: 0.86rem;
-  text-decoration: none;
-  border: none;
-  border-radius: 8px;
-  padding: 0.48rem 0.7rem;
-  text-align: left;
+/* Odd last item spans both columns so nothing looks orphaned */
+.page-visitor .visitor-links-grid > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
-.page-visitor .visitor-links-grid a:hover {
-  background: rgba(28, 58, 50, 0.08);
-  color: var(--color-accent);
+@media (max-width: 420px) {
+  .page-visitor .visitor-links-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-visitor .visitor-links-grid > :last-child:nth-child(odd) {
+    grid-column: auto;
+  }
 }
 
 .header-inner {
@@ -3685,6 +3739,28 @@ img.logo {
   cursor: not-allowed;
 }
 
+/* Member ID: room for class-prefixed IDs without widening every field */
+#profile-member-id,
+#signup-member-id,
+#member-id-input,
+#edit-member-id,
+#res-member-id {
+  min-width: 32ch;
+  box-sizing: border-box;
+}
+
+/* Edit Profile + admin create/edit: Member ID uses the full form row */
+#profile-member-id,
+#member-id-input,
+#edit-member-id {
+  width: 100%;
+  max-width: 100%;
+}
+
+.reservation-form .form-row--4:has(#res-member-id) {
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 2.2fr) minmax(0, 1.1fr) minmax(0, 0.95fr);
+}
+
 .committee-page {
   background: #fff;
   border: 1px solid var(--color-border);
@@ -3923,7 +3999,7 @@ img.logo {
   }
 
   .home-hero-content {
-    padding: 6.5rem 0 2.75rem;
+    padding: 5.5rem 0 2.75rem;
   }
 
   .home-hero-actions {
@@ -4018,4 +4094,66 @@ img.logo {
   .form-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* Membership class limit override (admin) */
+.membership-override-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.membership-override-dialog[hidden] {
+  display: none !important;
+}
+
+.membership-override-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 17, 14, 0.48);
+}
+
+.membership-override-panel {
+  position: relative;
+  z-index: 1;
+  width: min(28rem, 100%);
+  padding: 1.35rem 1.4rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--color-sand-dark, #e2d8c8);
+  border-radius: var(--radius, 12px);
+  box-shadow: var(--shadow, 0 8px 24px rgba(28, 25, 22, 0.12));
+  color: var(--color-text, #1c1916);
+}
+
+.membership-override-panel h2 {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--color-accent, #1c3a32);
+}
+
+.membership-override-message {
+  margin: 0 0 1.15rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--color-text, #1c1916);
+}
+
+.membership-override-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.membership-override-actions .btn {
+  min-width: 7.5rem;
+}
+
+body.membership-override-open {
+  overflow: hidden;
 }

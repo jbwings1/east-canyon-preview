@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membership Use Rights | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site26">
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb5"></script>
+  <script>
+    (function () {
+      var user = Auth.getCurrentUser();
+      if (!user || Auth.needsPasswordChange(user)) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="admin.html">← Back to Admin</a></p>
+      <h1>Membership Use Rights</h1>
+      <p>
+        Summary of Regular Time, Bonus Time, RV Use, and Relative Rights by membership class.
+        Source:
+        <a href="policy-section-3.html#sec-3-2">Policies §3.2</a>
+        (Member Classes) and
+        <a href="policy-section-2.html#sec-2-10">§2.10–2.11</a>
+        (Summer / Winter seasons).
+      </p>
+
+      <h2>Seasons</h2>
+      <ul>
+        <li><strong>Summer:</strong> May 15 – September 15</li>
+        <li><strong>Winter:</strong> September 16 – May 14</li>
+      </ul>
+
+      <h2>Use rights by membership type</h2>
+      <p>Numbers are Regular Time days per season unless noted. A dash (—) means none for that season or right.</p>
+      <div class="hunting-table-wrap">
+        <table class="hunting-table membership-rights-table">
+          <thead>
+            <tr>
+              <th scope="col">Type</th>
+              <th scope="col">Summer Regular</th>
+              <th scope="col">Winter Regular</th>
+              <th scope="col">Bonus Time</th>
+              <th scope="col">RV Use</th>
+              <th scope="col">Relative Rights</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">A</th>
+              <td>5</td>
+              <td>5</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">B</th>
+              <td>4</td>
+              <td>4</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">C</th>
+              <td>4</td>
+              <td>—</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">D</th>
+              <td>—</td>
+              <td>—</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">F</th>
+              <td>4</td>
+              <td>3</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">G</th>
+              <td>7</td>
+              <td>7</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <th scope="row">H Corporate</th>
+              <td>5</td>
+              <td>5</td>
+              <td>Via designated members*</td>
+              <td>Yes (with rules)</td>
+              <td>Can purchase (up to 10 annual)</td>
+            </tr>
+            <tr>
+              <th scope="row">I Corporate</th>
+              <td>5</td>
+              <td>5</td>
+              <td>Via designated members*</td>
+              <td>Yes (with rules)</td>
+              <td>No (in §3)</td>
+            </tr>
+            <tr>
+              <th scope="row">L</th>
+              <td>—</td>
+              <td>—</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row">M</th>
+              <td>4</td>
+              <td>3</td>
+              <td>Unlimited*</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row">O</th>
+              <td>4</td>
+              <td>3</td>
+              <td>Unlimited*</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row">P</th>
+              <td>7</td>
+              <td>7</td>
+              <td>Unlimited*</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row">Q</th>
+              <td>Fixed week (7 days)</td>
+              <td>See agreement</td>
+              <td>Unlimited*</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Notes</h2>
+      <ul>
+        <li>
+          <strong>H / I Corporate:</strong> Each year the corporation may designate up to four officers,
+          partners, directors, trustees, or employees as Designated Members. Designated Members have
+          Bonus Time and RV Use with occupancy rules in §3.2 (only one may occupy as a Member in
+          wilderness campsites, RV Park, or condos at a time; all four may be on site for day use).
+        </li>
+        <li>
+          <strong>Relative Rights Member:</strong> Same Use Rights and Privileges as the associated Full
+          Member under §3, except no Regular Time, hunting rights, or guest reservations / guests.
+          Bonus Time may be scheduled up to 21 days in advance. Term runs April 1 – March 31 with an
+          annual fee (see Appendix B).
+        </li>
+        <li>
+          <strong>Temporary Member Condo / FRA:</strong> Temporary use rights for condo or FRA stays as
+          defined in §3.2.15; not a Full Member class in the table above.
+        </li>
+        <li>
+          <strong>*</strong> Bonus Time is subject to space available and other reservation rules in the
+          Policies and Rules.
+        </li>
+      </ul>
+      <p class="policy-note">
+        This page is a quick reference only. The official text controls:
+        <a href="policy-section-3.html#sec-3-2">§3.2 Member Classes</a>
+        and
+        <a href="policy-section-2.html#sec-2-10">§2.10–2.11</a>.
+        See also
+        <a href="policies-and-rules.html">Policies and Rules</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
