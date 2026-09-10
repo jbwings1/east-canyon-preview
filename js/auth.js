@@ -287,9 +287,17 @@ const Auth = {
       data = {};
     }
     if (!response.ok) {
-      throw new Error(data.error || "Could not create the account.");
+      throw new Error(data.error || "Could not complete the admin request.");
     }
     return data;
+  },
+
+  async updateMember(payload) {
+    return this.provisionUser({ kind: "update_member", ...payload });
+  },
+
+  async deleteMember(userId) {
+    return this.provisionUser({ kind: "delete_member", user_id: userId });
   },
 
   async createBookingForMember({

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Member | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site14">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content">
+      <p class="admin-back"><a href="admin-members.html">← Members</a></p>
+      <h1>Edit member</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <p class="admin-help">
+            Update the membership record after create or activation. Password changes stay on
+            the Passwords admin task.
+          </p>
+          <form id="admin-edit-member-form" class="auth-form admin-form" hidden>
+            <div class="form-group">
+              <label for="edit-member-id">Member ID</label>
+              <input type="text" id="edit-member-id" required>
+              <p class="admin-field-note">Must be unique. Used at activation and in office records.</p>
+            </div>
+            <div class="form-group">
+              <label for="edit-full-name">Full name</label>
+              <input type="text" id="edit-full-name" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-email">Personal email</label>
+              <input type="email" id="edit-email" required>
+              <p class="admin-field-note">
+                Updates both the profile and Auth sign-in email. Confirmed automatically so they
+                are not locked out. They can still sign in with their username.
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="edit-username">Username</label>
+              <input type="text" id="edit-username" autocomplete="off" maxlength="30">
+              <p class="admin-field-note">
+                Unique login name (3–30 letters, numbers, underscore, or hyphen). Leave blank if
+                they have not chosen one. Changing it does not break email sign-in.
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="edit-phone">Phone</label>
+              <input type="tel" id="edit-phone">
+            </div>
+            <div class="form-group">
+              <label for="edit-address">Address</label>
+              <input type="text" id="edit-address">
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="edit-city">City</label>
+                <input type="text" id="edit-city">
+              </div>
+              <div class="form-group">
+                <label for="edit-state">State</label>
+                <input type="text" id="edit-state">
+              </div>
+              <div class="form-group">
+                <label for="edit-zip">ZIP</label>
+                <input type="text" id="edit-zip">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-status">Account status</label>
+              <select id="edit-status" required>
+                <option value="pending_activation">Pending activation</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="closed">Closed</option>
+              </select>
+              <p class="admin-field-note">
+                Closed or suspended blocks member sign-in. Use Close on the members list to
+                confirm a full close or unused-account delete.
+              </p>
+            </div>
+            <button type="submit" class="btn btn-primary">Save member</button>
+          </form>
+          <p id="admin-edit-member-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb17"></script>
+  <script src="js/admin-common.js?v=sb7"></script>
+  <script src="js/admin-member-edit.js?v=sb9"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

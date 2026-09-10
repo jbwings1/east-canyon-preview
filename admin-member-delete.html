@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Close Member | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site14">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content">
+      <p class="admin-back"><a href="admin-members.html">← Members</a></p>
+      <h1>Close or delete membership</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <dl class="member-profile-summary" id="delete-summary">
+            <div><dt>Loading</dt><dd>…</dd></div>
+          </dl>
+          <p id="delete-explain" class="admin-danger-note"></p>
+          <p id="delete-message" class="form-message" role="status" aria-live="polite"></p>
+          <div class="reservation-hub-actions" id="delete-actions" hidden>
+            <button type="button" class="btn btn-primary" id="confirm-delete-btn">Close membership</button>
+            <a href="admin-members.html" class="btn btn-outline">Keep membership</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb17"></script>
+  <script src="js/admin-common.js?v=sb7"></script>
+  <script src="js/admin-member-delete.js?v=sb9"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

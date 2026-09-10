@@ -38,6 +38,58 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+const MEMBER_STATUSES = [
+  "pending_activation",
+  "active",
+  "suspended",
+  "closed",
+] as const;
+
+type MemberStatus = (typeof MEMBER_STATUSES)[number];
+
+function isMemberStatus(value: string): value is MemberStatus {
+  return (MEMBER_STATUSES as readonly string[]).includes(value);
+}
+
+function isBlockedStatus(status: string) {
+  return status === "closed" || status === "suspended";
+}
+
+function normalizeUsername(value: unknown): string | null {
+  const cleaned = String(value ?? "").trim().toLowerCase();
+  return cleaned || null;
+}
+
+function usernameError(username: string): string | null {
+  if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(username)) {
+    return "Username must be 3–30 characters and use only letters, numbers, underscore, or hyphen.";
+  }
+  return null;
+}
+
+async function applyAuthAccess(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+  blocked: boolean,
+) {
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
+    ban_duration: blocked ? "876000h" : "none",
+  });
+  if (error) {
+    console.error("Could not update Auth ban:", error.message);
+  }
+  if (blocked) {
+    try {
+      await adminClient.auth.admin.signOut(userId, "global");
+    } catch (err) {
+      console.error(
+        "Could not revoke sessions:",
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+}
+
 async function sendMemberWelcomeEmail(opts: {
   to: string;
   fullName: string;
@@ -208,11 +260,25 @@ Deno.serve(async (req) => {
   }
 
   const kind = String(body.kind || "member");
-  if (kind !== "member" && kind !== "admin" && kind !== "reset_password") {
-    return json(400, { error: "kind must be member, admin, or reset_password" });
+  if (
+    kind !== "member" &&
+    kind !== "admin" &&
+    kind !== "reset_password" &&
+    kind !== "update_member" &&
+    kind !== "delete_member"
+  ) {
+    return json(400, {
+      error:
+        "kind must be member, admin, reset_password, update_member, or delete_member",
+    });
   }
 
-  if (kind === "member" && !can("members")) {
+  if (
+    (kind === "member" ||
+      kind === "update_member" ||
+      kind === "delete_member") &&
+    !can("members")
+  ) {
     return json(403, { error: "You are not assigned the Members task" });
   }
   if (kind === "admin" && !can("staff")) {
@@ -275,6 +341,229 @@ Deno.serve(async (req) => {
       user_id: userId,
       email: memberProfile.email,
       message: "Temporary password set. Member must change it after sign-in.",
+    });
+  }
+
+  if (kind === "update_member") {
+    const userId = String(body.user_id || "").trim();
+    if (!userId) {
+      return json(400, { error: "Member is required" });
+    }
+
+    const { data: member, error: memberError } = await adminClient
+      .from("profiles")
+      .select(
+        "id,email,username,member_id,full_name,phone,address,city,state,zip,account_kind,account_status",
+      )
+      .eq("id", userId)
+      .maybeSingle();
+    if (memberError || !member) {
+      return json(404, { error: "Member not found" });
+    }
+    if (member.account_kind !== "member") {
+      return json(400, { error: "Only member accounts can be edited here" });
+    }
+
+    const memberId = String(body.member_id ?? member.member_id ?? "").trim();
+    const fullName = String(body.full_name ?? "").trim();
+    const phone = String(body.phone ?? "").trim();
+    const address = String(body.address ?? "").trim();
+    const city = String(body.city ?? "").trim();
+    const state = String(body.state ?? "").trim();
+    const zip = String(body.zip ?? "").trim();
+    const email = String(body.email ?? member.email ?? "")
+      .trim()
+      .toLowerCase();
+    const accountStatus = String(
+      body.account_status ?? member.account_status ?? "active",
+    ).trim();
+    const username = Object.prototype.hasOwnProperty.call(body, "username")
+      ? normalizeUsername(body.username)
+      : normalizeUsername(member.username);
+
+    if (!memberId) {
+      return json(400, { error: "Member ID is required" });
+    }
+    if (!fullName) {
+      return json(400, { error: "Full name is required" });
+    }
+    if (!email || !email.includes("@")) {
+      return json(400, { error: "A valid email is required" });
+    }
+    if (!isMemberStatus(accountStatus)) {
+      return json(400, { error: "Account status is not valid" });
+    }
+    if (username) {
+      const uerr = usernameError(username);
+      if (uerr) return json(400, { error: uerr });
+    }
+
+    const { data: others, error: othersError } = await adminClient
+      .from("profiles")
+      .select("id,username,email,member_id")
+      .neq("id", userId);
+    if (othersError) {
+      return json(500, { error: othersError.message });
+    }
+    const otherRows = others || [];
+    const sameText = (value: unknown, expected: string) =>
+      String(value || "").trim().toLowerCase() === expected;
+
+    if (otherRows.some((row) => String(row.member_id || "").trim() === memberId)) {
+      return json(409, { error: "That member ID is already in use" });
+    }
+    if (
+      username &&
+      otherRows.some(
+        (row) => sameText(row.username, username) || sameText(row.email, username),
+      )
+    ) {
+      return json(409, { error: "That username is already taken" });
+    }
+
+    const currentEmail = String(member.email || "").trim().toLowerCase();
+    if (email !== currentEmail) {
+      if (otherRows.some((row) => sameText(row.email, email))) {
+        return json(409, { error: "That email is already in use" });
+      }
+      const { error: authEmailError } = await adminClient.auth.admin
+        .updateUserById(userId, {
+          email,
+          email_confirm: true,
+        });
+      if (authEmailError) {
+        return json(400, { error: authEmailError.message });
+      }
+    }
+
+    const { error: updateError } = await adminClient
+      .from("profiles")
+      .update({
+        member_id: memberId,
+        full_name: fullName,
+        phone,
+        address,
+        city,
+        state,
+        zip,
+        email,
+        username,
+        account_status: accountStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+    if (updateError) {
+      return json(500, { error: updateError.message });
+    }
+
+    await applyAuthAccess(adminClient, userId, isBlockedStatus(accountStatus));
+
+    return json(200, {
+      ok: true,
+      kind: "update_member",
+      user_id: userId,
+      email,
+      member_id: memberId,
+      username,
+      account_status: accountStatus,
+      message: "Member record updated.",
+    });
+  }
+
+  if (kind === "delete_member") {
+    const userId = String(body.user_id || "").trim();
+    if (!userId) {
+      return json(400, { error: "Member is required" });
+    }
+    if (userId === caller.id) {
+      return json(403, {
+        error: "You cannot delete your own account from this page",
+      });
+    }
+
+    const { data: member, error: memberError } = await adminClient
+      .from("profiles")
+      .select("id,email,full_name,member_id,account_kind,account_status")
+      .eq("id", userId)
+      .maybeSingle();
+    if (memberError || !member) {
+      return json(404, { error: "Member not found" });
+    }
+    if (member.account_kind !== "member") {
+      return json(400, { error: "Only member accounts can be removed here" });
+    }
+
+    const { count, error: countError } = await adminClient
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if (countError) {
+      return json(500, { error: countError.message });
+    }
+    const bookingCount = count || 0;
+
+    if (bookingCount > 0) {
+      const { error: closeError } = await adminClient
+        .from("profiles")
+        .update({
+          account_status: "closed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+      if (closeError) {
+        return json(500, { error: closeError.message });
+      }
+      await applyAuthAccess(adminClient, userId, true);
+      return json(200, {
+        ok: true,
+        kind: "delete_member",
+        action: "closed",
+        user_id: userId,
+        email: member.email,
+        member_id: member.member_id,
+        booking_count: bookingCount,
+        message:
+          "Membership closed. The member cannot sign in. Reservation history stays visible to admins.",
+      });
+    }
+
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(
+      userId,
+    );
+    if (deleteError) {
+      const { error: closeError } = await adminClient
+        .from("profiles")
+        .update({
+          account_status: "closed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+      if (closeError) {
+        return json(400, { error: deleteError.message });
+      }
+      await applyAuthAccess(adminClient, userId, true);
+      return json(200, {
+        ok: true,
+        kind: "delete_member",
+        action: "closed",
+        user_id: userId,
+        email: member.email,
+        member_id: member.member_id,
+        booking_count: 0,
+        message:
+          "Could not permanently delete the Auth user; membership was closed instead.",
+      });
+    }
+
+    return json(200, {
+      ok: true,
+      kind: "delete_member",
+      action: "deleted",
+      user_id: userId,
+      email: member.email,
+      member_id: member.member_id,
+      booking_count: 0,
+      message: "Unused member account permanently deleted.",
     });
   }
 

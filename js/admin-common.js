@@ -7,7 +7,7 @@ window.AdminCommon = {
       id: "members",
       label: "Members",
       href: "admin-members.html",
-      blurb: "Create member website access and view member records.",
+      blurb: "Search, edit, or close member website access.",
     },
     {
       id: "passwords",
@@ -53,6 +53,16 @@ window.AdminCommon = {
     if (!el) return;
     el.textContent = text;
     el.className = type ? `form-message ${type}` : "form-message";
+  },
+
+  statusLabel(status) {
+    const labels = {
+      pending_activation: "Pending activation",
+      active: "Active",
+      suspended: "Suspended",
+      closed: "Closed",
+    };
+    return labels[status] || status || "Active";
   },
 
   memberLabel(profiles, userId) {

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Member | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site14">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content">
+      <p class="admin-back"><a href="admin-members.html">← Members</a></p>
+      <h1>Create new member</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+        </p>
+
+        <section class="admin-card">
+          <p class="admin-help">
+            Use after office buy-in and paperwork. Creates website access and emails the member
+            their email, member ID, and temporary password. They activate online, then choose a
+            username and password (they can sign in with username or email).
+          </p>
+          <form id="admin-create-member-form" class="auth-form admin-form">
+            <div class="form-group">
+              <label for="member-id-input">Member ID</label>
+              <input type="text" id="member-id-input" required>
+            </div>
+            <div class="form-group">
+              <label for="member-name-input">Full name</label>
+              <input type="text" id="member-name-input" required>
+            </div>
+            <div class="form-group">
+              <label for="member-email-input">Personal email</label>
+              <input type="email" id="member-email-input" required>
+            </div>
+            <div class="form-group">
+              <label for="member-phone-input">Phone</label>
+              <input type="tel" id="member-phone-input" required>
+            </div>
+            <div class="form-group">
+              <label for="member-address-input">Address</label>
+              <input type="text" id="member-address-input" required>
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="member-city-input">City</label>
+                <input type="text" id="member-city-input">
+              </div>
+              <div class="form-group">
+                <label for="member-state-input">State</label>
+                <input type="text" id="member-state-input">
+              </div>
+              <div class="form-group">
+                <label for="member-zip-input">ZIP</label>
+                <input type="text" id="member-zip-input">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="member-temp-password">Temporary password</label>
+              <input type="text" id="member-temp-password" required minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary">Create member login</button>
+          </form>
+          <p id="admin-create-member-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/auth.js?v=sb17"></script>
+  <script src="js/admin-common.js?v=sb7"></script>
+  <script src="js/admin-member-create.js?v=sb9"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
