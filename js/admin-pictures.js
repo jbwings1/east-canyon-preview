@@ -1,16 +1,8 @@
 /**
- * Admin Pictures — list, upload, reorder, edit, delete gallery images.
+ * Admin Pictures — sections + gallery images.
  * Requires website admin task (same as Website alert tool).
  */
 (async function () {
-  const SECTIONS = [
-    "Around the resort",
-    "Canyons and seasons",
-    "Lodging, courts, and events",
-    "From eastcanyon.com",
-    "From live-site documents",
-  ];
-
   const me = await AdminCommon.requireAdmin("website");
   if (!me) return;
 
@@ -19,40 +11,108 @@
   const listStatus = document.getElementById("admin-gallery-list-status");
   const sectionsEl = document.getElementById("admin-gallery-sections");
   const sectionSelect = document.getElementById("gallery-section");
+  const sectionForm = document.getElementById("admin-gallery-section-form");
+  const sectionResult = document.getElementById("admin-gallery-section-result");
+  const sectionListEl = document.getElementById("admin-gallery-section-list");
 
-  sectionSelect.innerHTML = SECTIONS.map(
-    (s) => `<option value="${AdminCommon.escapeHtml(s)}">${AdminCommon.escapeHtml(s)}</option>`
-  ).join("");
-
+  let sections = [];
   let rows = [];
 
-  function sectionOptions(selected) {
-    return SECTIONS.map(
-      (s) =>
-        `<option value="${AdminCommon.escapeHtml(s)}"${
-          s === selected ? " selected" : ""
-        }>${AdminCommon.escapeHtml(s)}</option>`
-    ).join("");
+  function sectionNames() {
+    return sections.map((s) => s.name);
   }
 
-  function render() {
+  function fillSectionSelect(selected) {
+    const names = sectionNames();
+    const value = selected && names.includes(selected) ? selected : names[0] || "";
+    sectionSelect.innerHTML = names
+      .map(
+        (s) =>
+          `<option value="${AdminCommon.escapeHtml(s)}"${
+            s === value ? " selected" : ""
+          }>${AdminCommon.escapeHtml(s)}</option>`
+      )
+      .join("");
+  }
+
+  function sectionOptions(selected) {
+    return sectionNames()
+      .map(
+        (s) =>
+          `<option value="${AdminCommon.escapeHtml(s)}"${
+            s === selected ? " selected" : ""
+          }>${AdminCommon.escapeHtml(s)}</option>`
+      )
+      .join("");
+  }
+
+  function countInSection(name) {
+    return rows.filter((r) => r.section === name).length;
+  }
+
+  function renderSectionManager() {
+    if (!sectionListEl) return;
+    if (!sections.length) {
+      sectionListEl.innerHTML =
+        '<p class="admin-help">No sections yet. Add one above.</p>';
+      return;
+    }
+    sectionListEl.innerHTML = sections
+      .map((sec, index) => {
+        const count = countInSection(sec.name);
+        return `<article class="admin-gallery-section-row" data-section-id="${sec.id}" data-section-name="${AdminCommon.escapeHtml(sec.name)}">
+          <label class="admin-gallery-field">
+            <span>Name</span>
+            <input type="text" class="gallery-section-name-input" value="${AdminCommon.escapeHtml(sec.name)}" maxlength="80">
+          </label>
+          <p class="admin-help">${count} photo${count === 1 ? "" : "s"}</p>
+          <div class="admin-actions">
+            <button type="button" class="btn-link gallery-section-up" ${
+              index === 0 ? "disabled" : ""
+            }>Up</button>
+            <button type="button" class="btn-link gallery-section-down" ${
+              index === sections.length - 1 ? "disabled" : ""
+            }>Down</button>
+            <button type="button" class="btn-link gallery-section-save">Save name</button>
+            <button type="button" class="btn-link gallery-section-delete"${
+              count > 0 ? " disabled title=\"Move or delete photos first\"" : ""
+            }>Delete</button>
+          </div>
+        </article>`;
+      })
+      .join("");
+  }
+
+  function renderGallery() {
     const bySection = new Map();
-    SECTIONS.forEach((s) => bySection.set(s, []));
+    sectionNames().forEach((s) => bySection.set(s, []));
     rows.forEach((row) => {
       if (!bySection.has(row.section)) bySection.set(row.section, []);
       bySection.get(row.section).push(row);
     });
 
+    const ordered = [
+      ...sectionNames(),
+      ...[...bySection.keys()].filter((s) => !sectionNames().includes(s)),
+    ];
+
     const blocks = [];
-    bySection.forEach((items, section) => {
-      if (!items.length && !SECTIONS.includes(section)) return;
+    ordered.forEach((section) => {
+      const items = bySection.get(section) || [];
+      if (!items.length && !sectionNames().includes(section)) return;
       const cards = items
         .map((item, index) => {
-          const src = AdminCommon.escapeHtml(item.url);
+          const resolved = window.EcrGalleryUrl
+            ? window.EcrGalleryUrl.resolve(item.url)
+            : item.url;
+          const src = AdminCommon.escapeHtml(resolved);
+          const stored = AdminCommon.escapeHtml(item.url || "");
           const alt = AdminCommon.escapeHtml(item.alt || "");
           return `<article class="admin-gallery-item" data-id="${item.id}">
             <img src="${src}" alt="${alt}" loading="lazy">
             <div class="admin-gallery-item-body">
+              <p class="admin-gallery-url"><a href="${src}" target="_blank" rel="noopener">Open full image</a>
+                <span class="admin-help">${stored}</span></p>
               <label class="admin-gallery-field">
                 <span>Alt</span>
                 <input type="text" class="gallery-alt-input" value="${alt}" maxlength="200">
@@ -80,7 +140,9 @@
         <h3 class="admin-subhead">${AdminCommon.escapeHtml(section)}
           <span class="admin-gallery-count">(${items.length})</span>
         </h3>
-        <div class="admin-gallery-grid">${cards || "<p class=\"admin-help\">No images in this section.</p>"}</div>
+        <div class="admin-gallery-grid">${
+          cards || '<p class="admin-help">No images in this section.</p>'
+        }</div>
       </div>`);
     });
 
@@ -89,24 +151,49 @@
     listStatus.className = "form-message";
   }
 
-  async function load() {
-    listStatus.textContent = "Loading…";
-    listStatus.className = "form-message";
+  function renderAll() {
+    fillSectionSelect(sectionSelect.value);
+    renderSectionManager();
+    renderGallery();
+  }
+
+  async function loadSections() {
+    const { data, error } = await window.ecrSupabase
+      .from("gallery_sections")
+      .select("id,name,sort_order,created_at")
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (error) throw error;
+    sections = data || [];
+  }
+
+  async function loadImages() {
     const { data, error } = await window.ecrSupabase
       .from("gallery_images")
       .select("id,section,url,storage_path,alt,sort_order,created_at")
-      .order("section", { ascending: true })
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) throw error;
     rows = data || [];
-    render();
+  }
+
+  async function load() {
+    listStatus.textContent = "Loading…";
+    listStatus.className = "form-message";
+    await loadSections();
+    await loadImages();
+    renderAll();
   }
 
   async function nextSortOrder(section) {
     const inSection = rows.filter((r) => r.section === section);
     if (!inSection.length) return 0;
     return Math.max(...inSection.map((r) => r.sort_order || 0)) + 1;
+  }
+
+  async function nextSectionSortOrder() {
+    if (!sections.length) return 0;
+    return Math.max(...sections.map((s) => s.sort_order || 0)) + 1;
   }
 
   function safeFileName(name) {
@@ -116,6 +203,127 @@
       .replace(/-+/g, "-")
       .slice(0, 80);
   }
+
+  sectionForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    AdminCommon.showMessage(sectionResult, "", "");
+    const name = document.getElementById("gallery-section-new")?.value.trim();
+    if (!name) {
+      AdminCommon.showMessage(sectionResult, "Enter a section name.", "error");
+      return;
+    }
+    if (sectionNames().some((s) => s.toLowerCase() === name.toLowerCase())) {
+      AdminCommon.showMessage(sectionResult, "That section already exists.", "error");
+      return;
+    }
+    try {
+      const sort_order = await nextSectionSortOrder();
+      const { error } = await window.ecrSupabase.from("gallery_sections").insert({
+        name,
+        sort_order,
+      });
+      if (error) throw error;
+      sectionForm.reset();
+      AdminCommon.showMessage(sectionResult, "Section added.", "success");
+      await load();
+    } catch (err) {
+      AdminCommon.showMessage(sectionResult, err.message || String(err), "error");
+    }
+  });
+
+  sectionListEl?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const rowEl = btn.closest(".admin-gallery-section-row");
+    if (!rowEl) return;
+    const id = rowEl.dataset.sectionId;
+    const sec = sections.find((s) => s.id === id);
+    if (!sec) return;
+
+    try {
+      if (btn.classList.contains("gallery-section-delete")) {
+        const count = countInSection(sec.name);
+        if (count > 0) {
+          AdminCommon.showMessage(
+            sectionResult,
+            "Move or delete all photos in this section first.",
+            "error"
+          );
+          return;
+        }
+        if (!confirm(`Delete section “${sec.name}”?`)) return;
+        const { error } = await window.ecrSupabase
+          .from("gallery_sections")
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+        AdminCommon.showMessage(sectionResult, "Section deleted.", "success");
+        await load();
+        return;
+      }
+
+      if (btn.classList.contains("gallery-section-save")) {
+        const newName = rowEl
+          .querySelector(".gallery-section-name-input")
+          ?.value.trim();
+        if (!newName) {
+          AdminCommon.showMessage(sectionResult, "Section name cannot be empty.", "error");
+          return;
+        }
+        if (
+          newName !== sec.name &&
+          sectionNames().some((s) => s.toLowerCase() === newName.toLowerCase())
+        ) {
+          AdminCommon.showMessage(sectionResult, "That section already exists.", "error");
+          return;
+        }
+        if (newName === sec.name) {
+          AdminCommon.showMessage(sectionResult, "No change.", "success");
+          return;
+        }
+        const { error: secErr } = await window.ecrSupabase
+          .from("gallery_sections")
+          .update({ name: newName })
+          .eq("id", id);
+        if (secErr) throw secErr;
+        const { error: imgErr } = await window.ecrSupabase
+          .from("gallery_images")
+          .update({ section: newName })
+          .eq("section", sec.name);
+        if (imgErr) throw imgErr;
+        AdminCommon.showMessage(sectionResult, "Section renamed.", "success");
+        await load();
+        return;
+      }
+
+      if (
+        btn.classList.contains("gallery-section-up") ||
+        btn.classList.contains("gallery-section-down")
+      ) {
+        const index = sections.findIndex((s) => s.id === id);
+        const swapWith =
+          btn.classList.contains("gallery-section-up")
+            ? sections[index - 1]
+            : sections[index + 1];
+        if (!swapWith) return;
+        const aOrder = sec.sort_order;
+        const bOrder = swapWith.sort_order;
+        const { error: e1 } = await window.ecrSupabase
+          .from("gallery_sections")
+          .update({ sort_order: bOrder })
+          .eq("id", sec.id);
+        if (e1) throw e1;
+        const { error: e2 } = await window.ecrSupabase
+          .from("gallery_sections")
+          .update({ sort_order: aOrder })
+          .eq("id", swapWith.id);
+        if (e2) throw e2;
+        await load();
+      }
+    } catch (err) {
+      AdminCommon.showMessage(sectionResult, err.message || String(err), "error");
+    }
+  });
 
   uploadForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -128,6 +336,10 @@
     }
     if (file.size > 10 * 1024 * 1024) {
       AdminCommon.showMessage(uploadResult, "Image must be 10 MB or smaller.", "error");
+      return;
+    }
+    if (!sectionNames().length) {
+      AdminCommon.showMessage(uploadResult, "Add a section before uploading.", "error");
       return;
     }
 

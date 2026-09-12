@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site26">
+  <link rel="stylesheet" href="styles.css?v=site42">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -30,7 +30,7 @@
   </header>
 
   <main>
-    <div class="container page-content">
+    <div class="container page-content page-content--wide">
       <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
       <h1>View reservations</h1>
       <p id="admin-denied" class="form-message error" hidden>
@@ -41,24 +41,26 @@
       <div id="admin-app" hidden>
         <p class="admin-intro">
           <span id="admin-whoami"></span>
-          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
         </p>
 
         <section class="admin-card">
           <h2>All bookings</h2>
+          <p id="admin-manage-hint" class="admin-help" hidden></p>
           <div class="admin-table-wrap">
             <table class="admin-table" id="admin-bookings-table">
               <thead>
                 <tr>
+                  <th>Confirmation</th>
                   <th>Member</th>
                   <th>Type</th>
                   <th>Spot</th>
                   <th>Dates</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="admin-bookings-body">
-                <tr><td colspan="5">Loading…</td></tr>
+                <tr><td colspan="7">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -72,9 +74,11 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb2"></script>
-  <script src="js/auth.js?v=sb5"></script>
-  <script src="js/admin-common.js?v=sb6"></script>
-  <script src="js/admin-reservations-view.js?v=sb6"></script>
+  <script src="js/auth.js?v=sb23"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/admin-common.js?v=sb10"></script>
+  <script src="js/admin-reservations-view.js?v=sb13"></script>
+  <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

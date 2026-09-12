@@ -13,6 +13,7 @@ const clearSpotBtn = document.getElementById("clear-spot");
 const rvDetailsGroup = document.getElementById("rv-details-group");
 const rigSelect = document.getElementById("res-rig");
 const stayLengthNotice = document.getElementById("stay-length-notice");
+const membershipRightsNotice = document.getElementById("membership-rights-notice");
 const memberIdInput = document.getElementById("res-member-id");
 const memberReservationNotice = document.getElementById("member-reservation-notice");
 const completeBookingBtn = document.getElementById("complete-booking-btn");
@@ -124,8 +125,8 @@ function setEditingMode(booking) {
           ? Auth.formatOriginalStayLabel(booking)
           : "";
       editingBanner.textContent = originalLabel
-        ? `Editing: new dates must stay within your original stay (${originalLabel}). Site can change; type cannot.`
-        : "Editing: new dates must stay within your original booking window. Site can change; type cannot.";
+        ? `Editing: keep at least one day from your original stay (${originalLabel}). You may move or extend around that. Site can change; type cannot.`
+        : "Editing: keep at least one day from your original stay. You may move or extend around that. Site can change; type cannot.";
     }
   }
   if (cancelEditBtn) cancelEditBtn.hidden = !editingBookingId;
@@ -231,14 +232,16 @@ function loadBookingIntoForm(booking) {
   showBookingFormState();
   document.getElementById("request-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const withinOriginal =
-    typeof Auth !== "undefined" && Auth.stayWithinOriginal
-      ? Auth.stayWithinOriginal(checkIn.value, checkOut.value, booking)
-      : true;
+    typeof Auth !== "undefined" && Auth.stayOverlapsOriginal
+      ? Auth.stayOverlapsOriginal(checkIn.value, checkOut.value, booking)
+      : typeof Auth !== "undefined" && Auth.stayWithinOriginal
+        ? Auth.stayWithinOriginal(checkIn.value, checkOut.value, booking)
+        : true;
   if (!withinOriginal) {
-    const originalLabel = Auth.formatOriginalStayLabel(booking);
-    message.textContent = originalLabel
-      ? `These dates are outside your original booking (${originalLabel}). Choose dates within that window.`
-      : "These dates are outside your original booking window. Choose dates within that window.";
+    message.textContent =
+      typeof Auth.originalStayOverlapMessage === "function"
+        ? Auth.originalStayOverlapMessage(booking)
+        : "These dates must keep at least one day from your original booking.";
     message.className = "form-message error";
   }
   syncAvailabilityFromDates().then(() => {
@@ -251,19 +254,10 @@ function loadBookingIntoForm(booking) {
 function syncDateLimits() {
   const today = window.SpotAvailability.getToday();
   const maxCheckIn = window.SpotAvailability.getMaxCheckInDate();
-  const editing = getEditingBooking();
-  const win =
-    editing && typeof Auth !== "undefined" && Auth.getOriginalStayWindow
-      ? Auth.getOriginalStayWindow(editing)
-      : null;
 
-  let minIn = today;
-  let maxIn = maxCheckIn;
-  if (win?.start && win?.end) {
-    if (win.start > minIn) minIn = win.start;
-    const lastCheckIn = window.SpotAvailability.addDays(win.end, -1);
-    if (lastCheckIn < maxIn) maxIn = lastCheckIn;
-  }
+  // Edits may extend outside the original window; only advance-window limits apply.
+  const minIn = today;
+  const maxIn = maxCheckIn;
 
   checkIn.min = minIn;
   checkIn.max = maxIn;
@@ -356,6 +350,38 @@ function evaluateMembershipRights({ reservationType, checkIn: stayIn, checkOut: 
   });
 }
 
+function clearStaleBookingError() {
+  if (!message) return;
+  if (message.classList.contains("error")) {
+    message.textContent = "";
+    message.className = "form-message";
+  }
+}
+
+function updateMembershipRightsNotice() {
+  if (!membershipRightsNotice) return;
+  if (!checkIn.value || !checkOut.value || checkOut.value <= checkIn.value || !typeSelect.value) {
+    membershipRightsNotice.hidden = true;
+    membershipRightsNotice.textContent = "";
+    membershipRightsNotice.classList.remove("stay-length-notice--limit");
+    return;
+  }
+  const gate = evaluateMembershipRights({
+    reservationType: typeSelect.value,
+    checkIn: checkIn.value,
+    checkOut: checkOut.value,
+  });
+  if (gate.ok) {
+    membershipRightsNotice.hidden = true;
+    membershipRightsNotice.textContent = "";
+    membershipRightsNotice.classList.remove("stay-length-notice--limit");
+    return;
+  }
+  membershipRightsNotice.hidden = false;
+  membershipRightsNotice.classList.add("stay-length-notice--limit");
+  membershipRightsNotice.textContent = window.MembershipRights.formatViolations(gate.violations);
+}
+
 function canBookSelectUnit(unit) {
   const type = typeSelect.value;
   if (!type) return false;
@@ -391,20 +417,7 @@ function syncCheckoutMin() {
   const next = new Date(checkIn.value + "T12:00:00");
   next.setDate(next.getDate() + 1);
   checkOut.min = next.toISOString().split("T")[0];
-
-  const editing = getEditingBooking();
-  const win =
-    editing && typeof Auth !== "undefined" && Auth.getOriginalStayWindow
-      ? Auth.getOriginalStayWindow(editing)
-      : null;
-  if (win?.end) {
-    checkOut.max = win.end;
-    if (checkOut.value && checkOut.value > win.end) {
-      checkOut.value = win.end;
-    }
-  } else {
-    checkOut.removeAttribute("max");
-  }
+  checkOut.removeAttribute("max");
 
   if (checkOut.value && checkOut.value <= checkIn.value) {
     checkOut.value = "";
@@ -499,7 +512,7 @@ function updateMemberReservationNotice() {
     memberReservationNotice.classList.add("stay-length-notice--limit");
     memberReservationNotice.textContent =
       `You have ${active.length} upcoming reservations (maximum ${maxActive}): ` +
-      `${formatActiveReservationRanges(active)}. Once you check in, or after deleting one, you can book again.`;
+      `${formatActiveReservationRanges(active)}. Once the office checks you in, or after deleting one, you can book again.`;
     return;
   }
 
@@ -509,7 +522,7 @@ function updateMemberReservationNotice() {
     memberReservationNotice.hidden = false;
     memberReservationNotice.textContent =
       `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-      `(${formatActiveReservationRanges(active)}). You may book ${remaining} more before check-in.`;
+      `(${formatActiveReservationRanges(active)}). You may book ${remaining} more before office check-in.`;
     return;
   }
 
@@ -644,25 +657,59 @@ async function syncAvailabilityFromDates() {
   updateMapAvailability();
 }
 
+function updateOriginalStayOverlapNotice() {
+  if (!editingBookingId || !message) return;
+  const booking = getEditingBooking();
+  if (!booking || !checkIn.value || !checkOut.value || checkOut.value <= checkIn.value) {
+    return;
+  }
+  const overlaps =
+    typeof Auth !== "undefined" && Auth.stayOverlapsOriginal
+      ? Auth.stayOverlapsOriginal(checkIn.value, checkOut.value, booking)
+      : true;
+  if (!overlaps) {
+    message.textContent = Auth.originalStayOverlapMessage(booking);
+    message.className = "form-message error";
+    return;
+  }
+  if (
+    message.classList.contains("error") &&
+    /original booking|original stay/i.test(message.textContent || "")
+  ) {
+    message.textContent = "";
+    message.className = "form-message";
+  }
+}
+
 checkIn.addEventListener("change", () => {
+  clearStaleBookingError();
   syncDateLimits();
   syncAvailabilityFromDates();
+  updateMembershipRightsNotice();
+  updateOriginalStayOverlapNotice();
 });
 
 checkOut.addEventListener("change", () => {
+  clearStaleBookingError();
   syncAvailabilityFromDates();
+  updateMembershipRightsNotice();
+  updateOriginalStayOverlapNotice();
 });
 memberIdInput?.addEventListener("input", () => {
   updateMemberReservationNotice();
+  updateMembershipRightsNotice();
 });
 memberIdInput?.addEventListener("change", () => {
   updateMemberReservationNotice();
+  updateMembershipRightsNotice();
 });
 typeSelect.addEventListener("change", () => {
+  clearStaleBookingError();
   updateRvFields();
   clearPreferredSpot();
   updateMapAvailability();
   updateMemberReservationNotice();
+  updateMembershipRightsNotice();
 });
 rigSelect?.addEventListener("change", () => {
   updateMapAvailability();
@@ -671,6 +718,7 @@ rigSelect?.addEventListener("change", () => {
 updateRvFields();
 updateMapAvailability();
 updateMemberReservationNotice();
+updateMembershipRightsNotice();
 
 function showConfirmedState(record) {
   const signedIn = typeof Auth !== "undefined" && Auth.getCurrentUser();
@@ -941,11 +989,8 @@ form.addEventListener("submit", async (e) => {
       return;
     }
     data.type = Auth.toUiReservationType(existing.reservation_type) || data.type;
-    if (!Auth.stayWithinOriginal(data.checkIn, data.checkOut, existing)) {
-      const originalLabel = Auth.formatOriginalStayLabel(existing);
-      message.textContent = originalLabel
-        ? `Edited dates must stay within your original booking (${originalLabel}). To book different dates, delete this reservation and book a new one.`
-        : "Edited dates must stay within your original booking window. To book different dates, delete this reservation and book a new one.";
+    if (!Auth.stayOverlapsOriginal(data.checkIn, data.checkOut, existing)) {
+      message.textContent = Auth.originalStayOverlapMessage(existing);
       message.className = "form-message error";
       return;
     }
@@ -956,7 +1001,7 @@ form.addEventListener("submit", async (e) => {
   if (!editingBookingId && active.length >= maxActive) {
     message.textContent =
       `You have ${active.length} upcoming reservations (maximum ${maxActive}): ` +
-      `${formatActiveReservationRanges(active)}. Once you check in, or after deleting one, you can book again.`;
+      `${formatActiveReservationRanges(active)}. Once the office checks you in, or after deleting one, you can book again.`;
     message.className = "form-message error";
     updateMemberReservationNotice();
     memberReservationNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -987,7 +1032,8 @@ form.addEventListener("submit", async (e) => {
     } else {
       message.textContent = limitText;
       message.className = "form-message error";
-      message.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      updateMembershipRightsNotice();
+      membershipRightsNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       return;
     }
   }

@@ -37,8 +37,5 @@
     .join("");
 
   Auth.showAdminLinks();
-
-  document.getElementById("member-logout").addEventListener("click", () => {
-    Auth.logout();
-  });
+  if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
 })();

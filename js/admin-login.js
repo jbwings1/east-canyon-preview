@@ -4,7 +4,6 @@ const signinPanel = document.getElementById("signin-panel");
 const signedInPanel = document.getElementById("signed-in-panel");
 const signedInMessage = document.getElementById("signed-in-message");
 const signedInContinue = document.getElementById("signed-in-continue");
-const signedInLogout = document.getElementById("signed-in-logout");
 
 function showMessage(text, type) {
   if (!message) return;
@@ -32,6 +31,7 @@ function showSignedIn(user, isAdmin) {
       signedInContinue.textContent = "Go to Member Sign In";
     }
   }
+  if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
 }
 
 function showSignInForm() {
@@ -76,10 +76,6 @@ async function ensureAdminSession() {
   }
 
   showSignedIn(user, false);
-}
-
-if (signedInLogout) {
-  signedInLogout.addEventListener("click", () => Auth.logout("admin-login.html"));
 }
 
 if (form && typeof Auth !== "undefined") {

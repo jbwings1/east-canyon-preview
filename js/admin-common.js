@@ -19,25 +19,32 @@ window.AdminCommon = {
       id: "reservations_view",
       label: "View reservations",
       href: "admin-reservations-view.html",
-      blurb: "See all current and upcoming bookings.",
+      blurb: "See all bookings. Edit or cancel if you also have Manage reservations.",
     },
     {
       id: "reservations_manage",
       label: "Manage reservations",
       href: "admin-reservations-manage.html",
-      blurb: "Book for a member, confirm, or cancel reservations.",
+      blurb: "Book for a member, edit dates/spot, confirm, or cancel.",
     },
     {
       id: "website",
       label: "Website",
       href: "admin-website.html",
-      blurb: "Update the site alert notice.",
+      blurb: "Update site alerts (banner header, details, and photos).",
     },
     {
       id: "pictures",
       label: "Pictures",
       href: "admin-pictures.html",
       blurb: "Upload, reorder, or remove Pictures page gallery images.",
+      gate: "website",
+    },
+    {
+      id: "board",
+      label: "Board Members",
+      href: "admin-board.html",
+      blurb: "Edit Board of Directors names, photos, phone, email, and committees.",
       gate: "website",
     },
     {
@@ -127,11 +134,75 @@ window.AdminCommon = {
       }. `;
     }
 
-    document.getElementById("admin-logout")?.addEventListener("click", () =>
-      Auth.logout("admin-login.html")
-    );
+    if (typeof SiteHeaderAuth?.mount === "function") {
+      SiteHeaderAuth.mount();
+    }
 
     return me;
+  },
+
+  /**
+   * Theme-matched confirm dialog. Resolves true if the user confirms.
+   * @param {{ title?: string, message?: string, confirmLabel?: string, cancelLabel?: string }} [options]
+   */
+  confirmAction(options = {}) {
+    const title = options.title || "Confirm action";
+    const message = options.message || "Do you want to continue?";
+    const confirmLabel = options.confirmLabel || "Confirm";
+    const cancelLabel = options.cancelLabel || "Go back";
+
+    let root = document.getElementById("admin-confirm-dialog");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "admin-confirm-dialog";
+      root.className = "admin-confirm-dialog";
+      root.hidden = true;
+      root.innerHTML = `
+        <div class="admin-confirm-backdrop" data-confirm-choice="cancel"></div>
+        <div class="admin-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title">
+          <h2 id="admin-confirm-title"></h2>
+          <p id="admin-confirm-message" class="admin-confirm-message"></p>
+          <div class="admin-confirm-actions">
+            <button type="button" class="btn btn-primary" data-confirm-choice="confirm"></button>
+            <button type="button" class="btn btn-outline" data-confirm-choice="cancel"></button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(root);
+    }
+
+    const titleEl = root.querySelector("#admin-confirm-title");
+    const messageEl = root.querySelector("#admin-confirm-message");
+    const confirmBtn = root.querySelector('[data-confirm-choice="confirm"]');
+    const cancelBtn = root.querySelector('[data-confirm-choice="cancel"].btn');
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+    if (confirmBtn) confirmBtn.textContent = confirmLabel;
+    if (cancelBtn) cancelBtn.textContent = cancelLabel;
+
+    root.hidden = false;
+    document.body.classList.add("admin-confirm-open");
+
+    return new Promise((resolve) => {
+      const finish = (confirmed) => {
+        root.hidden = true;
+        document.body.classList.remove("admin-confirm-open");
+        root.removeEventListener("click", onClick);
+        document.removeEventListener("keydown", onKey);
+        resolve(Boolean(confirmed));
+      };
+      const onClick = (event) => {
+        const choice = event.target?.closest?.("[data-confirm-choice]");
+        if (!choice) return;
+        finish(choice.getAttribute("data-confirm-choice") === "confirm");
+      };
+      const onKey = (event) => {
+        if (event.key === "Escape") finish(false);
+      };
+      root.addEventListener("click", onClick);
+      document.addEventListener("keydown", onKey);
+      confirmBtn?.focus();
+    });
   },
 
   renderHubButtons(container) {

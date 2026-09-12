@@ -124,7 +124,18 @@
   function bookingStatusLabel(booking) {
     const status = booking?.status || "unknown";
     if (status === "cancelled") return "Cancelled";
-    if (status === "confirmed" && bookingWasEdited(booking)) return "Edit confirmed";
+    if (status === "confirmed" && bookingWasEdited(booking)) {
+      const display =
+        typeof Auth.bookingDisplayStatus === "function"
+          ? Auth.bookingDisplayStatus(booking)
+          : "Confirmed";
+      if (display === "Active") return "Active";
+      if (display === "Completed") return "Completed";
+      return "Edit confirmed";
+    }
+    if (typeof Auth.bookingDisplayStatus === "function") {
+      return Auth.bookingDisplayStatus(booking);
+    }
     if (status === "confirmed") return "Confirmed";
     return status;
   }
@@ -199,13 +210,13 @@
       notice.classList.add("stay-length-notice--limit");
       notice.textContent =
         `You have ${active.length} upcoming reservations (maximum ${maxActive}): ${bookingLines}. ` +
-        `Once you check in, or after deleting one, you can book again.`;
+        `Once the office checks you in, or after deleting one, you can book again.`;
     } else {
       notice.classList.remove("stay-length-notice--limit");
       const remaining = maxActive - active.length;
       notice.textContent =
         `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-        `(${bookingLines}). You may book ${remaining} more before check-in.`;
+        `(${bookingLines}). You may book ${remaining} more before office check-in.`;
     }
   }
 
@@ -357,7 +368,7 @@
     const byKey = new Map();
     (Array.isArray(rows) ? rows : []).forEach((r) => {
       if (!r || !r.spot || !r.check_in || !r.check_out) return;
-      if (r.status && r.status !== "confirmed") return;
+      if (r.status && r.status !== "confirmed" && r.status !== "active") return;
       if (!window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)) return;
       const key =
         r.id != null && r.id !== ""

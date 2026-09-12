@@ -230,7 +230,8 @@
   }
 
   function isConfirmedBooking(booking) {
-    return String(booking?.status || "").toLowerCase() === "confirmed";
+    const status = String(booking?.status || "").toLowerCase();
+    return status === "confirmed" || status === "active";
   }
 
   function isCondoBooking(booking) {
@@ -385,7 +386,7 @@
             message:
               `Class ${classCode} has ${remaining} ${seasonLabel(season)} day${remaining === 1 ? "" : "s"} left ` +
               `(${already} of ${allotment} used) for ${yearLabel(yearStart)}. ` +
-              `This stay needs ${request} night${request === 1 ? "" : "s"}.`,
+              `This stay uses ${request} night${request === 1 ? "" : "s"}. Please reduce the nights of the reservation.`,
           });
         }
       });
@@ -410,6 +411,24 @@
 
   function formatViolations(violations) {
     return (violations || []).map((v) => v.message).filter(Boolean).join(" ");
+  }
+
+  /**
+   * Check an existing booking against class rights (other member bookings as context).
+   * Cancelled stays are not flagged.
+   */
+  function evaluateExistingBooking(booking, memberBookings = [], memberId = "") {
+    if (!booking || String(booking.status || "").toLowerCase() === "cancelled") {
+      return { ok: true, classCode: null, rights: null, violations: [] };
+    }
+    return validateBooking({
+      memberId,
+      reservationType: bookingTypeUi(booking),
+      checkIn: booking.check_in || booking.checkIn,
+      checkOut: booking.check_out || booking.checkOut,
+      existingBookings: memberBookings,
+      excludeBookingId: booking.id,
+    });
   }
 
   function ensureOverrideDialog() {
@@ -483,6 +502,7 @@
     typeAllowed,
     validateBooking,
     formatViolations,
+    evaluateExistingBooking,
     showOverrideDialog,
     isCondoReservationType,
     isRvReservationType,

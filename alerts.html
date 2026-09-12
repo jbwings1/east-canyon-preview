@@ -4,14 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Current Alerts | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site26">
+  <link rel="stylesheet" href="styles.css?v=site42">
 </head>
 <body class="page-visitor">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
     <p>
       <strong>Alert</strong>
-      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
-      ATV access is limited to Kurzy and Westlake trails.
+      Loading current alerts…
       <a href="alerts.html" class="home-alert-link">Details</a>
     </p>
   </aside>
@@ -32,17 +31,16 @@
     <div class="container page-content">
       <p class="admin-back"><a href="visitors.html">← Visitors</a></p>
       <h1>Current Alerts</h1>
-      <p><strong>ATTENTION MEMBERS &amp; GUESTS</strong>:</p>
-      <ul>
-        <li>Stage 2 Fire Restrictions are now in place.</li>
-        <li>Access from UT-66 from Morgan and UT-65 from Henefer are currently closed.</li>
-        <li>Check Utah Fire Info or Watch Duty for current fire conditions.</li>
-        <li>Management is currently restricting ATV/OHV/UTV access to Kurzy and Westlake trails.</li>
-      </ul>
-      <img class="alert-photo" src="pix/rocky-canyon-fire-flames.jpg" alt="Flames on a hillside during the Rocky Canyon Fire">
-      <img class="alert-photo" src="pix/rocky-canyon-fire-smoke.jpg" alt="Smoke column from the Rocky Canyon Fire over the East Canyon area">
+      <p id="alerts-status" class="form-message" role="status" aria-live="polite">Loading alerts…</p>
+      <div id="alerts-root"></div>
     </div>
   </main>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb2"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+  <script src="js/gallery-url.js?v=1"></script>
+  <script src="js/alerts-page.js?v=3"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

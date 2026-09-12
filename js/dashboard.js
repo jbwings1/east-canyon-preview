@@ -129,6 +129,5 @@
   });
 
   Auth.showAdminLinks();
-
-  document.getElementById("logout-btn").addEventListener("click", () => Auth.logout());
+  if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
 })();

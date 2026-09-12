@@ -4,14 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site26">
+  <link rel="stylesheet" href="styles.css?v=site42">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
     <p>
       <strong>Alert</strong>
-      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
-      ATV access is limited to Kurzy and Westlake trails.
+      Loading current alerts…
       <a href="alerts.html" class="home-alert-link">Details</a>
     </p>
   </aside>
@@ -30,7 +29,7 @@
   </header>
 
   <main>
-    <div class="container page-content">
+    <div class="container page-content page-content--wide">
       <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
       <h1>Manage reservations</h1>
       <p id="admin-denied" class="form-message error" hidden>
@@ -41,7 +40,7 @@
       <div id="admin-app" hidden>
         <p class="admin-intro">
           <span id="admin-whoami"></span>
-          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
+          Create, edit, confirm, or cancel member reservations.
         </p>
 
         <section class="admin-card">
@@ -82,25 +81,124 @@
             </div>
             <button type="submit" class="btn btn-primary">Create reservation</button>
           </form>
+          <p id="admin-create-rights-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
           <p id="admin-create-booking-result" class="form-message" role="status" aria-live="polite"></p>
         </section>
 
+        <section class="admin-card" id="admin-view-card" hidden>
+          <h2>Reservation details</h2>
+          <p id="admin-view-summary" class="admin-help"></p>
+          <dl class="admin-checkin-details admin-view-details" id="admin-view-details"></dl>
+          <div class="admin-actions">
+            <button type="button" class="btn btn-outline" id="admin-view-edit" hidden>Edit</button>
+            <button type="button" class="btn btn-outline" id="admin-view-close">Close</button>
+          </div>
+        </section>
+
+        <section class="admin-card" id="admin-edit-card" hidden>
+          <h2>Edit reservation</h2>
+          <p id="admin-edit-summary" class="admin-help"></p>
+          <form id="admin-edit-booking-form" class="auth-form admin-form">
+            <input type="hidden" id="edit-booking-id">
+            <div class="form-group">
+              <label for="edit-booking-type">Type</label>
+              <select id="edit-booking-type" required>
+                <option value="condo">Condo</option>
+                <option value="family-reunion">Family reunion</option>
+                <option value="rv">RV</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-booking-spot">Spot / unit</label>
+              <input type="text" id="edit-booking-spot" placeholder="Optional">
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="edit-booking-check-in">Stay start</label>
+                <input type="date" id="edit-booking-check-in" required>
+              </div>
+              <div class="form-group">
+                <label for="edit-booking-check-out">Stay end</label>
+                <input type="date" id="edit-booking-check-out" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-booking-notes">Reservation notes</label>
+              <input type="text" id="edit-booking-notes">
+            </div>
+            <div class="admin-actions">
+              <button type="submit" class="btn btn-primary">Save changes</button>
+              <button type="button" class="btn btn-outline" id="admin-edit-cancel">Close</button>
+            </div>
+          </form>
+          <p id="admin-edit-rights-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
+          <p id="admin-edit-booking-result" class="form-message" role="status" aria-live="polite"></p>
+
+          <div class="admin-checkin-block" id="admin-checkin-block">
+            <h3>Office check-in</h3>
+            <p class="admin-help">When the member arrives, staff activates check-in here on or after the reservation check-in date. That marks the stay Active and frees a reservation slot for a new booking.</p>
+            <div id="admin-checkin-pending">
+              <p id="admin-checkin-too-early" class="admin-help" hidden></p>
+              <div class="form-group">
+                <label for="office-check-in-notes">Check-in notes</label>
+                <textarea id="office-check-in-notes" rows="3" placeholder="Gate code, vehicle, special requests…"></textarea>
+              </div>
+              <button type="button" class="btn btn-primary" id="admin-office-check-in-btn">Check in at office</button>
+            </div>
+            <div id="admin-checkin-done" hidden>
+              <dl class="admin-checkin-details">
+                <div>
+                  <dt>Checked in by</dt>
+                  <dd id="office-checked-in-by-label">—</dd>
+                </div>
+                <div>
+                  <dt>Check-in time</dt>
+                  <dd id="office-checked-in-at-label">—</dd>
+                </div>
+              </dl>
+              <div class="form-group">
+                <label for="office-check-in-notes-edit">Check-in notes</label>
+                <textarea id="office-check-in-notes-edit" rows="3"></textarea>
+              </div>
+              <button type="button" class="btn btn-outline" id="admin-office-check-in-notes-save">Save check-in notes</button>
+            </div>
+            <p id="admin-checkin-result" class="form-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
         <section class="admin-card">
-          <h2>Confirm or cancel bookings</h2>
+          <h2>All bookings</h2>
+          <p class="admin-help">Use <strong>Actions</strong> on each row for View, Edit, Check in, Confirm, or Cancel. Open Edit to perform <strong>Office check-in</strong> when the member arrives (on or after check-in day). <strong>Rule flags</strong> mark broken booking rules. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
+          <div class="admin-form-row admin-booking-filters">
+            <div class="form-group">
+              <label for="booking-filter-status">Show</label>
+              <select id="booking-filter-status">
+                <option value="active" selected>Active / upcoming</option>
+                <option value="flagged">Rule flags</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="booking-filter-search">Search member</label>
+              <input type="search" id="booking-filter-search" placeholder="Name, email, or Member ID">
+            </div>
+          </div>
           <div class="admin-table-wrap">
             <table class="admin-table" id="admin-bookings-table">
               <thead>
                 <tr>
+                  <th>Confirmation</th>
                   <th>Member</th>
                   <th>Type</th>
                   <th>Spot</th>
                   <th>Dates</th>
                   <th>Status</th>
-                  <th></th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="admin-bookings-body">
-                <tr><td colspan="6">Loading…</td></tr>
+                <tr><td colspan="7">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -114,10 +212,15 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb2"></script>
-  <script src="js/auth.js?v=sb16"></script>
-  <script src="js/membership-rights.js?v=1"></script>
-  <script src="js/admin-common.js?v=sb6"></script>
-  <script src="js/admin-reservations-manage.js?v=sb7"></script>
+  <script src="js/auth.js?v=sb25"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/map-units-generated.js?v=1"></script>
+  <script src="js/spots-data.js?v=9"></script>
+  <script src="js/membership-rights.js?v=4"></script>
+  <script src="js/booking-rule-flags.js?v=6"></script>
+  <script src="js/admin-common.js?v=sb10"></script>
+  <script src="js/admin-reservations-manage.js?v=sb21"></script>
+  <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

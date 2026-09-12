@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Board Information | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site27">
+  <link rel="stylesheet" href="styles.css?v=site42">
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb2"></script>
   <script src="js/auth.js?v=sb2"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/gallery-url.js?v=1"></script>
+  <script src="js/alert-banner.js?v=2"></script>
   <script>
     (function () {
       var user = Auth.getCurrentUser();
@@ -50,91 +53,8 @@
           Please email first. If you are not sure who to contact, use the shared board address
           <a href="mailto:ECRBoard@eastcanyon.com">ECRBoard@eastcanyon.com</a>.
         </p>
-        <ul class="board-member-list">
-          <li>
-            <img src="pix/board/cody-barnes.jpg" alt="Cody Barnes">
-            <div>
-              <strong>Cody Barnes</strong>
-              <span>President</span>
-              <a href="tel:+18019400737">801-940-0737</a>
-              <a href="mailto:timberline76@gmail.com">timberline76@gmail.com</a>
-              <span class="board-member-committee">Executive Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/randy-upton.jpg" alt="Randy Upton">
-            <div>
-              <strong>Randy Upton</strong>
-              <span>Chairman</span>
-              <a href="tel:+14358283106">435-828-3106</a>
-              <a href="mailto:randyupton19@gmail.com">randyupton19@gmail.com</a>
-              <span class="board-member-committee">Executive Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/terry-nelson.jpg" alt="Terry Nelson">
-            <div>
-              <strong>Terry Nelson</strong>
-              <span>Vice Chairman</span>
-              <a href="tel:+18016417490">801-641-7490</a>
-              <a href="mailto:terryn@nelsonracing.net">terryn@nelsonracing.net</a>
-              <span class="board-member-committee">Outdoor &amp; Hunting Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/korey-vancott.jpg" alt="Korey Vancott">
-            <div>
-              <strong>Korey Vancott</strong>
-              <span>Secretary</span>
-              <a href="tel:+18015584725">801-558-4725</a>
-              <a href="mailto:kvancott7@gmail.com">kvancott7@gmail.com</a>
-              <span class="board-member-committee">IT / Communications Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/robert-watson.jpg" alt="Robert Watson">
-            <div>
-              <strong>Robert Watson</strong>
-              <a href="tel:+18015739267">801-573-9267</a>
-              <a href="mailto:rwatson001.rw@gmail.com">rwatson001.rw@gmail.com</a>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/bill-feveryear.jpg" alt="Bill Feveryear">
-            <div>
-              <strong>Bill Feveryear</strong>
-              <a href="tel:+18015925237">801-592-5237</a>
-              <a href="mailto:bfeveryear@backmantitle.com">bfeveryear@backmantitle.com</a>
-              <span class="board-member-committee">Finance Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/john-milano.jpg" alt="John Milano">
-            <div>
-              <strong>John Milano</strong>
-              <a href="tel:+18012097266">801-209-7266</a>
-              <a href="mailto:JRMilano@comcast.net">JRMilano@comcast.net</a>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/blake-housley.jpg" alt="Blake Housley">
-            <div>
-              <strong>Blake Housley</strong>
-              <a href="tel:+18014996910">801-499-6910</a>
-              <a href="mailto:bigtimberheating@gmail.com">bigtimberheating@gmail.com</a>
-              <span class="board-member-committee">Facilities &amp; Land Use Committee</span>
-            </div>
-          </li>
-          <li>
-            <img src="pix/board/toni-noerring.jpg" alt="Toni Noerring">
-            <div>
-              <strong>Toni Noerring</strong>
-              <a href="tel:+18015205543">801-520-5543</a>
-              <a href="mailto:noerring5@gmail.com">noerring5@gmail.com</a>
-              <span class="board-member-committee">Rules Committee</span>
-            </div>
-          </li>
-        </ul>
+        <p id="board-members-status" class="form-message" role="status" aria-live="polite">Loading board members…</p>
+        <ul class="board-member-list" id="board-member-list"></ul>
         <p class="board-note">
           <a href="files/board/board-member-sheet.pdf" target="_blank" rel="noopener noreferrer">Board member sheet (PDF)</a>
         </p>
@@ -314,6 +234,7 @@
       </div>
     </div>
   </main>
+  <script src="js/board-page.js?v=1"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

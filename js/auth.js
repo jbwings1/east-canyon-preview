@@ -396,7 +396,9 @@ const Auth = {
     if (!this.isAdmin()) throw new Error("Admin access required.");
     const { data, error } = await getClient()
       .from("bookings")
-      .select("id,user_id,reservation_type,spot,check_in,check_out,original_check_in,original_check_out,status,notes,created_at,edited_at,last_edit_summary,confirmed_at,booked_by_kind,booked_by_user_id")
+      .select(
+        "id,user_id,reservation_type,spot,check_in,check_out,original_check_in,original_check_out,status,notes,created_at,edited_at,last_edit_summary,confirmed_at,booked_by_kind,booked_by_user_id,office_checked_in_at,office_checked_in_by,office_check_in_notes"
+      )
       .order("check_in", { ascending: false });
     throwIfError(error);
     return data || [];
@@ -432,11 +434,22 @@ const Auth = {
     return { start, end };
   },
 
-  /** New stay must be fully inside the original booking window. */
-  stayWithinOriginal(checkIn, checkOut, booking) {
+  /**
+   * Member edits may move or extend dates, but the new stay must share at least one
+   * calendar day with the original booking (inclusive check-in through check-out).
+   * Example: original 9-30→10-2 may become 9-29→10-2, 9-29→10-3, or 10-2→10-5.
+   */
+  stayOverlapsOriginal(checkIn, checkOut, booking) {
     const win = this.getOriginalStayWindow(booking);
     if (!win) return true;
-    return Boolean(checkIn && checkOut && checkIn >= win.start && checkOut <= win.end);
+    if (!checkIn || !checkOut || checkOut <= checkIn) return false;
+    // Closed intervals [start, end] share a day when startA <= endB && startB <= endA.
+    return checkIn <= win.end && win.start <= checkOut;
+  },
+
+  /** @deprecated Use stayOverlapsOriginal — kept for older callers. */
+  stayWithinOriginal(checkIn, checkOut, booking) {
+    return this.stayOverlapsOriginal(checkIn, checkOut, booking);
   },
 
   formatOriginalStayLabel(booking) {
@@ -446,6 +459,20 @@ const Auth = {
       return window.SpotAvailability.formatOriginalStayRange(win.start, win.end);
     }
     return `${win.start} \u2192 ${win.end}`;
+  },
+
+  originalStayOverlapMessage(booking) {
+    const originalLabel = this.formatOriginalStayLabel(booking);
+    if (originalLabel) {
+      return (
+        `Edited dates must keep at least one day from your original booking (${originalLabel}). ` +
+        "You can move or extend the stay as long as it still overlaps that original range."
+      );
+    }
+    return (
+      "Edited dates must keep at least one day from your original booking. " +
+      "You can move or extend the stay as long as it still overlaps that original range."
+    );
   },
 
   /**
@@ -554,7 +581,9 @@ const Auth = {
   },
 
   async updateBookingStatus(bookingId, status) {
-    if (!this.isAdmin()) throw new Error("Admin access required.");
+    if (!this.hasAdminTask("reservations_manage")) {
+      throw new Error("You are not assigned the Reservations manage task.");
+    }
     if (status !== "confirmed" && status !== "cancelled") {
       throw new Error("Status must be confirmed or cancelled.");
     }
@@ -567,6 +596,77 @@ const Auth = {
       .select()
       .maybeSingle();
     throwIfError(error);
+    if (!data) throw new Error("Booking could not be updated.");
+    return data;
+  },
+
+  /**
+   * Admin edit of any member booking (dates, spot, type, notes).
+   * Does not apply member cancel/edit windows or original-stay lock.
+   */
+  async updateBookingAsAdmin(
+    bookingId,
+    { reservationType, spot, checkIn, checkOut, notes } = {}
+  ) {
+    if (!this.hasAdminTask("reservations_manage")) {
+      throw new Error("You are not assigned the Reservations manage task.");
+    }
+    if (!bookingId) throw new Error("Booking is required.");
+    if (!checkIn || !checkOut) throw new Error("Check-in and check-out are required.");
+    if (checkOut <= checkIn) throw new Error("Check-out must be after check-in.");
+
+    const { data: existing, error: existingError } = await getClient()
+      .from("bookings")
+      .select(
+        "id,user_id,reservation_type,spot,check_in,check_out,status,notes,original_check_in,original_check_out"
+      )
+      .eq("id", bookingId)
+      .maybeSingle();
+    throwIfError(existingError);
+    if (!existing) throw new Error("Booking not found.");
+    if (existing.status === "cancelled") {
+      throw new Error("Cancelled bookings cannot be edited. Create a new reservation instead.");
+    }
+
+    const dbType = reservationType
+      ? toDbReservationType(reservationType)
+      : existing.reservation_type;
+    if (!dbType) throw new Error("Choose Condo, Family reunion, or RV.");
+
+    const nextSpot =
+      spot === undefined || spot === null ? existing.spot : String(spot).trim() || null;
+    const nextNotes =
+      notes === undefined || notes === null ? existing.notes : String(notes).trim() || null;
+
+    const summaryParts = [];
+    if (existing.check_in !== checkIn || existing.check_out !== checkOut) {
+      summaryParts.push(`dates ${existing.check_in}→${existing.check_out} to ${checkIn}→${checkOut}`);
+    }
+    if (existing.reservation_type !== dbType) {
+      summaryParts.push(`type to ${dbType}`);
+    }
+    if ((existing.spot || "") !== (nextSpot || "")) {
+      summaryParts.push(`spot to ${nextSpot || "(none)"}`);
+    }
+
+    const { data, error } = await getClient()
+      .from("bookings")
+      .update({
+        reservation_type: dbType,
+        spot: nextSpot,
+        check_in: checkIn,
+        check_out: checkOut,
+        notes: nextNotes,
+        edited_at: new Date().toISOString(),
+        last_edit_summary: summaryParts.length
+          ? `Admin edit: ${summaryParts.join("; ")}`
+          : "Admin edit",
+      })
+      .eq("id", bookingId)
+      .select()
+      .maybeSingle();
+    throwIfError(error);
+    if (!data) throw new Error("Booking could not be saved.");
     return data;
   },
 
@@ -970,13 +1070,8 @@ const Auth = {
     if (requestedUiType && existingUiType && requestedUiType !== existingUiType) {
       throw new Error("You cannot change reservation type. Delete and book a new stay instead.");
     }
-    if (!this.stayWithinOriginal(checkIn, checkOut, existing)) {
-      const originalLabel = this.formatOriginalStayLabel(existing);
-      throw new Error(
-        originalLabel
-          ? `Edited dates must stay within your original booking (${originalLabel}). To book different dates, delete this reservation and book a new one.`
-          : "Edited dates must stay within your original booking window. To book different dates, delete this reservation and book a new one."
-      );
+    if (!this.stayOverlapsOriginal(checkIn, checkOut, existing)) {
+      throw new Error(this.originalStayOverlapMessage(existing));
     }
 
     const { data, error } = await getClient()
@@ -1109,11 +1204,123 @@ const Auth = {
     return this.sortBookingsForDisplay(data || []);
   },
 
+  /**
+   * Confirmed stays that still count toward the max of 2.
+   * Counts until office check-in (status → active), not merely until the check-in date.
+   * Past stays (check-out on or before today) no longer count.
+   */
   getActiveBookings(bookings = []) {
-    const today = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     return bookings.filter(
-      (b) => b.status === "confirmed" && b.check_in && b.check_in > today
+      (b) =>
+        b.status === "confirmed" &&
+        b.check_out &&
+        b.check_out > today
     );
+  },
+
+  /** Human status: Confirmed → Active after office check-in → Completed after stay end. */
+  bookingDisplayStatus(booking) {
+    if (typeof window.BookingRuleFlags?.displayStatus === "function") {
+      return window.BookingRuleFlags.displayStatus(booking);
+    }
+    const status = String(booking?.status || "").toLowerCase();
+    if (status === "cancelled") return "Cancelled";
+    if (status === "pending") return "Pending";
+    if (status === "completed") return "Completed";
+    if (status === "active") return "Active";
+    if (status !== "confirmed") return booking?.status || "—";
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const checkOut = booking?.check_out || "";
+    if (checkOut && checkOut <= today) return "Completed";
+    return "Confirmed";
+  },
+
+  /**
+   * Office check-in at the resort (staff activates the stay).
+   */
+  async checkInBookingAsAdmin(bookingId, { notes = "" } = {}) {
+    if (!this.hasAdminTask("reservations_manage")) {
+      throw new Error("You are not assigned the Reservations manage task.");
+    }
+    const admin = this.getCurrentUser();
+    if (!admin?.id) throw new Error("Admin sign in required.");
+    if (!bookingId) throw new Error("Booking is required.");
+
+    const { data: existing, error: existingError } = await getClient()
+      .from("bookings")
+      .select("id,status,office_checked_in_at,check_in,check_out")
+      .eq("id", bookingId)
+      .maybeSingle();
+    throwIfError(existingError);
+    if (!existing) throw new Error("Booking not found.");
+    if (existing.status === "cancelled") {
+      throw new Error("Cancelled reservations cannot be checked in.");
+    }
+    if (existing.status === "active" || existing.office_checked_in_at) {
+      throw new Error("This reservation is already checked in.");
+    }
+    const checkIn = existing.check_in || "";
+    if (checkIn) {
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+        now.getDate()
+      ).padStart(2, "0")}`;
+      if (today < checkIn) {
+        throw new Error(
+          `Office check-in opens on the first day of the stay (${checkIn}).`
+        );
+      }
+    }
+
+    const now = new Date().toISOString();
+    const { data, error } = await getClient()
+      .from("bookings")
+      .update({
+        status: "active",
+        office_checked_in_at: now,
+        office_checked_in_by: admin.id,
+        office_check_in_notes: String(notes || "").trim(),
+        edited_at: now,
+        last_edit_summary: `Office check-in by ${admin.name || admin.email || "staff"}`,
+      })
+      .eq("id", bookingId)
+      .select()
+      .maybeSingle();
+    throwIfError(error);
+    if (!data) throw new Error("Check-in could not be saved.");
+    return data;
+  },
+
+  /** Update office check-in notes after check-in (does not change who/when). */
+  async updateOfficeCheckInNotesAsAdmin(bookingId, notes) {
+    if (!this.hasAdminTask("reservations_manage")) {
+      throw new Error("You are not assigned the Reservations manage task.");
+    }
+    if (!bookingId) throw new Error("Booking is required.");
+    const { data: existing, error: existingError } = await getClient()
+      .from("bookings")
+      .select("id,office_checked_in_at")
+      .eq("id", bookingId)
+      .maybeSingle();
+    throwIfError(existingError);
+    if (!existing) throw new Error("Booking not found.");
+    if (!existing.office_checked_in_at) {
+      throw new Error("Check the member in before saving check-in notes.");
+    }
+    const { data, error } = await getClient()
+      .from("bookings")
+      .update({
+        office_check_in_notes: String(notes || "").trim(),
+      })
+      .eq("id", bookingId)
+      .select()
+      .maybeSingle();
+    throwIfError(error);
+    if (!data) throw new Error("Check-in notes could not be saved.");
+    return data;
   },
 
   saveLastBooking(record) {

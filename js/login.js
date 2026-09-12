@@ -3,7 +3,6 @@ const message = document.getElementById("auth-message");
 const signinPanel = document.getElementById("signin-panel");
 const signedInPanel = document.getElementById("signed-in-panel");
 const signedInMessage = document.getElementById("signed-in-message");
-const signedInLogout = document.getElementById("signed-in-logout");
 const resetSiteData = document.getElementById("reset-site-data");
 
 function showMessage(text, type) {
@@ -39,6 +38,7 @@ function showSignedIn(user) {
   if (signedInMessage) {
     signedInMessage.textContent = `Signed in as ${user.name || user.email}.`;
   }
+  if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
 }
 
 function showSignInForm() {
@@ -77,13 +77,10 @@ if (resetSiteData) {
   resetSiteData.addEventListener("click", () => {
     Auth.clearAllSiteData();
     showSignInForm();
+    if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
     showMessage("Saved sign-in data was cleared. Sign in again with your email.", "success");
     if (signinForm) signinForm.reset();
   });
-}
-
-if (signedInLogout) {
-  signedInLogout.addEventListener("click", () => Auth.logout());
 }
 
 if (signinForm && typeof Auth !== "undefined") {

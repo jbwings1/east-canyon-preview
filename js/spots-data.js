@@ -44,7 +44,7 @@ window.RESERVATION_MAX_NIGHTS = 7;
 /** How far in advance a reservation may be made (resort policy). */
 window.RESERVATION_MAX_ADVANCE_DAYS = 60;
 
-/** Maximum upcoming reservations (before check-in) a member may hold at one time. */
+/** Maximum confirmed reservations (before office check-in) a member may hold at one time. */
 window.RESERVATION_MAX_ACTIVE = 2;
 
 window.MEMBER_RESERVATIONS_STORAGE_KEY = "ecr-member-reservations";
@@ -72,13 +72,17 @@ window.SpotAvailability = {
     return String(memberId || "").trim();
   },
 
-  /** Reservations not yet started — counts toward the 2-reservation limit until check-in day. */
+  /** Confirmed local reservations counting toward the max-2 limit (legacy offline helper). */
   getActiveMemberReservations(memberId) {
     const id = this.normalizeMemberId(memberId);
     if (!id) return [];
     const today = this.getToday();
     return (window.MEMBER_RESERVATIONS || []).filter(
-      (r) => this.normalizeMemberId(r.memberId) === id && r.checkIn > today
+      (r) =>
+        this.normalizeMemberId(r.memberId) === id &&
+        r.checkOut &&
+        r.checkOut > today &&
+        String(r.status || "confirmed").toLowerCase() === "confirmed"
     );
   },
 
@@ -304,7 +308,11 @@ window.SpotAvailability = {
   },
 
   getToday() {
-    return this.addDays(new Date().toISOString().split("T")[0], 0);
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   },
 
   getMaxCheckInDate() {

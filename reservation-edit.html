@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Book an RV site, condo, or family reunion stay at East Canyon Resort.">
   <title>Edit Reservation | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site28">
+  <link rel="stylesheet" href="styles.css?v=site42">
 </head>
 <body class="page-visitor page-reservations" data-reservation-mode="edit">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -38,10 +38,10 @@
         <h1 id="booking-form-title">Edit reservation</h1>
         <p class="reservation-form-intro">
           You can change stay dates and site. Reservation type cannot change.
-          Edited dates must stay within your original booking window — otherwise delete and book a new reservation.
+          New dates may move or extend, but must keep at least one day from the original booking.
         </p>
         <p id="editing-banner" class="stay-length-notice" role="status">
-          Editing: new dates must stay within your original booking window. Site can change; type cannot.
+          Editing: keep at least one day from your original stay. You may move or extend around that. Site can change; type cannot.
         </p>
 
         <form id="reservation-form" class="reservation-form reservation-form--compact" novalidate>
@@ -73,6 +73,7 @@
           </div>
 
           <p id="stay-length-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
+          <p id="membership-rights-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></p>
 
           <div class="form-row form-row--4">
             <div class="form-group">
@@ -196,15 +197,17 @@
   </main>
 
   <script src="js/map-units-generated.js"></script>
-  <script src="js/spots-data.js?v=6"></script>
+  <script src="js/spots-data.js?v=9"></script>
   <script src="js/campground-map.js?v=8"></script>
   <script src="js/map-zoom.js"></script>
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb2"></script>
-  <script src="js/auth.js?v=sb16"></script>
-  <script src="js/membership-rights.js?v=1"></script>
-  <script src="js/reservations.js?v=34"></script>
+  <script src="js/auth.js?v=sb25"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/membership-rights.js?v=4"></script>
+  <script src="js/reservations.js?v=39"></script>
+  <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>

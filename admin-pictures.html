@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Pictures | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site28">
+  <link rel="stylesheet" href="styles.css?v=site42">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -42,8 +42,21 @@
         <p class="admin-intro">
           <span id="admin-whoami"></span>
           Manage gallery images on the public Pictures page.
-          <button type="button" id="admin-logout" class="btn-link">Sign Out</button>
         </p>
+
+        <section class="admin-card">
+          <h2>Sections</h2>
+          <p class="admin-help">Create, rename, reorder, or delete section headings on the Pictures page. Delete only works when a section has no photos.</p>
+          <form id="admin-gallery-section-form" class="auth-form admin-form admin-gallery-section-form">
+            <div class="form-group">
+              <label for="gallery-section-new">New section name</label>
+              <input type="text" id="gallery-section-new" maxlength="80" placeholder="e.g. Weddings" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add section</button>
+          </form>
+          <p id="admin-gallery-section-result" class="form-message" role="status" aria-live="polite"></p>
+          <div id="admin-gallery-section-list" class="admin-gallery-section-list"></div>
+        </section>
 
         <section class="admin-card">
           <h2>Upload image</h2>
@@ -83,8 +96,11 @@
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb2"></script>
   <script src="js/auth.js?v=sb5"></script>
-  <script src="js/admin-common.js?v=sb7"></script>
-  <script src="js/admin-pictures.js?v=sb7"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/admin-common.js?v=sb10"></script>
+  <script src="js/gallery-url.js?v=1"></script>
+  <script src="js/admin-pictures.js?v=sb9"></script>
+  <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
       <p>
