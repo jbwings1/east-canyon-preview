@@ -29,31 +29,58 @@ function getClient() {
 function storageAvailable() {
   try {
     const key = "__eastCanyonStorageTest";
-    localStorage.setItem(key, "1");
-    localStorage.removeItem(key);
+    sessionStorage.setItem(key, "1");
+    sessionStorage.removeItem(key);
     return true;
   } catch {
     return false;
   }
 }
 
-function readJson(key, fallback = null) {
-  if (!storageAvailable()) return fallback;
+function readFromStore(store, key, fallback = null) {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = store.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
   }
 }
 
-function writeJson(key, value) {
-  if (!storageAvailable()) return;
+function writeToStore(store, key, value) {
   try {
-    if (value == null) localStorage.removeItem(key);
-    else localStorage.setItem(key, JSON.stringify(value));
+    if (value == null) store.removeItem(key);
+    else store.setItem(key, JSON.stringify(value));
   } catch {
     /* storage blocked */
+  }
+}
+
+/** Auth profile/session cache: sessionStorage only (cleared when the browser closes). */
+function readJson(key, fallback = null) {
+  if (!storageAvailable()) return fallback;
+  const fromSession = readFromStore(sessionStorage, key, null);
+  if (fromSession != null) return fromSession;
+  // Migrate once from older localStorage sessions, then clear them.
+  try {
+    const fromLocal = readFromStore(localStorage, key, null);
+    if (fromLocal != null) {
+      writeToStore(sessionStorage, key, fromLocal);
+      localStorage.removeItem(key);
+      return fromLocal;
+    }
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
+function writeJson(key, value) {
+  if (!storageAvailable()) return;
+  writeToStore(sessionStorage, key, value);
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
   }
 }
 
@@ -125,7 +152,19 @@ function officialStorageKey() {
 
 function readOfficialSession() {
   try {
-    const raw = localStorage.getItem(officialStorageKey());
+    let raw = null;
+    try {
+      raw = sessionStorage.getItem(officialStorageKey());
+    } catch {
+      raw = null;
+    }
+    if (!raw) {
+      try {
+        raw = localStorage.getItem(officialStorageKey());
+      } catch {
+        raw = null;
+      }
+    }
     if (!raw) return readJson(SESSION_KEY);
     const parsed = JSON.parse(raw);
     if (parsed?.access_token) return parsed;
@@ -682,7 +721,17 @@ const Auth = {
     writeJson(SESSION_KEY, null);
     writeJson(PROFILE_CACHE_KEY, null);
     try {
+      sessionStorage.removeItem(officialStorageKey());
+    } catch {
+      /* ignore */
+    }
+    try {
       localStorage.removeItem(officialStorageKey());
+    } catch {
+      /* ignore */
+    }
+    try {
+      sessionStorage.removeItem("eastCanyonAdminSession");
     } catch {
       /* ignore */
     }
