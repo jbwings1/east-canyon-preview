@@ -1615,6 +1615,81 @@ a:hover {
   line-height: 1.4;
 }
 
+.member-class-rules {
+  margin: 1.15rem 0 0;
+  padding: 0.95rem 1rem 1rem;
+  background: #fffdf9;
+  border: 1px solid #e4d9c8;
+  border-radius: 0.65rem;
+}
+
+.member-class-rules--booking {
+  margin: 0 0 1.35rem;
+}
+
+.member-class-rules-title {
+  margin: 0 0 0.35rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  color: #1c3a32;
+}
+
+.member-class-rules-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.member-class-rules-head .member-class-rules-title {
+  margin: 0;
+}
+
+.member-class-rules-sheet-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1c3a32;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.member-class-rules-sheet-link:hover {
+  color: #142922;
+}
+
+.member-profile-summary dd a {
+  color: #1c3a32;
+  font-weight: 600;
+}
+
+.member-class-rules-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.92rem;
+  color: #5c564e;
+}
+
+.member-class-rules-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #1c1916;
+}
+
+.member-class-rules-more {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.member-class-rules-more a {
+  color: #1c3a32;
+  font-weight: 600;
+}
+
 @media (max-width: 520px) {
   .page-visitor .member-profile-summary div {
     grid-template-columns: 1fr;

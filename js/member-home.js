@@ -29,12 +29,32 @@
     ["Type", typeLabel],
   ].filter(([, value]) => String(value || "").trim());
 
+  if (typeof MembershipRights?.parseClassFromMemberId === "function") {
+    const classCode = MembershipRights.parseClassFromMemberId(current.memberId);
+    if (classCode) {
+      rows.splice(1, 0, [
+        "Class",
+        `${classCode} · <a href="membership-use-rights.html">Class information sheet</a>`,
+      ]);
+    }
+  }
+
   summary.innerHTML = rows
-    .map(
-      ([label, value]) =>
-        `<div><dt>${label}</dt><dd>${String(value).replace(/</g, "&lt;")}</dd></div>`
-    )
+    .map(([label, value]) => {
+      const safeLabel = String(label).replace(/</g, "&lt;");
+      const raw = String(value || "");
+      const safeValue = /<a href=/.test(raw)
+        ? raw
+        : raw.replace(/</g, "&lt;");
+      return `<div><dt>${safeLabel}</dt><dd>${safeValue}</dd></div>`;
+    })
     .join("");
+
+  if (typeof MembershipRights?.renderClassRules === "function") {
+    MembershipRights.renderClassRules(document.getElementById("member-class-rules"), {
+      memberId: current.memberId,
+    });
+  }
 
   Auth.showAdminLinks();
   if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();

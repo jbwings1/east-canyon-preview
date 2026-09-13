@@ -382,6 +382,13 @@ function updateMembershipRightsNotice() {
   membershipRightsNotice.textContent = window.MembershipRights.formatViolations(gate.violations);
 }
 
+function updateMemberClassRulesPanel() {
+  if (typeof MembershipRights?.renderClassRules !== "function") return;
+  MembershipRights.renderClassRules(document.getElementById("member-class-rules"), {
+    memberId: bookingMemberIdForRights(),
+  });
+}
+
 function canBookSelectUnit(unit) {
   const type = typeSelect.value;
   if (!type) return false;
@@ -698,10 +705,12 @@ checkOut.addEventListener("change", () => {
 memberIdInput?.addEventListener("input", () => {
   updateMemberReservationNotice();
   updateMembershipRightsNotice();
+  updateMemberClassRulesPanel();
 });
 memberIdInput?.addEventListener("change", () => {
   updateMemberReservationNotice();
   updateMembershipRightsNotice();
+  updateMemberClassRulesPanel();
 });
 typeSelect.addEventListener("change", () => {
   clearStaleBookingError();
@@ -719,6 +728,7 @@ updateRvFields();
 updateMapAvailability();
 updateMemberReservationNotice();
 updateMembershipRightsNotice();
+updateMemberClassRulesPanel();
 
 function showConfirmedState(record) {
   const signedIn = typeof Auth !== "undefined" && Auth.getCurrentUser();
@@ -919,6 +929,7 @@ function prefillFromProfile(user) {
     typeSelect.value = user.reservationType;
     updateRvFields();
   }
+  updateMemberClassRulesPanel();
 }
 
 clearSpotBtn.addEventListener("click", clearPreferredSpot);

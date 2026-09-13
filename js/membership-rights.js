@@ -489,11 +489,109 @@
     });
   }
 
+  function getClassRuleLines(classCode) {
+    const code = String(classCode || "").toUpperCase();
+    const rights = getRights(code);
+    if (!rights) return null;
+
+    const lines = [];
+    lines.push(`Membership class ${code}`);
+
+    if (rights.daysAnytime) {
+      lines.push(
+        `${rights.summerDays} Regular Time day${rights.summerDays === 1 ? "" : "s"} anytime in the reservation year (Apr 1–Mar 31).`
+      );
+    } else if ((rights.summerDays || 0) > 0 || (rights.winterDays || 0) > 0) {
+      lines.push(
+        `Regular Time: ${rights.summerDays || 0} Summer day${(rights.summerDays || 0) === 1 ? "" : "s"} (May 15–Sep 15) and ${rights.winterDays || 0} Winter day${(rights.winterDays || 0) === 1 ? "" : "s"} (Sep 16–May 14) per reservation year.`
+      );
+    } else {
+      lines.push("No Regular Time condo allotment for this class.");
+    }
+
+    const lodging = [];
+    if (rights.condoAllowed) lodging.push("condo Regular Time");
+    else lodging.push("no Regular condo");
+    if (rights.rvAllowed) lodging.push("RV Use");
+    else lodging.push("no RV Use");
+    if (rights.reunionAllowed !== false) lodging.push("family reunion sites");
+    lines.push(`Lodging rights: ${lodging.join("; ")}.`);
+
+    if (code === "RR") {
+      lines.push("Relative Rights: Bonus Time only online (space available); no Regular Time.");
+    } else if (code === "Q") {
+      lines.push("Condo Regular Time is limited to the fixed week in the purchase agreement.");
+    } else if (code === "H" || code === "I") {
+      lines.push("Corporate class: designated-member occupancy rules apply (see Policies §3.2).");
+    } else if (code === "T") {
+      lines.push("Temporary membership: limited condo / family reunion stay rights.");
+    } else if (!rights.daysAnytime && ((rights.summerDays || 0) > 0 || (rights.winterDays || 0) > 0)) {
+      lines.push("Bonus Time may be available online when space allows (does not use Regular Time days).");
+    }
+
+    lines.push("You may hold up to 2 confirmed reservations at a time until office check-in.");
+    lines.push("Each reservation is limited to 7 consecutive nights and must start within 60 days.");
+
+    if (rights.notes) {
+      lines.push(`Summary: ${rights.notes}.`);
+    }
+
+    return { classCode: code, rights, lines };
+  }
+
+  function describeClassRules(memberId, classCodeIn = null) {
+    const classCode = classCodeIn || parseClassFromMemberId(memberId);
+    return getClassRuleLines(classCode);
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /**
+   * Fill a container with class rules for the member.
+   * @returns {boolean} true if rules were rendered
+   */
+  function renderClassRules(container, { memberId = "", classCode = null } = {}) {
+    if (!container) return false;
+    const described = describeClassRules(memberId, classCode);
+    if (!described) {
+      container.hidden = true;
+      container.innerHTML = "";
+      return false;
+    }
+    container.hidden = false;
+    container.innerHTML = `
+      <div class="member-class-rules-head">
+        <h2 class="member-class-rules-title">Your class rules</h2>
+        <a class="member-class-rules-sheet-link" href="membership-use-rights.html">Class information sheet</a>
+      </div>
+      <p class="member-class-rules-lead">
+        These limits apply to Class ${escapeHtml(described.classCode)} based on resort membership use rights.
+      </p>
+      <ul class="member-class-rules-list">
+        ${described.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+      </ul>
+      <p class="member-class-rules-more">
+        <a href="membership-use-rights.html">Full membership use rights</a>
+        · <a href="policies-and-rules.html">Policies and Rules</a>
+      </p>
+    `;
+    return true;
+  }
+
   const MembershipRights = {
     FULL_CLASSES,
     CLASS_RIGHTS,
     parseClassFromMemberId,
     getRights,
+    getClassRuleLines,
+    describeClassRules,
+    renderClassRules,
     seasonForNight,
     reservationYearStart,
     eachNight,
