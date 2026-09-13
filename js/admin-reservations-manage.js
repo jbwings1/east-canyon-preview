@@ -28,6 +28,10 @@
   let bookings = [];
   let editingId = null;
   let viewingId = null;
+  const createOverrideSession =
+    typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
+  const editOverrideSession =
+    typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
 
   function todayIso() {
     const now = new Date();
@@ -268,6 +272,24 @@
           flag.ok ? "None" : flag.message || "Flagged",
           { span: true }
         ),
+        ...(function overridesRows() {
+          const list =
+            typeof BookingLimits !== "undefined"
+              ? BookingLimits.formatOverridesForDisplay(booking.rule_overrides)
+              : Array.isArray(booking.rule_overrides)
+                ? booking.rule_overrides
+                : [];
+          if (!list.length) {
+            return [detailRow("Rule overrides", "None", { span: true })];
+          }
+          return list.map((o, index) =>
+            detailRow(
+              index === 0 ? "Rule overrides" : " ",
+              `${o.label || o.rule} · ${o.who} · ${o.when} · ${o.note}`,
+              { span: true }
+            )
+          );
+        })(),
         detailRow("Booking ID", booking.id || "—", { span: true }),
       ].join("");
     }
@@ -281,6 +303,7 @@
 
   function closeEdit() {
     editingId = null;
+    editOverrideSession?.clear();
     if (editCard) editCard.hidden = true;
     editForm?.reset();
     AdminCommon.showMessage(editResult, "", "");
@@ -296,6 +319,7 @@
     if (!booking || booking.status === "cancelled") return;
     closeView();
     editingId = booking.id;
+    editOverrideSession?.clear();
     document.getElementById("edit-booking-id").value = booking.id;
     document.getElementById("edit-booking-type").value = uiType(booking.reservation_type);
     document.getElementById("edit-booking-spot").value = booking.spot || "";
@@ -406,41 +430,107 @@
   }
 
   function evaluateSelectedMemberRights() {
-    if (typeof MembershipRights === "undefined") {
-      return { ok: true, violations: [] };
+    if (typeof BookingLimits === "undefined") {
+      if (typeof MembershipRights === "undefined") return { ok: true, violations: [] };
+      const memberUserId = bookingMember.value;
+      const profile = profiles.find((p) => p.id === memberUserId);
+      return MembershipRights.validateBooking({
+        memberId: profile?.member_id || "",
+        reservationType: bookingType.value,
+        checkIn: document.getElementById("booking-check-in").value,
+        checkOut: document.getElementById("booking-check-out").value,
+        existingBookings: bookings.filter((b) => b.user_id === memberUserId),
+      });
     }
     const memberUserId = bookingMember.value;
     const profile = profiles.find((p) => p.id === memberUserId);
-    const memberId = profile?.member_id || "";
-    const reservationType = bookingType.value;
-    const checkIn = document.getElementById("booking-check-in").value;
-    const checkOut = document.getElementById("booking-check-out").value;
-    const existing = bookings.filter((b) => b.user_id === memberUserId);
-    return MembershipRights.validateBooking({
-      memberId,
-      reservationType,
-      checkIn,
-      checkOut,
-      existingBookings: existing,
+    return BookingLimits.evaluateProposedStay({
+      memberId: profile?.member_id || "",
+      reservationType: bookingType.value,
+      checkIn: document.getElementById("booking-check-in").value,
+      checkOut: document.getElementById("booking-check-out").value,
+      existingBookings: bookings.filter((b) => b.user_id === memberUserId),
+      isNewBooking: true,
     });
   }
 
   function evaluateEditRights(booking) {
-    if (typeof MembershipRights === "undefined" || !booking) {
-      return { ok: true, violations: [] };
+    if (!booking) return { ok: true, violations: [] };
+    if (typeof BookingLimits === "undefined") {
+      if (typeof MembershipRights === "undefined") return { ok: true, violations: [] };
+      const profile = profiles.find((p) => p.id === booking.user_id);
+      return MembershipRights.validateBooking({
+        memberId: profile?.member_id || memberIdForUser(booking.user_id),
+        reservationType: document.getElementById("edit-booking-type").value,
+        checkIn: document.getElementById("edit-booking-check-in").value,
+        checkOut: document.getElementById("edit-booking-check-out").value,
+        existingBookings: bookings.filter((b) => b.user_id === booking.user_id),
+        excludeBookingId: booking.id,
+      });
     }
     const profile = profiles.find((p) => p.id === booking.user_id);
-    return MembershipRights.validateBooking({
+    return BookingLimits.evaluateProposedStay({
       memberId: profile?.member_id || memberIdForUser(booking.user_id),
       reservationType: document.getElementById("edit-booking-type").value,
       checkIn: document.getElementById("edit-booking-check-in").value,
       checkOut: document.getElementById("edit-booking-check-out").value,
       existingBookings: bookings.filter((b) => b.user_id === booking.user_id),
       excludeBookingId: booking.id,
+      isNewBooking: false,
     });
   }
 
-  function setRightsNotice(el, gate) {
+  function syncCreateOverrideFingerprint() {
+    createOverrideSession?.syncFingerprint({
+      memberId: bookingMember?.value || "",
+      reservationType: bookingType?.value || "",
+      checkIn: document.getElementById("booking-check-in")?.value || "",
+      checkOut: document.getElementById("booking-check-out")?.value || "",
+    });
+  }
+
+  function syncEditOverrideFingerprint(booking) {
+    editOverrideSession?.syncFingerprint({
+      memberId: booking?.user_id || "",
+      reservationType: document.getElementById("edit-booking-type")?.value || "",
+      checkIn: document.getElementById("edit-booking-check-in")?.value || "",
+      checkOut: document.getElementById("edit-booking-check-out")?.value || "",
+      excludeBookingId: booking?.id || "",
+    });
+  }
+
+  function refreshCreateRightsNotice() {
+    const el = document.getElementById("admin-create-rights-notice");
+    const checkIn = document.getElementById("booking-check-in")?.value;
+    const checkOut = document.getElementById("booking-check-out")?.value;
+    if (!bookingMember?.value || !checkIn || !checkOut || checkOut <= checkIn) {
+      createOverrideSession?.clear();
+      if (typeof BookingLimits !== "undefined") {
+        BookingLimits.renderLimitNotice(el, { ok: true, violations: [], condoStatus: null });
+      } else if (el) {
+        el.hidden = true;
+        el.textContent = "";
+      }
+      return;
+    }
+    syncCreateOverrideFingerprint();
+    const gate = evaluateSelectedMemberRights();
+    if (typeof BookingLimits !== "undefined") {
+      BookingLimits.renderLimitNotice(el, gate, {
+        adminMode: true,
+        overrideSession: createOverrideSession,
+        onOverrideClick: async (violation) => {
+          const record = await BookingLimits.showRuleOverrideDialog(
+            violation,
+            BookingLimits.actorFromUser(me)
+          );
+          if (!record) return;
+          createOverrideSession.add(record);
+          refreshCreateRightsNotice();
+        },
+      });
+      return;
+    }
     if (!el) return;
     if (!gate || gate.ok || !(gate.violations || []).length) {
       el.hidden = true;
@@ -453,32 +543,70 @@
     el.textContent = MembershipRights.formatViolations(gate.violations);
   }
 
-  function refreshCreateRightsNotice() {
-    const el = document.getElementById("admin-create-rights-notice");
-    const checkIn = document.getElementById("booking-check-in")?.value;
-    const checkOut = document.getElementById("booking-check-out")?.value;
-    if (!bookingMember?.value || !checkIn || !checkOut || checkOut <= checkIn) {
-      setRightsNotice(el, { ok: true, violations: [] });
-      return;
-    }
-    setRightsNotice(el, evaluateSelectedMemberRights());
-  }
-
   function refreshEditRightsNotice() {
     const el = document.getElementById("admin-edit-rights-notice");
     const id = document.getElementById("edit-booking-id")?.value || editingId;
     const booking = bookings.find((b) => b.id === id);
     if (!booking) {
-      setRightsNotice(el, { ok: true, violations: [] });
+      editOverrideSession?.clear();
+      if (typeof BookingLimits !== "undefined") {
+        BookingLimits.renderLimitNotice(el, { ok: true, violations: [], condoStatus: null });
+      }
       return;
     }
     const checkIn = document.getElementById("edit-booking-check-in")?.value;
     const checkOut = document.getElementById("edit-booking-check-out")?.value;
     if (!checkIn || !checkOut || checkOut <= checkIn) {
-      setRightsNotice(el, { ok: true, violations: [] });
+      if (typeof BookingLimits !== "undefined") {
+        BookingLimits.renderLimitNotice(el, { ok: true, violations: [], condoStatus: null });
+      }
       return;
     }
-    setRightsNotice(el, evaluateEditRights(booking));
+    syncEditOverrideFingerprint(booking);
+    const gate = evaluateEditRights(booking);
+    if (typeof BookingLimits !== "undefined") {
+      BookingLimits.renderLimitNotice(el, gate, {
+        adminMode: true,
+        overrideSession: editOverrideSession,
+        onOverrideClick: async (violation) => {
+          const record = await BookingLimits.showRuleOverrideDialog(
+            violation,
+            BookingLimits.actorFromUser(me)
+          );
+          if (!record) return;
+          editOverrideSession.add(record);
+          refreshEditRightsNotice();
+        },
+      });
+      return;
+    }
+    if (!el) return;
+    if (!gate || gate.ok || !(gate.violations || []).length) {
+      el.hidden = true;
+      el.textContent = "";
+      el.classList.remove("stay-length-notice--limit");
+      return;
+    }
+    el.hidden = false;
+    el.classList.add("stay-length-notice--limit");
+    el.textContent = MembershipRights.formatViolations(gate.violations);
+  }
+
+  function setRightsNotice(el, gate) {
+    if (typeof BookingLimits !== "undefined") {
+      BookingLimits.renderLimitNotice(el, gate || { ok: true, violations: [] });
+      return;
+    }
+    if (!el) return;
+    if (!gate || gate.ok || !(gate.violations || []).length) {
+      el.hidden = true;
+      el.textContent = "";
+      el.classList.remove("stay-length-notice--limit");
+      return;
+    }
+    el.hidden = false;
+    el.classList.add("stay-length-notice--limit");
+    el.textContent = MembershipRights.formatViolations(gate.violations);
   }
 
   createForm?.addEventListener("submit", async (e) => {
@@ -488,20 +616,25 @@
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
+      syncCreateOverrideFingerprint();
       const gate = evaluateSelectedMemberRights();
-      if (!gate.ok) {
-        const limitText = MembershipRights.formatViolations(gate.violations);
-        const override = await MembershipRights.showOverrideDialog(
-          `${limitText} As an admin you may override this class limit, or start over.`
+      const pending =
+        createOverrideSession?.pendingViolations(gate.violations || []) || gate.violations || [];
+      if (pending.length) {
+        refreshCreateRightsNotice();
+        AdminCommon.showMessage(
+          result,
+          "This booking breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
+          "error"
         );
-        if (!override) {
-          e.target.reset();
-          refreshCreateRightsNotice();
-          AdminCommon.showMessage(result, "Started over — reservation not saved.", "");
-          return;
-        }
+        document.getElementById("admin-create-rights-notice")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+        return;
       }
 
+      const drafts = createOverrideSession?.list() || [];
       await Auth.createBookingForMember({
         memberUserId: document.getElementById("booking-member").value,
         reservationType: document.getElementById("booking-type").value,
@@ -509,9 +642,11 @@
         checkIn: document.getElementById("booking-check-in").value,
         checkOut: document.getElementById("booking-check-out").value,
         notes: document.getElementById("booking-notes").value.trim(),
+        ruleOverrides: drafts.length ? drafts : [],
       });
       AdminCommon.showMessage(result, "Reservation created for the member.", "success");
       e.target.reset();
+      createOverrideSession?.clear();
       refreshCreateRightsNotice();
       await load();
     } catch (err) {
@@ -533,26 +668,35 @@
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
+      syncEditOverrideFingerprint(booking);
       const gate = evaluateEditRights(booking);
-      if (!gate.ok) {
-        const limitText = MembershipRights.formatViolations(gate.violations);
-        const override = await MembershipRights.showOverrideDialog(
-          `${limitText} As an admin you may override this class limit, or start over.`
+      const pending =
+        editOverrideSession?.pendingViolations(gate.violations || []) || gate.violations || [];
+      if (pending.length) {
+        refreshEditRightsNotice();
+        AdminCommon.showMessage(
+          editResult,
+          "This edit breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
+          "error"
         );
-        if (!override) {
-          AdminCommon.showMessage(editResult, "Edit cancelled — class limit not overridden.", "");
-          return;
-        }
+        document.getElementById("admin-edit-rights-notice")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+        return;
       }
+      const drafts = editOverrideSession?.list() || [];
       await Auth.updateBookingAsAdmin(id, {
         reservationType: document.getElementById("edit-booking-type").value,
         spot: document.getElementById("edit-booking-spot").value.trim(),
         checkIn: document.getElementById("edit-booking-check-in").value,
         checkOut: document.getElementById("edit-booking-check-out").value,
         notes: document.getElementById("edit-booking-notes").value.trim(),
+        ruleOverrides: drafts.length ? drafts : null,
       });
       AdminCommon.showMessage(editResult, "Reservation updated.", "success");
       AdminCommon.showMessage(message, "Reservation updated.", "success");
+      editOverrideSession?.clear();
       await load();
     } catch (err) {
       AdminCommon.showMessage(editResult, err.message, "error");

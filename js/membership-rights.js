@@ -354,7 +354,8 @@
     const typeGate = typeAllowed(rights, reservationType);
     if (!typeGate.allowed) {
       violations.push({
-        code: "type-disallowed",
+        code: "type_disallowed",
+        rule: "type_disallowed",
         kind: typeGate.kind,
         message: `Class ${classCode} cannot book ${typeGate.label} stays. ${rights.notes || ""}`.trim(),
       });
@@ -376,7 +377,8 @@
         if (request > remaining) {
           const yearStart = key.split("|")[0];
           violations.push({
-            code: "condo-days",
+            code: "regular_time",
+            rule: "regular_time",
             season,
             yearStart,
             allotment,
@@ -531,6 +533,9 @@
 
     lines.push("You may hold up to 2 confirmed reservations at a time until office check-in.");
     lines.push("Each reservation is limited to 7 consecutive nights and must start within 60 days.");
+    lines.push(
+      "After 14 consecutive days of occupancy (condo, RV, and wilderness combined), you must be off the resort at least 7 days before returning."
+    );
 
     if (rights.notes) {
       lines.push(`Summary: ${rights.notes}.`);
@@ -597,6 +602,7 @@
     eachNight,
     countStayNightsByBucket,
     usedCondoNightsByBucket,
+    allotmentForBucket,
     typeAllowed,
     validateBooking,
     formatViolations,

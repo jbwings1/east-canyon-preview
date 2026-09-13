@@ -281,6 +281,29 @@
       }
     }
 
+    // 14 consecutive days then 7 off (condo + RV + wilderness)
+    if (
+      global.BookingLimits?.evaluateConsecutiveOccupancy &&
+      global.BookingLimits.isLodgingForStreak?.(reservationType)
+    ) {
+      const others = memberBookings.filter((b) => String(b.id) !== String(booking.id));
+      const consecutive = global.BookingLimits.evaluateConsecutiveOccupancy({
+        checkIn,
+        checkOut,
+        existingBookings: others,
+        reservationType,
+      });
+      if (!consecutive.ok) {
+        kinds.add("consecutive");
+        (consecutive.violations || []).forEach((v) => {
+          violations.push({
+            code: v.rule || v.code || "consecutive_14_vacate_7",
+            message: v.message || "Breaks 14-day consecutive occupancy / 7-day vacate rule.",
+          });
+        });
+      }
+    }
+
     const kindList = [...kinds];
     const message = violations
       .map((v) => v.message)
@@ -300,6 +323,7 @@
     if (set.size === 0) return "Rule flag";
     if (set.size > 1) return "Rule flag";
     if (set.has("class")) return "Class flag";
+    if (set.has("consecutive")) return "Occupancy flag";
     if (set.has("limit")) return "Limit flag";
     if (set.has("nights")) return "Length flag";
     if (set.has("advance")) return "Advance flag";

@@ -4404,6 +4404,69 @@ body.membership-override-open {
   overflow: hidden;
 }
 
+.booking-rule-override-note-label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text, #1c1916);
+}
+
+.booking-rule-override-note {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--color-text, #1c1916);
+  background: #fff;
+  border: 1px solid var(--color-sand-dark, #e2d8c8);
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.booking-limits-notice {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.booking-limits-notice p {
+  margin: 0;
+}
+
+.booking-limits-condo-status {
+  font-weight: 600;
+}
+
+.booking-limits-violation {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.booking-limits-violation--overridden {
+  opacity: 0.85;
+}
+
+.booking-limits-overridden-tag {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #1c3a32;
+  background: rgba(28, 58, 50, 0.1);
+  border-radius: 4px;
+}
+
+.booking-limits-override-btn {
+  justify-self: start;
+}
+
 /* Admin confirm action dialog */
 .admin-confirm-dialog {
   position: fixed;

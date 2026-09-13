@@ -336,9 +336,24 @@ function membershipRightsAvailable() {
   return typeof window.MembershipRights !== "undefined";
 }
 
+function bookingLimitsAvailable() {
+  return typeof window.BookingLimits !== "undefined";
+}
+
 function evaluateMembershipRights({ reservationType, checkIn: stayIn, checkOut: stayOut } = {}) {
+  if (bookingLimitsAvailable()) {
+    return window.BookingLimits.evaluateProposedStay({
+      memberId: bookingMemberIdForRights(),
+      reservationType: reservationType || typeSelect.value,
+      checkIn: stayIn || checkIn.value,
+      checkOut: stayOut || checkOut.value,
+      existingBookings: memberBookings,
+      excludeBookingId: editingBookingId,
+      isNewBooking: !editingBookingId,
+    });
+  }
   if (!membershipRightsAvailable()) {
-    return { ok: true, classCode: null, rights: null, violations: [] };
+    return { ok: true, classCode: null, rights: null, violations: [], condoStatus: null };
   }
   return window.MembershipRights.validateBooking({
     memberId: bookingMemberIdForRights(),
@@ -362,8 +377,10 @@ function updateMembershipRightsNotice() {
   if (!membershipRightsNotice) return;
   if (!checkIn.value || !checkOut.value || checkOut.value <= checkIn.value || !typeSelect.value) {
     membershipRightsNotice.hidden = true;
+    membershipRightsNotice.innerHTML = "";
     membershipRightsNotice.textContent = "";
     membershipRightsNotice.classList.remove("stay-length-notice--limit");
+    membershipRightsNotice.classList.remove("booking-limits-notice");
     return;
   }
   const gate = evaluateMembershipRights({
@@ -371,7 +388,22 @@ function updateMembershipRightsNotice() {
     checkIn: checkIn.value,
     checkOut: checkOut.value,
   });
-  if (gate.ok) {
+
+  // Member book: show condo Regular Time status + limit violations (no override).
+  // Exclude max_nights / max_open from this box — those use dedicated notices.
+  const memberViolations = (gate.violations || []).filter(
+    (v) => v.rule !== "max_nights" && v.rule !== "max_open_reservations"
+  );
+  const filtered = { ...gate, violations: memberViolations, ok: memberViolations.length === 0 };
+
+  if (bookingLimitsAvailable()) {
+    window.BookingLimits.renderLimitNotice(membershipRightsNotice, filtered, {
+      adminMode: false,
+    });
+    return;
+  }
+
+  if (filtered.ok) {
     membershipRightsNotice.hidden = true;
     membershipRightsNotice.textContent = "";
     membershipRightsNotice.classList.remove("stay-length-notice--limit");
@@ -379,7 +411,7 @@ function updateMembershipRightsNotice() {
   }
   membershipRightsNotice.hidden = false;
   membershipRightsNotice.classList.add("stay-length-notice--limit");
-  membershipRightsNotice.textContent = window.MembershipRights.formatViolations(gate.violations);
+  membershipRightsNotice.textContent = window.MembershipRights.formatViolations(filtered.violations);
 }
 
 function updateMemberClassRulesPanel() {
@@ -1024,29 +1056,16 @@ form.addEventListener("submit", async (e) => {
     checkIn: data.checkIn,
     checkOut: data.checkOut,
   });
-  if (!membershipGate.ok) {
-    const limitText = window.MembershipRights.formatViolations(membershipGate.violations);
-    const asAdmin = typeof Auth !== "undefined" && Auth.isAdmin && Auth.isAdmin(user);
-    if (asAdmin) {
-      const override = pendingMembershipOverride
-        ? true
-        : await window.MembershipRights.showOverrideDialog(
-            `${limitText} As an admin you may override this class limit, or start over.`
-          );
-      pendingMembershipOverride = false;
-      if (!override) {
-        startAnotherBooking();
-        message.textContent = "Booking cancelled — class limit not overridden.";
-        message.className = "form-message";
-        return;
-      }
-    } else {
-      message.textContent = limitText;
-      message.className = "form-message error";
-      updateMembershipRightsNotice();
-      membershipRightsNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      return;
-    }
+  const hardViolations = (membershipGate.violations || []).filter(
+    (v) => v.rule !== "max_nights" && v.rule !== "max_open_reservations"
+  );
+  if (hardViolations.length) {
+    const limitText = hardViolations.map((v) => v.message).filter(Boolean).join(" ");
+    message.textContent = limitText;
+    message.className = "form-message error";
+    updateMembershipRightsNotice();
+    membershipRightsNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return;
   }
 
   const typeLabels = {

@@ -346,6 +346,7 @@ const Auth = {
     checkIn,
     checkOut,
     notes,
+    ruleOverrides = null,
   }) {
     if (!this.hasAdminTask("reservations_manage")) {
       throw new Error("You are not assigned the Reservations manage task.");
@@ -359,6 +360,7 @@ const Auth = {
     const dbType = toDbReservationType(reservationType);
     if (!dbType) throw new Error("Choose Condo, Family reunion, or RV.");
     const now = new Date().toISOString();
+    const overrides = Array.isArray(ruleOverrides) ? ruleOverrides : [];
     const { data, error } = await getClient()
       .from("bookings")
       .insert({
@@ -374,6 +376,7 @@ const Auth = {
         confirmed_at: now,
         booked_by_kind: "admin",
         booked_by_user_id: admin.id,
+        rule_overrides: overrides,
       })
       .select()
       .maybeSingle();
@@ -436,7 +439,7 @@ const Auth = {
     const { data, error } = await getClient()
       .from("bookings")
       .select(
-        "id,user_id,reservation_type,spot,check_in,check_out,original_check_in,original_check_out,status,notes,created_at,edited_at,last_edit_summary,confirmed_at,booked_by_kind,booked_by_user_id,office_checked_in_at,office_checked_in_by,office_check_in_notes"
+        "id,user_id,reservation_type,spot,check_in,check_out,original_check_in,original_check_out,status,notes,created_at,edited_at,last_edit_summary,confirmed_at,booked_by_kind,booked_by_user_id,office_checked_in_at,office_checked_in_by,office_check_in_notes,rule_overrides"
       )
       .order("check_in", { ascending: false });
     throwIfError(error);
@@ -645,7 +648,7 @@ const Auth = {
    */
   async updateBookingAsAdmin(
     bookingId,
-    { reservationType, spot, checkIn, checkOut, notes } = {}
+    { reservationType, spot, checkIn, checkOut, notes, ruleOverrides = null } = {}
   ) {
     if (!this.hasAdminTask("reservations_manage")) {
       throw new Error("You are not assigned the Reservations manage task.");
@@ -657,7 +660,7 @@ const Auth = {
     const { data: existing, error: existingError } = await getClient()
       .from("bookings")
       .select(
-        "id,user_id,reservation_type,spot,check_in,check_out,status,notes,original_check_in,original_check_out"
+        "id,user_id,reservation_type,spot,check_in,check_out,status,notes,original_check_in,original_check_out,rule_overrides"
       )
       .eq("id", bookingId)
       .maybeSingle();
@@ -688,6 +691,12 @@ const Auth = {
       summaryParts.push(`spot to ${nextSpot || "(none)"}`);
     }
 
+    const priorOverrides = Array.isArray(existing.rule_overrides) ? existing.rule_overrides : [];
+    const appended =
+      Array.isArray(ruleOverrides) && ruleOverrides.length
+        ? [...priorOverrides, ...ruleOverrides]
+        : priorOverrides;
+
     const { data, error } = await getClient()
       .from("bookings")
       .update({
@@ -696,6 +705,7 @@ const Auth = {
         check_in: checkIn,
         check_out: checkOut,
         notes: nextNotes,
+        rule_overrides: appended,
         edited_at: new Date().toISOString(),
         last_edit_summary: summaryParts.length
           ? `Admin edit: ${summaryParts.join("; ")}`
