@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resort Calendar | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site54">
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a id="resort-cal-back" href="visitors.html">← Visitors</a></p>
+      <h1>Resort Calendar</h1>
+      <p>
+        Events planned by East Canyon Resort — member gatherings, activities, and other ECR-hosted dates.
+        Wedding availability is on the
+        <a href="wedding-calendar.html">Booking calendar</a>.
+      </p>
+      <div class="resort-cal-toolbar">
+        <button type="button" class="btn-link" id="resort-calendar-prev">Previous month</button>
+        <p class="resort-cal-month-label" id="resort-calendar-month"></p>
+        <button type="button" class="btn-link" id="resort-calendar-next">Next month</button>
+      </div>
+      <p id="resort-calendar-status" class="form-message" role="status" aria-live="polite">Loading calendar…</p>
+      <div id="resort-calendar-root"></div>
+      <p id="resort-calendar-pick-note" class="resort-cal-pick-note" hidden></p>
+      <h2 id="resort-calendar-day-heading">Event details</h2>
+      <div id="resort-calendar-list"></div>
+
+      <h2>2026 Events</h2>
+      <p>Special events planned by East Canyon Resort for 2026. Details are subject to change.</p>
+      <figure class="resort-cal-flyer">
+        <img src="pix/events/2026-events.jpg" alt="East Canyon Resort 2026 events flyer">
+      </figure>
+      <p>
+        <a href="files/events/2026-activities.pdf" target="_blank" rel="noopener noreferrer">Download 2026 events PDF</a>
+      </p>
+    </div>
+  </main>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb4"></script>
+  <script src="js/resort-calendar.js?v=4"></script>
+  <script src="js/resort-calendar-page.js?v=4"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+</body>
+</html>

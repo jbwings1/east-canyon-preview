@@ -4782,3 +4782,375 @@ body.admin-confirm-open {
   opacity: 0.4;
   pointer-events: none;
 }
+
+.wedding-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.wedding-cal-year-label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.wedding-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  font-size: 0.92rem;
+}
+
+.wedding-cal-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wedding-cal-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.wedding-cal-swatch.is-available,
+.wedding-cal-day.is-available {
+  background: transparent;
+}
+
+.wedding-cal-swatch.is-available {
+  border: 1px solid rgba(28, 26, 23, 0.22);
+}
+
+.wedding-cal-swatch.is-booked,
+.wedding-cal-day.is-booked {
+  background: #1c3a32;
+  color: #f6f1e8;
+}
+
+.wedding-cal-swatch.is-hold,
+.wedding-cal-day.is-hold {
+  background: #c4a574;
+  color: #1c1916;
+}
+
+.wedding-cal-swatch.is-closed,
+.wedding-cal-day.is-closed {
+  background: rgba(28, 25, 22, 0.14);
+  color: #5c564e;
+}
+
+.wedding-cal-year {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.35rem 1.5rem;
+  margin: 0 0 1.5rem;
+}
+
+.wedding-cal-month h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.wedding-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.wedding-cal-dow {
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5c564e;
+  padding: 0.15rem 0;
+}
+
+.wedding-cal-pad {
+  min-height: 1.7rem;
+}
+
+.wedding-cal-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.7rem;
+  border: none;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  color: #1c1916;
+  background: transparent;
+  padding: 0;
+}
+
+button.wedding-cal-day {
+  cursor: pointer;
+}
+
+button.wedding-cal-day:hover {
+  background: rgba(28, 58, 50, 0.08);
+}
+
+button.wedding-cal-day.is-booked:hover,
+button.wedding-cal-day.is-hold:hover,
+button.wedding-cal-day.is-closed:hover {
+  filter: brightness(0.96);
+}
+
+.wedding-cal-day.is-selected {
+  outline: 2px solid #1c3a32;
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .wedding-cal-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.resort-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.resort-cal-month-label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.resort-cal-frame {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 0 0 1.5rem;
+  background: #fff;
+}
+
+.resort-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin: 0;
+}
+
+.resort-cal-dow {
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5c564e;
+  background: #f6f1e8;
+  padding: 0.5rem 0.2rem;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.resort-cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  min-height: 6rem;
+  overflow: hidden;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  font: inherit;
+  color: #1c1916;
+  background: #fff;
+  padding: 0.35rem 0.4rem 0.45rem;
+  text-align: left;
+}
+
+.resort-cal-grid > *:nth-child(7n) {
+  border-right: none;
+}
+
+.resort-cal-numrow {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.resort-cal-num {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resort-cal-today-mark {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1c3a32;
+  line-height: 1.1;
+}
+
+.resort-cal-titles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.resort-cal-titles li {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1c3a32;
+  margin: 0 0 0.15rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+button.resort-cal-day {
+  cursor: pointer;
+}
+
+button.resort-cal-day:hover {
+  background: rgba(28, 58, 50, 0.06);
+}
+
+.resort-cal-day.has-event {
+  background: #f6f1e8;
+}
+
+.resort-cal-day.is-outside {
+  color: #9a9288;
+  background: #fbf8f2;
+}
+
+.resort-cal-day.is-outside .resort-cal-titles li {
+  color: #6d675f;
+}
+
+.resort-cal-day.is-today .resort-cal-num {
+  background: #1c3a32;
+  color: #f6f1e8;
+  border-radius: 999px;
+}
+
+.resort-cal-day.is-selected {
+  background: rgba(28, 58, 50, 0.12);
+  box-shadow: inset 0 0 0 2px #1c3a32;
+}
+
+.resort-cal-pick-note {
+  margin: -0.75rem 0 1rem;
+  color: #5c564e;
+  font-size: 0.95rem;
+}
+
+.resort-cal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resort-cal-list li {
+  margin: 0 0 1.25rem;
+  padding: 0 0 1.15rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.resort-cal-list li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.resort-cal-list h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.resort-cal-meta {
+  margin: 0 0 0.35rem;
+  color: #5c564e;
+  font-size: 0.95rem;
+}
+
+.resort-cal-empty {
+  margin: 0;
+}
+
+.admin-resort-event {
+  margin: 0 0 1rem;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-resort-event:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.admin-resort-event h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.15rem;
+}
+
+.resort-cal-flyer {
+  margin: 0 0 1rem;
+}
+
+.resort-cal-flyer img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .resort-cal-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .resort-cal-day {
+    min-height: 7.5rem;
+    padding: 0.3rem 0.2rem 0.4rem;
+  }
+
+  .resort-cal-titles {
+    display: none;
+  }
+
+  .resort-cal-day.has-event .resort-cal-num {
+    font-weight: 700;
+  }
+}

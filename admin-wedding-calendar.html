@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Booking calendar | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site47">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Loading current alerts…
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Booking calendar</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          Mark dates booked, on hold, or closed. Changes show on the public
+          <a href="wedding-calendar.html">booking calendar</a>.
+        </p>
+
+        <section class="admin-card">
+          <h2>Public page text</h2>
+          <p class="admin-help">Heading and note appear above the calendar visitors see. Display year is the year that page opens on.</p>
+          <form id="admin-cal-settings-form" class="auth-form admin-form">
+            <div class="form-group">
+              <label for="admin-cal-heading">Heading</label>
+              <input type="text" id="admin-cal-heading" maxlength="80" required>
+            </div>
+            <div class="form-group">
+              <label for="admin-cal-public-note">Note</label>
+              <textarea id="admin-cal-public-note" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="admin-cal-display-year">Default year</label>
+              <input type="number" id="admin-cal-display-year" min="2020" max="2100" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save page text</button>
+          </form>
+          <p id="admin-cal-settings-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Mark one date</h2>
+          <p class="admin-help">Click a day, choose a status, and save. Available removes the mark so the day looks open.</p>
+          <p id="admin-cal-selected-label">Click a date on the calendar.</p>
+          <form id="admin-cal-day-form" class="auth-form admin-form">
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="admin-cal-status">Status</label>
+                <select id="admin-cal-status">
+                  <option value="available">Available</option>
+                  <option value="booked">Booked</option>
+                  <option value="hold">Hold</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="admin-cal-note">Note (optional)</label>
+                <input type="text" id="admin-cal-note" maxlength="160" placeholder="e.g. Lodge ceremony">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save date</button>
+          </form>
+          <p id="admin-cal-day-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Mark a date range</h2>
+          <form id="admin-cal-range-form" class="auth-form admin-form">
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="admin-cal-range-start">Start</label>
+                <input type="date" id="admin-cal-range-start" required>
+              </div>
+              <div class="form-group">
+                <label for="admin-cal-range-end">End</label>
+                <input type="date" id="admin-cal-range-end" required>
+              </div>
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="admin-cal-range-status">Status</label>
+                <select id="admin-cal-range-status">
+                  <option value="booked">Booked</option>
+                  <option value="hold">Hold</option>
+                  <option value="closed">Closed</option>
+                  <option value="available">Available (clear)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="admin-cal-range-note">Note (optional)</label>
+                <input type="text" id="admin-cal-range-note" maxlength="160">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Apply to range</button>
+          </form>
+          <p id="admin-cal-range-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Calendar</h2>
+          <div class="wedding-cal-toolbar">
+            <button type="button" class="btn-link" id="admin-cal-prev">Previous year</button>
+            <p class="wedding-cal-year-label" id="admin-cal-year"></p>
+            <button type="button" class="btn-link" id="admin-cal-next">Next year</button>
+          </div>
+          <ul class="wedding-cal-legend">
+            <li><span class="wedding-cal-swatch is-available"></span> Available</li>
+            <li><span class="wedding-cal-swatch is-booked"></span> Booked</li>
+            <li><span class="wedding-cal-swatch is-hold"></span> Hold</li>
+            <li><span class="wedding-cal-swatch is-closed"></span> Closed</li>
+          </ul>
+          <p id="admin-cal-status" class="form-message" role="status" aria-live="polite">Loading…</p>
+          <div id="admin-cal-root"></div>
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb4"></script>
+  <script src="js/auth.js?v=sb27"></script>
+  <script src="js/site-header-auth.js?v=2"></script>
+  <script src="js/admin-common.js?v=sb11"></script>
+  <script src="js/wedding-calendar.js?v=1"></script>
+  <script src="js/admin-wedding-calendar.js?v=1"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

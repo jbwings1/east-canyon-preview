@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking calendar | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site47">
+</head>
+<body class="page-visitor">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="weddings.html">← Weddings</a></p>
+      <h1 id="wedding-calendar-heading">Booking calendar</h1>
+      <p id="wedding-calendar-note">
+        Dates marked booked or on hold are not available. Unmarked dates may still need confirmation — contact Special Events.
+      </p>
+      <div class="wedding-cal-toolbar">
+        <button type="button" class="btn-link" id="wedding-calendar-prev">Previous year</button>
+        <p class="wedding-cal-year-label" id="wedding-calendar-year"></p>
+        <button type="button" class="btn-link" id="wedding-calendar-next">Next year</button>
+      </div>
+      <ul class="wedding-cal-legend">
+        <li><span class="wedding-cal-swatch is-available"></span> Available</li>
+        <li><span class="wedding-cal-swatch is-booked"></span> Booked</li>
+        <li><span class="wedding-cal-swatch is-hold"></span> Hold</li>
+        <li><span class="wedding-cal-swatch is-closed"></span> Closed</li>
+      </ul>
+      <p id="wedding-calendar-status" class="form-message" role="status" aria-live="polite">Loading calendar…</p>
+      <div id="wedding-calendar-root"></div>
+      <p>
+        To book a date or schedule a tour, contact Special Events at
+        <a href="tel:+18013599030">(801) 359-9030</a>, option 2, or
+        <a href="mailto:specialevents@eastcanyon.com">specialevents@eastcanyon.com</a>.
+        See also <a href="weddings.html">Weddings</a> and <a href="contact.html">Contact Information</a>.
+      </p>
+    </div>
+  </main>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb4"></script>
+  <script src="js/wedding-calendar.js?v=1"></script>
+  <script src="js/wedding-calendar-page.js?v=1"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+</body>
+</html>
