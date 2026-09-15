@@ -3440,6 +3440,7 @@ a:hover {
 .page-home .header-contact a:visited,
 .page-home .header-contact a:hover,
 .page-home .header-contact a:active {
+  display: block;
   color: #f7f2ea;
   font-weight: 600;
   text-decoration: none;
@@ -4205,47 +4206,96 @@ img.logo {
     grid-template-columns: 1fr;
   }
 
+  /* Keep header in document flow on phones so it never covers hero text */
+  .page-home .site-header {
+    position: relative;
+    background: #14110e;
+  }
+
   .page-home .header-inner {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-items: center;
     text-align: center;
-    gap: 0.65rem;
-    padding: 0.85rem 0 0.4rem;
+    gap: 0.45rem;
+    padding: 0.65rem 0 0.7rem;
   }
 
   .page-home .logo,
   .page-home .header-links,
   .page-home .header-contact {
-    grid-column: 1;
+    grid-column: unset;
     justify-self: center;
     margin-left: 0;
     margin-right: 0;
   }
 
+  .page-home .logo {
+    order: 1;
+  }
+
   .page-home .header-links {
+    order: 2;
+    flex-direction: column;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
-    width: auto;
+    width: 100%;
+    gap: 0.2rem;
   }
 
   .page-home .header-links-row {
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.2rem 1.1rem;
+  }
+
+  .page-home .header-links a,
+  .page-home .header-links a:link,
+  .page-home .header-links a:visited,
+  .page-home .header-links a:hover,
+  .page-home .header-links a:active {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0;
   }
 
   .page-home .header-contact {
+    order: 3;
     text-align: center;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+  }
+
+  .page-home .header-weather,
+  .page-home .header-weather:link,
+  .page-home .header-weather:visited {
+    margin-bottom: 0.15rem;
   }
 
   .page-home .logo img {
-    height: 84px;
+    height: 64px;
   }
 
   .home-hero {
-    min-height: min(78vh, 640px);
+    min-height: min(62vh, 520px);
   }
 
   .home-hero-content {
-    padding: 5.5rem 0 2.75rem;
+    padding: 1.75rem 0 2.5rem;
+  }
+
+  .home-hero-eyebrow {
+    margin-bottom: 0.95rem;
+    letter-spacing: 0.1em;
+    line-height: 1.45;
+  }
+
+  .home-hero-title {
+    margin-bottom: 0.85rem;
+    line-height: 1.05;
   }
 
   .home-hero-actions {
