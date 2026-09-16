@@ -4,6 +4,7 @@
  */
 const SESSION_KEY = "eastCanyonSupabaseSession";
 const PROFILE_CACHE_KEY = "eastCanyonProfileCache";
+const SESSION_ROLE_KEY = "eastCanyonSessionRole";
 const PENDING_PROFILE_KEY = "eastCanyonPendingProfile";
 const LAST_BOOKING_KEY = "ecr-last-booking-confirmation";
 
@@ -102,11 +103,50 @@ function reservationTypeLabel(value) {
   return RESERVATION_TYPE_LABELS[value] || "";
 }
 
+function profileHasMembership(profile) {
+  return Boolean(String(profile?.member_id || "").trim());
+}
+
+function profileHasStaffAccess(profile) {
+  return profile?.is_admin === true || Boolean(String(profile?.staff_code || "").trim());
+}
+
+function readCachedSessionRole() {
+  const cached = readJson(SESSION_ROLE_KEY);
+  if (cached === "member" || cached === "admin") return cached;
+  const fromProfile = readJson(PROFILE_CACHE_KEY)?._session_role;
+  if (fromProfile === "member" || fromProfile === "admin") return fromProfile;
+  return null;
+}
+
+function inferSessionRole(profile, recorded = readCachedSessionRole()) {
+  if (recorded === "member" || recorded === "admin") return recorded;
+  const hasStaff = profileHasStaffAccess(profile);
+  const hasMember = profileHasMembership(profile);
+  if (hasStaff && !hasMember) return "admin";
+  if (hasMember && !hasStaff) return "member";
+  return null;
+}
+
+function writeSessionRole(role) {
+  const next = role === "member" || role === "admin" ? role : null;
+  writeJson(SESSION_ROLE_KEY, next);
+  const cached = readJson(PROFILE_CACHE_KEY);
+  if (cached && typeof cached === "object") {
+    cached._session_role = next;
+    writeJson(PROFILE_CACHE_KEY, cached);
+  }
+}
+
 function mapProfile(session, profile) {
   const authUser = session?.user || {};
   const email = profile?.email || authUser.email || "";
   const reservationType = toUiReservationType(profile?.reservation_type);
   const adminTasks = Array.isArray(profile?.admin_tasks) ? profile.admin_tasks : [];
+  const hasMembership = profileHasMembership(profile);
+  const hasStaffAccess = profileHasStaffAccess(profile);
+  const sessionRole = inferSessionRole(profile, profile?._session_role || readCachedSessionRole());
+  const accountStatus = profile?.account_status || "active";
   return {
     id: authUser.id || profile?.id || "",
     email,
@@ -122,9 +162,12 @@ function mapProfile(session, profile) {
     accountType: reservationType || profile?.reservation_type || "",
     reservationType,
     profileComplete: profile?.profile_complete === true,
-    isAdmin: profile?.is_admin === true && profile?.account_kind === "admin",
-    accountKind: profile?.account_kind || "member",
-    accountStatus: profile?.account_status || "active",
+    hasMembership,
+    hasStaffAccess,
+    sessionRole,
+    isAdmin: sessionRole === "admin" && hasStaffAccess && accountStatus === "active",
+    accountKind: profile?.account_kind || (hasStaffAccess && hasMembership ? "both" : hasStaffAccess ? "admin" : "member"),
+    accountStatus,
     memberId: profile?.member_id || "",
     username: profile?.username || "",
     mustChangePassword: profile?.must_change_password === true,
@@ -195,7 +238,7 @@ function formatClientError(error) {
     return "Confirm your email before signing in. Check your inbox for the East Canyon link.";
   }
   if (code === "invalid_credentials" || /invalid login/i.test(msg)) {
-    return "Invalid username/email or password.";
+    return "Invalid sign-in or password.";
   }
   if (code === "user_already_exists" || /already registered/i.test(msg)) {
     return "An account with this email already exists. Sign in instead.";
@@ -240,17 +283,19 @@ const Auth = {
 
   canAccessMembers(user = this.getCurrentUser()) {
     if (!user) return false;
-    if (user.accountKind === "admin") return false;
+    if (user.sessionRole === "admin") return false;
     if (user.accountStatus === "suspended" || user.accountStatus === "closed") return false;
-    return true;
+    return Boolean(user.hasMembership && user.sessionRole === "member");
   },
 
   isMemberAccount(user = this.getCurrentUser()) {
-    return Boolean(user && user.accountKind === "member");
+    return Boolean(user?.hasMembership);
   },
 
   isAdmin(user = this.getCurrentUser()) {
-    return Boolean(user?.isAdmin && user?.accountKind === "admin" && user?.accountStatus === "active");
+    return Boolean(
+      user?.isAdmin && user?.sessionRole === "admin" && user?.accountStatus === "active"
+    );
   },
 
   hasAdminTask(task, user = this.getCurrentUser()) {
@@ -290,17 +335,93 @@ const Auth = {
       )
       .order("full_name", { ascending: true, nullsFirst: false });
     throwIfError(error);
-    return data || [];
+    return (data || []).map((row) => ({
+      ...row,
+      id: row.id || row.user_id || "",
+    }));
   },
 
   async listMemberProfiles() {
     const rows = await this.listAllProfiles();
-    return rows.filter((p) => p.account_kind === "member");
+    return rows.filter((p) => profileHasMembership(p));
   },
 
   async listStaffProfiles() {
     const rows = await this.listAllProfiles();
-    return rows.filter((p) => p.account_kind === "admin");
+    return rows.filter((p) => profileHasStaffAccess(p));
+  },
+
+  async attachStaffAccess({
+    userId,
+    staffCode,
+    adminLevel,
+    adminSeat,
+    adminTasks,
+  }) {
+    if (!this.hasAdminTask("account_roles")) {
+      throw new Error("You are not assigned the Account roles task.");
+    }
+    const { data, error } = await getClient().rpc("attach_staff_access", {
+      p_user_id: userId,
+      p_staff_code: staffCode,
+      p_admin_level: Number(adminLevel),
+      p_admin_seat: adminSeat,
+      p_admin_tasks: Array.isArray(adminTasks) ? adminTasks : [],
+    });
+    throwIfError(error);
+    return data || { ok: true };
+  },
+
+  async attachMembership({
+    userId,
+    memberId,
+    reservationType,
+    fullName,
+    phone,
+    address,
+    city,
+    state,
+    zip,
+  }) {
+    if (!this.hasAdminTask("account_roles")) {
+      throw new Error("You are not assigned the Account roles task.");
+    }
+    const { data, error } = await getClient().rpc("attach_membership", {
+      p_user_id: userId,
+      p_member_id: memberId,
+      p_reservation_type: reservationType,
+      p_full_name: fullName || "",
+      p_phone: phone || "",
+      p_address: address || "",
+      p_city: city || "",
+      p_state: state || "",
+      p_zip: zip || "",
+    });
+    throwIfError(error);
+    return data || { ok: true };
+  },
+
+  async setSessionRole(role) {
+    const { data, error } = await getClient().rpc("set_login_session_role", {
+      desired: role,
+    });
+    throwIfError(error);
+    const next = data === "admin" || data === "member" ? data : role;
+    writeSessionRole(next);
+    return this.getCurrentUser();
+  },
+
+  async refreshSessionRole() {
+    try {
+      const { data, error } = await getClient().rpc("current_session_role");
+      if (!error && (data === "member" || data === "admin")) {
+        writeSessionRole(data);
+        return data;
+      }
+    } catch {
+      /* keep cached role */
+    }
+    return readCachedSessionRole();
   },
 
   async provisionUser(payload) {
@@ -337,6 +458,14 @@ const Auth = {
 
   async deleteMember(userId) {
     return this.provisionUser({ kind: "delete_member", user_id: userId });
+  },
+
+  async updateStaff(payload) {
+    return this.provisionUser({ kind: "update_staff", ...payload });
+  },
+
+  async deleteStaff(userId) {
+    return this.provisionUser({ kind: "delete_staff", user_id: userId });
   },
 
   async createBookingForMember({
@@ -405,23 +534,43 @@ const Auth = {
 
   async resolveMemberLoginEmail(identifier) {
     const value = String(identifier || "").trim();
-    if (!value) throw new Error("Enter your username or email.");
+    if (!value) throw new Error("Enter your member ID, username, or email.");
     if (value.includes("@")) return value.toLowerCase();
     const { data, error } = await getClient().rpc("resolve_member_login", {
       identifier: value,
     });
     throwIfError(error);
     if (!data) {
-      throw new Error("No member account found for that username or email.");
+      throw new Error("No member account found for that member ID, username, or email.");
+    }
+    return String(data).trim().toLowerCase();
+  },
+
+  async resolveAdminLoginEmail(identifier) {
+    const value = String(identifier || "").trim();
+    if (!value) throw new Error("Enter your email or staff code.");
+    if (value.includes("@")) return value.toLowerCase();
+    const { data, error } = await getClient().rpc("resolve_admin_login", {
+      identifier: value,
+    });
+    throwIfError(error);
+    if (!data) {
+      throw new Error("No staff account found for that email or staff code.");
     }
     return String(data).trim().toLowerCase();
   },
 
   async activateMemberAccount({ email, memberId, temporaryPassword }) {
     const user = await this.signIn(email, temporaryPassword);
-    if (!user || user.accountKind !== "member") {
+    if (!user?.hasMembership) {
       await this.signOutQuiet();
       throw new Error("This is not a member account. Use Admin Sign In for staff.");
+    }
+    try {
+      await this.setSessionRole("member");
+    } catch (err) {
+      await this.signOutQuiet();
+      throw err;
     }
     if (String(user.memberId || "").trim() !== String(memberId || "").trim()) {
       await this.signOutQuiet();
@@ -730,6 +879,7 @@ const Auth = {
   clearSession() {
     writeJson(SESSION_KEY, null);
     writeJson(PROFILE_CACHE_KEY, null);
+    writeJson(SESSION_ROLE_KEY, null);
     try {
       sessionStorage.removeItem(officialStorageKey());
     } catch {
@@ -798,7 +948,7 @@ const Auth = {
       window.location.href = loginPage;
       return null;
     }
-    if (user.accountKind === "admin") {
+    if (this.isAdmin(user) && !this.canAccessMembers(user)) {
       window.location.href = adminPage;
       return null;
     }
@@ -835,7 +985,12 @@ const Auth = {
       .eq("id", session.user.id)
       .maybeSingle();
     throwIfError(error);
-    if (data) writeJson(PROFILE_CACHE_KEY, data);
+    if (data) {
+      const recorded = readCachedSessionRole();
+      if (recorded) data._session_role = recorded;
+      writeJson(PROFILE_CACHE_KEY, data);
+    }
+    await this.refreshSessionRole();
     await this._applyPendingProfile();
     return this.getCurrentUser();
   },
@@ -896,21 +1051,43 @@ const Auth = {
   async signInAsMember(loginId, password) {
     const email = await this.resolveMemberLoginEmail(loginId);
     const user = await this.signIn(email, password);
-    if (user?.accountKind === "admin") {
+    if (!user?.hasMembership) {
       await this.signOutQuiet();
       throw new Error("Use Admin Sign In for staff accounts. Member Sign In is for members only.");
     }
-    return user;
+    try {
+      await this.setSessionRole("member");
+    } catch (err) {
+      await this.signOutQuiet();
+      throw err;
+    }
+    const next = this.getCurrentUser();
+    if (!this.canAccessMembers(next)) {
+      await this.signOutQuiet();
+      throw new Error("Use Admin Sign In for staff accounts. Member Sign In is for members only.");
+    }
+    return next;
   },
 
-  async signInAsAdmin(email, password) {
+  async signInAsAdmin(identifier, password) {
+    const email = await this.resolveAdminLoginEmail(identifier);
     const user = await this.signIn(email, password);
-    const isAdmin = await this.verifyAdmin();
-    if (!isAdmin || user?.accountKind !== "admin") {
+    if (!user?.hasStaffAccess) {
       await this.signOutQuiet();
       throw new Error("This account does not have administrator access.");
     }
-    return user;
+    try {
+      await this.setSessionRole("admin");
+    } catch (err) {
+      await this.signOutQuiet();
+      throw err;
+    }
+    const isAdmin = await this.verifyAdmin();
+    if (!isAdmin) {
+      await this.signOutQuiet();
+      throw new Error("This account does not have administrator access.");
+    }
+    return this.getCurrentUser();
   },
 
   async signUp({ email, password, name, phone, reservationType, rv }) {
@@ -1044,13 +1221,9 @@ const Auth = {
       throw new Error("This reset link is invalid or has expired.");
     }
     const user = this.getCurrentUser();
-    if (user?.accountKind === "member" && options.username) {
+    if (user?.hasMembership && options.username) {
       await this.setMemberUsername(options.username);
-    } else if (
-      user?.accountKind === "member" &&
-      !user.username &&
-      options.requireUsername
-    ) {
+    } else if (user?.hasMembership && !user.username && options.requireUsername) {
       throw new Error("Choose a username.");
     }
     const { error } = await getClient().auth.updateUser({ password: newPassword });
@@ -1066,8 +1239,8 @@ const Auth = {
   async createBooking({ reservationType, spot, checkIn, checkOut, notes }) {
     const user = this.getCurrentUser();
     if (!user?.id) throw new Error("Sign in to complete a booking.");
-    if (user.accountKind === "admin") {
-      throw new Error("Admins cannot book while signed in as admin. Use a member account.");
+    if (this.isAdmin(user) || user.sessionRole === "admin") {
+      throw new Error("Admins cannot book while signed in as admin. Use Member Sign In.");
     }
     if (!this.canAccessMembers(user)) {
       throw new Error("Member access required to book.");

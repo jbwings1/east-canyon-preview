@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="View and manage your East Canyon Resort reservations.">
   <title>My Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site42">
+  <link rel="stylesheet" href="styles.css?v=site57">
 </head>
 <body class="page-visitor page-reservations">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -78,7 +78,7 @@
         <h2>Sites taken (next 90 days)</h2>
         <p class="reservation-form-intro">
           Pick from and to dates to see which sites are taken. Members see occupancy only — not who booked.
-          Click a colored site for booked dates in your range — details open over the map.
+          Click a colored site for booked dates in your range — details appear beside the map.
           <span id="hub-occupancy-admin-note" hidden> Admins also see member names and booking details.</span>
         </p>
         <div class="form-row form-row--4 occupancy-date-row">
@@ -119,7 +119,7 @@
           <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
         </div>
         <div id="occupancy-map-wrap" class="occupancy-map-wrap" hidden>
-          <div class="map-layout reservation-map-layout reservation-map-layout--solo">
+          <div class="map-layout reservation-map-layout">
             <div class="map-panel">
               <div class="reservation-map-toolbar">
                 <div class="map-zoom-controls" aria-label="Map zoom controls">
@@ -128,35 +128,30 @@
                   <button type="button" class="map-zoom-btn" id="occupancy-zoom-in" aria-label="Zoom in">+</button>
                 </div>
               </div>
-              <div class="reservation-map-stack">
-                <div class="reservation-map-viewport" id="occupancy-map-viewport">
-                  <div class="map-zoom-stage" id="occupancy-zoom-stage">
-                    <div class="campground-map-frame">
-                      <img
-                        src="pix/map.png"
-                        alt="East Canyon Resort site map"
-                        class="campground-map-photo"
-                        id="occupancy-map-photo"
-                      >
-                      <svg id="occupancy-campground-map" class="campground-map-overlay" role="img" aria-label="Site occupancy overlay">
-                        <g id="occupancy-spots-layer"></g>
-                      </svg>
-                    </div>
+              <div class="reservation-map-viewport" id="occupancy-map-viewport">
+                <div class="map-zoom-stage" id="occupancy-zoom-stage">
+                  <div class="campground-map-frame">
+                    <img
+                      src="pix/map.png"
+                      alt="East Canyon Resort site map"
+                      class="campground-map-photo"
+                      id="occupancy-map-photo"
+                    >
+                    <svg id="occupancy-campground-map" class="campground-map-overlay" role="img" aria-label="Site occupancy overlay">
+                      <g id="occupancy-spots-layer"></g>
+                    </svg>
                   </div>
-                </div>
-                <div class="map-site-overlay-shell" id="occupancy-detail-shell" hidden>
-                  <button type="button" class="map-site-overlay-backdrop" id="occupancy-detail-backdrop" aria-label="Close site details"></button>
-                  <aside
-                    class="map-unit-detail spot-detail map-site-overlay"
-                    id="occupancy-unit-detail"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Site details"
-                    aria-live="polite"
-                  ></aside>
                 </div>
               </div>
             </div>
+            <aside
+              class="map-unit-detail spot-detail reservation-map-detail"
+              id="occupancy-unit-detail"
+              aria-label="Site details"
+              aria-live="polite"
+            >
+              <p class="spot-detail-placeholder">Click a site on the map to see booked dates in your range.</p>
+            </aside>
           </div>
         </div>
       </section>
@@ -164,15 +159,15 @@
   </main>
 
   <script src="js/map-units-generated.js"></script>
-  <script src="js/spots-data.js?v=9"></script>
-  <script src="js/campground-map.js?v=8"></script>
+  <script src="js/spots-data.js?v=10"></script>
+  <script src="js/campground-map.js?v=11"></script>
   <script src="js/map-zoom.js"></script>
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb4"></script>
-  <script src="js/auth.js?v=sb27"></script>
+  <script src="js/auth.js?v=sb29"></script>
   <script src="js/site-header-auth.js?v=2"></script>
-  <script src="js/reservation-hub.js?v=21"></script>
+  <script src="js/reservation-hub.js?v=26"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

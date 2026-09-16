@@ -5,6 +5,22 @@ const signedInPanel = document.getElementById("signed-in-panel");
 const signedInMessage = document.getElementById("signed-in-message");
 const signedInContinue = document.getElementById("signed-in-continue");
 
+function safeAdminNext(raw) {
+  if (typeof window.AdminCommon?.safeAdminNext === "function") {
+    return window.AdminCommon.safeAdminNext(raw);
+  }
+  const next = String(
+    raw || new URLSearchParams(window.location.search).get("next") || ""
+  ).trim();
+  if (!next || next.startsWith("/") || next.includes("://") || next.startsWith("//")) {
+    return "admin.html";
+  }
+  const [path, query = ""] = next.split("?");
+  if (!/^admin(?:-[a-z0-9]+)*\.html$/i.test(path)) return "admin.html";
+  if (query && !/^[A-Za-z0-9._~=&%+,-]*$/.test(query)) return path;
+  return query ? `${path}?${query}` : path;
+}
+
 function showMessage(text, type) {
   if (!message) return;
   message.textContent = text;
@@ -23,7 +39,7 @@ function showSignedIn(user, isAdmin) {
   if (signedInContinue) {
     if (isAdmin) {
       signedInContinue.hidden = false;
-      signedInContinue.href = "admin.html";
+      signedInContinue.href = safeAdminNext();
       signedInContinue.textContent = "Continue to Admin";
     } else {
       signedInContinue.hidden = false;
@@ -31,7 +47,7 @@ function showSignedIn(user, isAdmin) {
       signedInContinue.textContent = "Go to Member Sign In";
     }
   }
-  if (typeof SiteHeaderAuth?.mount === "function") SiteHeaderAuth.mount();
+  if (typeof window.SiteHeaderAuth?.mount === "function") window.SiteHeaderAuth.mount();
 }
 
 function showSignInForm() {
@@ -63,15 +79,15 @@ async function ensureAdminSession() {
   }
 
   const user = Auth.getCurrentUser() || currentUser;
-  if (user.accountKind === "member") {
+  if (!user.hasStaffAccess) {
     showSignedIn(user, false);
-    showMessage("Member accounts use Member Sign In. Staff use Admin Sign In with an office email.", "error");
+    showMessage("Member accounts use Member Sign In. Staff use Admin Sign In with email or staff code.", "error");
     return;
   }
 
   const isAdmin = await Auth.verifyAdmin();
   if (isAdmin) {
-    window.location.replace("admin.html");
+    window.location.replace(safeAdminNext());
     return;
   }
 
@@ -97,7 +113,7 @@ if (form && typeof Auth !== "undefined") {
     try {
       await Auth.signInAsAdmin(email, password);
       showMessage("Signed in. Opening admin…", "success");
-      window.location.replace("admin.html");
+      window.location.replace(safeAdminNext());
     } catch (err) {
       showSignInForm();
       showMessage(err.message, "error");

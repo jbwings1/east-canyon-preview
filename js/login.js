@@ -48,7 +48,7 @@ function showSignInForm() {
 }
 
 function routeSignedInMember(user) {
-  if (user.accountKind === "admin") {
+  if (Auth.isAdmin(user) && !Auth.canAccessMembers(user)) {
     window.location.replace("admin.html");
     return;
   }
@@ -92,7 +92,7 @@ if (signinForm && typeof Auth !== "undefined") {
     const password = document.getElementById("signin-password").value;
 
     if (!loginId || !password) {
-      showMessage("Enter your username or email and password.", "error");
+      showMessage("Enter your member ID, username, or email and password.", "error");
       return;
     }
 

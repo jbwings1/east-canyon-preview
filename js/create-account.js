@@ -8,7 +8,7 @@ function showMessage(text, type) {
 
 if (typeof Auth !== "undefined" && Auth.getCurrentUser()) {
   const user = Auth.getCurrentUser();
-  if (user.accountKind === "admin") {
+  if (Auth.isAdmin(user) && !Auth.canAccessMembers(user)) {
     window.location.replace("admin.html");
   } else if (Auth.needsPasswordChange(user)) {
     window.location.replace("set-password.html");

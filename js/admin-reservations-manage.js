@@ -97,7 +97,7 @@
     const current = bookingMember.value;
     bookingMember.innerHTML = `<option value="">Select member…</option>`;
     profiles
-      .filter((m) => m.account_kind === "member" && m.account_status !== "closed")
+      .filter((m) => AdminCommon.profileHasMembership(m) && m.account_status !== "closed")
       .forEach((m) => {
         const option = document.createElement("option");
         option.value = m.id;

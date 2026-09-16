@@ -28,10 +28,10 @@ window.CampgroundMap = {
   _imageReady: false,
   _requireDatesForSpots: false,
   _lookupOnly: false,
+  _ownBookings: [],
   _hoveredId: null,
   _hoveredStatus: null,
-  _overlayShell: null,
-  _overlayBound: false,
+  _detailChromeBound: false,
 
   init({
     layerId,
@@ -53,7 +53,6 @@ window.CampgroundMap = {
     this._svg = document.getElementById(svgId || "campground-map");
     this._photo = document.getElementById(photoId || "campground-map-photo");
     this._detailPanel = detailId ? document.getElementById(detailId) : null;
-    this._overlayShell = this._detailPanel?.closest(".map-site-overlay-shell") || null;
     this._legendRoot = legendId
       ? document.getElementById(legendId)
       : this._svg?.closest(".map-panel")?.querySelector(".map-legend") || null;
@@ -77,95 +76,78 @@ window.CampgroundMap = {
     this._setupMapImage();
     this._setupEditMode();
     this._setupMapClickFallback();
-    this._bindOverlayChrome();
+    this._bindDetailChrome();
     this.clearSelection();
   },
 
-  _usesDetailOverlay() {
-    return Boolean(
-      this._detailPanel?.classList.contains("map-site-overlay") ||
-        this._detailPanel?.closest(".map-site-overlay-shell") ||
-        this._overlayShell
-    );
+  _usesReservationDetailPanel() {
+    return Boolean(this._detailPanel?.classList.contains("reservation-map-detail"));
   },
 
-  _bindOverlayChrome() {
-    if (this._overlayBound || !this._usesDetailOverlay()) return;
-    this._overlayBound = true;
-    this._overlayShell =
-      this._overlayShell || this._detailPanel?.closest(".map-site-overlay-shell") || null;
+  _bindDetailChrome() {
+    if (this._detailChromeBound || !this._detailPanel) return;
+    this._detailChromeBound = true;
 
-    const onKey = (e) => {
+    document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
-      if (!this._isDetailOverlayOpen()) return;
+      if (!this._selectedId && !this._focusedId) return;
       e.preventDefault();
-      this.closeDetailOverlay({ clearSelection: this._lookupOnly });
-    };
-    document.addEventListener("keydown", onKey);
-
-    const backdrop = this._overlayShell?.querySelector(".map-site-overlay-backdrop");
-    backdrop?.addEventListener("click", () => {
-      this.closeDetailOverlay({ clearSelection: this._lookupOnly });
+      this.clearSelection();
     });
 
-    this._detailPanel?.addEventListener("click", (e) => {
+    this._detailPanel.addEventListener("click", (e) => {
       if (e.target.closest("[data-map-detail-close]")) {
         e.preventDefault();
-        this.closeDetailOverlay({ clearSelection: this._lookupOnly });
+        this.clearSelection();
       }
     });
-  },
-
-  _detailOverlayShell() {
-    return (
-      this._overlayShell ||
-      this._detailPanel?.closest(".map-site-overlay-shell") ||
-      null
-    );
-  },
-
-  _isDetailOverlayOpen() {
-    const shell = this._detailOverlayShell();
-    if (shell) return !shell.hidden;
-    return Boolean(this._detailPanel && !this._detailPanel.hidden);
   },
 
   openDetailOverlay() {
     if (!this._detailPanel) return;
-    const shell = this._detailOverlayShell();
-    if (shell) shell.hidden = false;
     this._detailPanel.hidden = false;
-    const closeBtn = this._detailPanel.querySelector("[data-map-detail-close]");
-    if (closeBtn && typeof closeBtn.focus === "function") {
-      try {
-        closeBtn.focus({ preventScroll: true });
-      } catch {
-        closeBtn.focus();
-      }
-    }
   },
 
   closeDetailOverlay({ clearSelection = false } = {}) {
-    const shell = this._detailOverlayShell();
-    if (shell) shell.hidden = true;
-    if (this._detailPanel) {
-      this._detailPanel.hidden = true;
-      this._detailPanel.innerHTML = "";
-    }
     if (clearSelection) {
-      this._selectedId = null;
-      this._focusedId = null;
-      document.querySelectorAll(".map-spot").forEach((el) => {
-        el.classList.remove("selected", "focused");
-      });
+      this.clearSelection();
+      return;
     }
+    this._showEmptyDetail();
   },
 
   _overlayCloseHtml() {
-    if (!this._usesDetailOverlay()) return "";
-    return `<div class="map-site-overlay-head">
-      <button type="button" class="map-site-overlay-close" data-map-detail-close>Close</button>
+    if (!this._usesReservationDetailPanel()) return "";
+    return `<div class="map-site-panel-head">
+      <button type="button" class="map-site-panel-close" data-map-detail-close>Clear</button>
     </div>`;
+  },
+
+  _emptyDetailMessage() {
+    const filterHint =
+      this._unitFilter === "condo"
+        ? "click any brown condo box to see if it is available."
+        : this._unitFilter === "reunion"
+          ? "click a family reunion site on the map to see if it is available."
+          : this._unitFilter === "rv"
+            ? "click any green RV site to see if it is available."
+            : "click any RV site, condo, or family reunion site on the map to see upcoming bookings.";
+
+    if (this._requireDatesForSpots) {
+      return this._lookupOnly
+        ? `Pick dates above, then ${filterHint} Green is available; red is booked.`
+        : `Pick dates above, then ${filterHint} Green is available; yellow is partially booked; red is fully booked.`;
+    }
+    if (this._unitFilter === "all") {
+      return "Click any RV site, condo, or family reunion site to see bookings for the next 90 days.";
+    }
+    return filterHint.charAt(0).toUpperCase() + filterHint.slice(1);
+  },
+
+  _showEmptyDetail() {
+    if (!this._detailPanel) return;
+    this._detailPanel.hidden = false;
+    this._detailPanel.innerHTML = `<p class="spot-detail-placeholder">${this._emptyDetailMessage()}</p>`;
   },
 
   _setupMapImage() {
@@ -724,6 +706,26 @@ window.CampgroundMap = {
     else if (this._focusedId) this.focusUnit(this._focusedId);
   },
 
+  /** Signed-in member stays — used only to label “This is your booking” on the detail panel. */
+  setOwnBookings(bookings = [], { render = true } = {}) {
+    this._ownBookings = Array.isArray(bookings) ? bookings : [];
+    if (!render) return;
+    const id = this._selectedId || this._focusedId;
+    if (!id) return;
+    const unit = window.SpotAvailability.findUnit(id);
+    if (!unit) return;
+    const status = this.getUnitStatus(unit);
+    if (this._lookupOnly && this._onSpotSelect) {
+      this._onSpotSelect(unit, status);
+      return;
+    }
+    this._renderDetail(unit, status);
+  },
+
+  _isOwnStay(row) {
+    return Boolean(window.SpotAvailability?.isOwnBookingRow?.(row, this._ownBookings));
+  },
+
   /**
    * Selected RV length in feet. Sites with sizeFeet below this render as tooShort (black).
    * Pass null/"" to clear. Condo/reunion maps should clear this.
@@ -1070,7 +1072,7 @@ window.CampgroundMap = {
       : window.SpotAvailability.applyExcludeOptions(
           window.SpotAvailability.getUpcomingBookingsForUnit(unit.id, 90),
           this._availabilityExclude
-        ).map((b) => ({ checkIn: b.checkIn, checkOut: b.checkOut }));
+        );
 
     let displayStatus = status;
     let statusLabel = window.STATUS_LABELS[status] || status;
@@ -1139,12 +1141,19 @@ window.CampgroundMap = {
         `<div><dt>Schedule window</dt><dd>${window.SpotAvailability.formatDateRange(today, windowEnd)}</dd></div>`
       );
     }
+    const ownFlags = bookings.map((b) => this._isOwnStay(b));
+    const allOwn = bookings.length > 0 && ownFlags.every(Boolean);
+
     if (bookings.length) {
       const datesHtml = bookings
-        .map(
-          (b) =>
-            `<li>${window.SpotAvailability.formatDateRange(b.checkIn, b.checkOut)}</li>`
-        )
+        .map((b, i) => {
+          const range = window.SpotAvailability.formatDateRange(b.checkIn, b.checkOut);
+          const ownBit =
+            ownFlags[i] && !allOwn
+              ? ` <span class="own-booking-note">This is your booking</span>`
+              : "";
+          return `<li>${range}${ownBit}</li>`;
+        })
         .join("");
       extraRows.push(
         `<div><dt>${hasDates ? "Booked dates" : "Booked (next 90 days)"}</dt><dd><ul class="booking-dates-list">${datesHtml}</ul></dd></div>`
@@ -1158,10 +1167,14 @@ window.CampgroundMap = {
     const noteHtml = this._lookupOnly
       ? ""
       : `<p class="detail-note">${statusNote}</p>`;
+    const ownBanner = allOwn
+      ? `<p class="detail-own-booking">This is your booking.</p>`
+      : "";
     this._detailPanel.innerHTML = `
       ${this._overlayCloseHtml()}
       <p class="map-detail-label">${this._unitKindLabel(unit)} ${unit.label}</p>
       <h3 class="map-detail-title">${typeLabel}</h3>
+      ${ownBanner}
       <dl class="detail-list">
         <div>
           <dt>Status</dt>
@@ -1182,31 +1195,6 @@ window.CampgroundMap = {
       el.classList.remove("selected", "focused");
     });
 
-    if (!this._detailPanel) return;
-
-    if (this._usesDetailOverlay()) {
-      this.closeDetailOverlay();
-      return;
-    }
-
-    const filterHint =
-      this._unitFilter === "condo"
-        ? "click any brown condo box to see if it is available."
-        : this._unitFilter === "reunion"
-          ? "click a family reunion site on the map to see if it is available."
-          : this._unitFilter === "rv"
-            ? "click any green RV site to see if it is available."
-            : "click any RV site, condo, or family reunion site on the map to see upcoming bookings.";
-
-    const msg = this._requireDatesForSpots
-      ? this._lookupOnly
-        ? `Pick dates above, then ${filterHint} Green is available; red is booked.`
-        : `Pick dates above, then ${filterHint} Green is available; yellow is partially booked; red is fully booked.`
-      : this._unitFilter === "all"
-        ? "Click any RV site, condo, or family reunion site to see bookings for the next 90 days."
-        : filterHint.charAt(0).toUpperCase() + filterHint.slice(1);
-
-    this._detailPanel.hidden = false;
-    this._detailPanel.innerHTML = `<p class="spot-detail-placeholder">${msg}</p>`;
+    this._showEmptyDetail();
   },
 };

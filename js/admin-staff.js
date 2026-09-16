@@ -4,10 +4,11 @@
 
   const staffBody = document.getElementById("admin-staff-body");
   const message = document.getElementById("admin-message");
+  let listedStaff = [];
 
   function renderStaff(staff) {
     if (!staff.length) {
-      staffBody.innerHTML = `<tr><td colspan="5">No staff yet.</td></tr>`;
+      staffBody.innerHTML = `<tr><td colspan="6">No staff yet.</td></tr>`;
       return;
     }
     staffBody.innerHTML = staff
@@ -15,10 +16,18 @@
         const levelSeat =
           p.admin_level != null ? `${p.admin_level}${p.admin_seat || ""}` : "—";
         const tasks = Array.isArray(p.admin_tasks) ? p.admin_tasks.join(", ") : "—";
-        return `<tr>
-          <td>${AdminCommon.escapeHtml(p.staff_code || "—")}</td>
-          <td>${AdminCommon.escapeHtml(p.full_name || "—")}</td>
-          <td>${AdminCommon.escapeHtml(p.email || "—")}</td>
+        const href = AdminCommon.profileEditHref("admin-staff-edit.html", p);
+        const safeHref = AdminCommon.escapeHtml(href);
+        const rowKey = AdminCommon.profileRowKey(p);
+        const code = p.staff_code || "—";
+        const memberId = p.member_id || "—";
+        const name = p.full_name || p.email || "Staff";
+        const email = p.email || "—";
+        return `<tr class="admin-row-link" data-profile-id="${AdminCommon.escapeHtml(rowKey)}" data-href="${safeHref}" tabindex="0">
+          <td><a href="${safeHref}">${AdminCommon.escapeHtml(code)}</a></td>
+          <td>${AdminCommon.escapeHtml(memberId)}</td>
+          <td><a href="${safeHref}">${AdminCommon.escapeHtml(name)}</a></td>
+          <td><a href="${safeHref}">${AdminCommon.escapeHtml(email)}</a></td>
           <td>${AdminCommon.escapeHtml(levelSeat)}</td>
           <td>${AdminCommon.escapeHtml(p.admin_level === 1 ? "All tasks" : tasks || "—")}</td>
         </tr>`;
@@ -26,10 +35,34 @@
       .join("");
   }
 
+  function showFlash() {
+    const params = new URLSearchParams(window.location.search);
+    const ok = params.get("ok");
+    const flashes = {
+      updated: "Staff record updated.",
+      membership: "Membership added to this staff account.",
+      removed: "Staff access removed. Membership and the same login stay.",
+      closed: "Staff account closed. They cannot sign in.",
+      deleted: "Staff account permanently deleted.",
+    };
+    if (ok && flashes[ok]) {
+      AdminCommon.showMessage(message, flashes[ok], "success");
+    }
+  }
+
   async function load() {
     const profiles = await Auth.listAllProfiles();
-    renderStaff(profiles.filter((p) => p.account_kind === "admin"));
+    listedStaff = profiles.filter((p) => AdminCommon.isStaffProfile(p));
+    renderStaff(listedStaff);
   }
+
+  AdminCommon.bindProfileListClicks(staffBody, {
+    kind: "staff",
+    getProfiles: () => listedStaff,
+  });
+
+  const taskList = document.getElementById("staff-task-list");
+  if (taskList) taskList.innerHTML = AdminCommon.taskCheckboxHtml("staff-task");
 
   document.getElementById("admin-create-staff-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -66,6 +99,7 @@
     }
   });
 
+  showFlash();
   try {
     await load();
   } catch (err) {

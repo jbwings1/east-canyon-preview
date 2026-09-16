@@ -1,200 +1,20 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const ALL_TASKS = [
-  "members",
-  "passwords",
-  "reservations_view",
-  "reservations_manage",
-  "website",
-  "staff",
-] as const;
-
-type Task = (typeof ALL_TASKS)[number];
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
-function json(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-function asTasks(value: unknown): Task[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((t): t is Task => ALL_TASKS.includes(t as Task));
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-const MEMBER_STATUSES = [
-  "pending_activation",
-  "active",
-  "suspended",
-  "closed",
-] as const;
-
-type MemberStatus = (typeof MEMBER_STATUSES)[number];
-
-function isMemberStatus(value: string): value is MemberStatus {
-  return (MEMBER_STATUSES as readonly string[]).includes(value);
-}
-
-function isBlockedStatus(status: string) {
-  return status === "closed" || status === "suspended";
-}
-
-function normalizeUsername(value: unknown): string | null {
-  const cleaned = String(value ?? "").trim().toLowerCase();
-  return cleaned || null;
-}
-
-function usernameError(username: string): string | null {
-  if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(username)) {
-    return "Username must be 3–30 characters and use only letters, numbers, underscore, or hyphen.";
-  }
-  return null;
-}
-
-async function applyAuthAccess(
-  adminClient: ReturnType<typeof createClient>,
-  userId: string,
-  blocked: boolean,
-) {
-  const { error } = await adminClient.auth.admin.updateUserById(userId, {
-    ban_duration: blocked ? "876000h" : "none",
-  });
-  if (error) {
-    console.error("Could not update Auth ban:", error.message);
-  }
-  if (blocked) {
-    try {
-      await adminClient.auth.admin.signOut(userId, "global");
-    } catch (err) {
-      console.error(
-        "Could not revoke sessions:",
-        err instanceof Error ? err.message : err,
-      );
-    }
-  }
-}
-
-async function sendMemberWelcomeEmail(opts: {
-  to: string;
-  fullName: string;
-  memberId: string;
-  temporaryPassword: string;
-}): Promise<{ sent: boolean; error?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return {
-      sent: false,
-      error:
-        "RESEND_API_KEY is not set in Supabase Edge Function secrets. Account was created; email was not sent.",
-    };
-  }
-
-  const from =
-    Deno.env.get("MEMBER_EMAIL_FROM") ||
-    "East Canyon Resort <onboarding@resend.dev>";
-  const appUrl = (Deno.env.get("MEMBER_APP_URL") || "").replace(/\/$/, "");
-  const activateUrl = appUrl
-    ? `${appUrl}/create-account.html`
-    : "create-account.html on the East Canyon website";
-  const loginUrl = appUrl ? `${appUrl}/login.html` : "the Members sign-in page";
-
-  const safeName = escapeHtml(opts.fullName || "Member");
-  const safeEmail = escapeHtml(opts.to);
-  const safeMemberId = escapeHtml(opts.memberId);
-  const safePassword = escapeHtml(opts.temporaryPassword);
-
-  const html = `
-    <p>Hello ${safeName},</p>
-    <p>East Canyon Resort has created your member website access.</p>
-    <p><strong>Sign-in information</strong></p>
-    <ul>
-      <li>Email: ${safeEmail}</li>
-      <li>Member ID: ${safeMemberId}</li>
-      <li>Temporary password: ${safePassword}</li>
-    </ul>
-    <p>
-      Activate your account here:
-      ${
-        appUrl
-          ? `<a href="${activateUrl}">${activateUrl}</a>`
-          : escapeHtml(activateUrl)
-      }
-    </p>
-    <p>
-      Enter your email, member ID, and temporary password, then choose a username and your own password.
-      After that, sign in with your username or email at ${
-        appUrl ? `<a href="${loginUrl}">${loginUrl}</a>` : escapeHtml(loginUrl)
-      }.
-    </p>
-    <p>If you did not expect this message, contact the resort office at (801) 359-9030.</p>
-    <p>East Canyon Resort</p>
-  `;
-
-  const text = [
-    `Hello ${opts.fullName || "Member"},`,
-    "",
-    "East Canyon Resort has created your member website access.",
-    "",
-    `Email: ${opts.to}`,
-    `Member ID: ${opts.memberId}`,
-    `Temporary password: ${opts.temporaryPassword}`,
-    "",
-    `Activate: ${activateUrl}`,
-    "Enter your email, member ID, and temporary password, then choose a username and your own password.",
-    `Then sign in with your username or email at: ${loginUrl}`,
-    "",
-    "If you did not expect this message, contact the resort office at (801) 359-9030.",
-    "East Canyon Resort",
-  ].join("\n");
-
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [opts.to],
-        subject: "Your East Canyon Resort member website access",
-        html,
-        text,
-      }),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      return {
-        sent: false,
-        error:
-          (data && (data.message || data.error)) ||
-          `Email provider returned ${response.status}`,
-      };
-    }
-    return { sent: true };
-  } catch (err) {
-    return {
-      sent: false,
-      error: err instanceof Error ? err.message : "Could not send email",
-    };
-  }
-}
+import {
+  ALL_TASKS,
+  type Task,
+  corsHeaders,
+  json,
+  asTasks,
+  isMemberStatus,
+  isBlockedStatus,
+  isStaffRow,
+  hasMemberId,
+  normalizeUsername,
+  usernameError,
+  applyAuthAccess,
+  sendMemberWelcomeEmail,
+} from "./shared.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -238,11 +58,12 @@ Deno.serve(async (req) => {
   if (profileError || !callerProfile) {
     return json(403, { error: "Admin profile not found" });
   }
-  if (
-    !callerProfile.is_admin ||
-    callerProfile.account_kind !== "admin" ||
-    callerProfile.account_status !== "active"
-  ) {
+  if (!callerProfile.is_admin || callerProfile.account_status !== "active") {
+    return json(403, { error: "Admin access required" });
+  }
+  const { data: sessionIsAdmin, error: sessionRoleError } = await callerClient
+    .rpc("is_admin");
+  if (sessionRoleError || sessionIsAdmin !== true) {
     return json(403, { error: "Admin access required" });
   }
 
@@ -265,11 +86,13 @@ Deno.serve(async (req) => {
     kind !== "admin" &&
     kind !== "reset_password" &&
     kind !== "update_member" &&
-    kind !== "delete_member"
+    kind !== "delete_member" &&
+    kind !== "update_staff" &&
+    kind !== "delete_staff"
   ) {
     return json(400, {
       error:
-        "kind must be member, admin, reset_password, update_member, or delete_member",
+        "kind must be member, admin, reset_password, update_member, delete_member, update_staff, or delete_staff",
     });
   }
 
@@ -281,7 +104,10 @@ Deno.serve(async (req) => {
   ) {
     return json(403, { error: "You are not assigned the Members task" });
   }
-  if (kind === "admin" && !can("staff")) {
+  if (
+    (kind === "admin" || kind === "update_staff" || kind === "delete_staff") &&
+    !can("staff")
+  ) {
     return json(403, { error: "You are not assigned the Staff task" });
   }
   if (kind === "reset_password" && !can("passwords")) {
@@ -302,13 +128,13 @@ Deno.serve(async (req) => {
 
     const { data: memberProfile, error: memberError } = await adminClient
       .from("profiles")
-      .select("id,email,account_kind,account_status")
+      .select("id,email,account_kind,account_status,member_id")
       .eq("id", userId)
       .maybeSingle();
     if (memberError || !memberProfile) {
       return json(404, { error: "Member not found" });
     }
-    if (memberProfile.account_kind !== "member") {
+    if (!hasMemberId(memberProfile)) {
       return json(400, { error: "Password reset here is for members only" });
     }
 
@@ -360,7 +186,7 @@ Deno.serve(async (req) => {
     if (memberError || !member) {
       return json(404, { error: "Member not found" });
     }
-    if (member.account_kind !== "member") {
+    if (!hasMemberId(member)) {
       return json(400, { error: "Only member accounts can be edited here" });
     }
 
@@ -483,14 +309,41 @@ Deno.serve(async (req) => {
 
     const { data: member, error: memberError } = await adminClient
       .from("profiles")
-      .select("id,email,full_name,member_id,account_kind,account_status")
+      .select(
+        "id,email,full_name,member_id,account_kind,account_status,is_admin,staff_code",
+      )
       .eq("id", userId)
       .maybeSingle();
     if (memberError || !member) {
       return json(404, { error: "Member not found" });
     }
-    if (member.account_kind !== "member") {
+    if (!hasMemberId(member)) {
       return json(400, { error: "Only member accounts can be removed here" });
+    }
+
+    if (isStaffRow(member)) {
+      const { error: stripError } = await adminClient
+        .from("profiles")
+        .update({
+          member_id: null,
+          username: null,
+          reservation_type: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+      if (stripError) {
+        return json(500, { error: stripError.message });
+      }
+      return json(200, {
+        ok: true,
+        kind: "delete_member",
+        action: "removed",
+        user_id: userId,
+        email: member.email,
+        member_id: member.member_id,
+        message:
+          "Membership removed. Staff access and the same Auth login stay. Reservation history stays visible to admins.",
+      });
     }
 
     const { count, error: countError } = await adminClient
@@ -567,6 +420,285 @@ Deno.serve(async (req) => {
     });
   }
 
+  if (kind === "update_staff") {
+    const userId = String(body.user_id || "").trim();
+    if (!userId) {
+      return json(400, { error: "Staff is required" });
+    }
+
+    const { data: staff, error: staffError } = await adminClient
+      .from("profiles")
+      .select(
+        "id,email,full_name,phone,staff_code,admin_level,admin_seat,admin_tasks,account_kind,account_status,is_admin,member_id",
+      )
+      .eq("id", userId)
+      .maybeSingle();
+    if (staffError || !staff) {
+      return json(404, { error: "Staff not found" });
+    }
+    if (!isStaffRow(staff)) {
+      return json(400, { error: "Only staff accounts can be edited here" });
+    }
+
+    const fullName = String(body.full_name ?? "").trim();
+    const phone = String(body.phone ?? "").trim();
+    const staffCode = String(body.staff_code ?? staff.staff_code ?? "").trim();
+    const adminSeat = String(body.admin_seat ?? staff.admin_seat ?? "")
+      .trim()
+      .toLowerCase();
+    const email = String(body.email ?? staff.email ?? "")
+      .trim()
+      .toLowerCase();
+    const accountStatus = String(
+      body.account_status ?? staff.account_status ?? "active",
+    ).trim();
+    const adminLevel = Number(body.admin_level ?? staff.admin_level ?? 0);
+
+    if (!fullName) {
+      return json(400, { error: "Full name is required" });
+    }
+    if (!staffCode) {
+      return json(400, { error: "Staff code is required" });
+    }
+    if (!email || !email.includes("@")) {
+      return json(400, { error: "A valid email is required" });
+    }
+    if (!isMemberStatus(accountStatus)) {
+      return json(400, { error: "Account status is not valid" });
+    }
+    if (!Number.isInteger(adminLevel) || adminLevel < 1 || adminLevel > 3) {
+      return json(400, { error: "Admin level must be 1, 2, or 3" });
+    }
+
+    if (userId === caller.id && isBlockedStatus(accountStatus)) {
+      return json(400, {
+        error:
+          "You cannot close or suspend your own signed-in account from this page",
+      });
+    }
+
+    if (!isLevel1 && adminLevel === 1 && Number(staff.admin_level) !== 1) {
+      return json(403, { error: "Level 1 is reserved" });
+    }
+
+    if (!isLevel1 && userId !== caller.id) {
+      const targetLevel = Number(staff.admin_level || 99);
+      if (targetLevel <= Number(callerProfile.admin_level || 99)) {
+        return json(403, { error: "You can only edit staff below your level" });
+      }
+      if (adminLevel <= Number(callerProfile.admin_level || 99)) {
+        return json(403, { error: "You can only assign a level below your own" });
+      }
+    }
+
+    if (
+      !isLevel1 &&
+      userId === caller.id &&
+      adminLevel !== Number(staff.admin_level)
+    ) {
+      return json(403, { error: "You cannot change your own admin level" });
+    }
+
+    if (Number(staff.admin_level) === 1 && adminLevel !== 1) {
+      const { count, error: levelCountError } = await adminClient
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("admin_level", 1)
+        .eq("account_status", "active")
+        .neq("id", userId);
+      if (levelCountError) {
+        return json(500, { error: levelCountError.message });
+      }
+      if ((count || 0) < 1) {
+        return json(400, {
+          error: "There must be at least one active level 1 staff account",
+        });
+      }
+    }
+
+    let tasks = asTasks(body.admin_tasks);
+    if (adminLevel === 1) {
+      tasks = [...ALL_TASKS];
+    } else if (!isLevel1) {
+      tasks = tasks.filter((t) => callerTasks.includes(t));
+    }
+    if (adminLevel !== 1 && !tasks.length) {
+      return json(400, { error: "Assign at least one task" });
+    }
+
+    if (userId === caller.id) {
+      const keepsStaff = adminLevel === 1 || tasks.includes("staff");
+      if (!keepsStaff) {
+        return json(400, { error: "You cannot remove your own Staff task" });
+      }
+    }
+
+    const { data: others, error: othersError } = await adminClient
+      .from("profiles")
+      .select("id,email,staff_code")
+      .neq("id", userId);
+    if (othersError) {
+      return json(500, { error: othersError.message });
+    }
+    const otherRows = others || [];
+    const sameText = (value: unknown, expected: string) =>
+      String(value || "").trim().toLowerCase() === expected;
+
+    if (otherRows.some((row) => sameText(row.staff_code, staffCode.toLowerCase()))) {
+      return json(409, { error: "That staff code is already in use" });
+    }
+
+    const currentEmail = String(staff.email || "").trim().toLowerCase();
+    if (email !== currentEmail) {
+      if (otherRows.some((row) => sameText(row.email, email))) {
+        return json(409, { error: "That email is already in use" });
+      }
+      const { error: authEmailError } = await adminClient.auth.admin
+        .updateUserById(userId, {
+          email,
+          email_confirm: true,
+        });
+      if (authEmailError) {
+        return json(400, { error: authEmailError.message });
+      }
+    }
+
+    const { error: updateError } = await adminClient
+      .from("profiles")
+      .update({
+        full_name: fullName,
+        phone,
+        email,
+        staff_code: staffCode,
+        admin_level: adminLevel,
+        admin_seat: adminSeat || null,
+        admin_tasks: tasks,
+        account_status: accountStatus,
+        is_admin: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+    if (updateError) {
+      return json(500, { error: updateError.message });
+    }
+
+    await applyAuthAccess(adminClient, userId, isBlockedStatus(accountStatus));
+
+    return json(200, {
+      ok: true,
+      kind: "update_staff",
+      user_id: userId,
+      email,
+      staff_code: staffCode,
+      admin_level: adminLevel,
+      admin_seat: adminSeat || null,
+      admin_tasks: tasks,
+      account_status: accountStatus,
+      message: "Staff record updated.",
+    });
+  }
+
+  if (kind === "delete_staff") {
+    const userId = String(body.user_id || "").trim();
+    if (!userId) {
+      return json(400, { error: "Staff is required" });
+    }
+    if (userId === caller.id) {
+      return json(403, {
+        error: "You cannot delete your own account from this page",
+      });
+    }
+
+    const { data: staff, error: staffError } = await adminClient
+      .from("profiles")
+      .select(
+        "id,email,full_name,staff_code,admin_level,account_kind,account_status,is_admin,member_id",
+      )
+      .eq("id", userId)
+      .maybeSingle();
+    if (staffError || !staff) {
+      return json(404, { error: "Staff not found" });
+    }
+    if (!isStaffRow(staff)) {
+      return json(400, { error: "Only staff accounts can be removed here" });
+    }
+
+    if (!isLevel1) {
+      const targetLevel = Number(staff.admin_level || 99);
+      if (targetLevel <= Number(callerProfile.admin_level || 99)) {
+        return json(403, { error: "You can only close staff below your level" });
+      }
+    }
+
+    if (Number(staff.admin_level) === 1) {
+      const { count, error: levelCountError } = await adminClient
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("admin_level", 1)
+        .eq("account_status", "active")
+        .neq("id", userId);
+      if (levelCountError) {
+        return json(500, { error: levelCountError.message });
+      }
+      if ((count || 0) < 1) {
+        return json(400, {
+          error: "There must be at least one active level 1 staff account",
+        });
+      }
+    }
+
+    const hasMembership = hasMemberId(staff);
+
+    if (hasMembership) {
+      const { error: stripError } = await adminClient
+        .from("profiles")
+        .update({
+          is_admin: false,
+          staff_code: null,
+          admin_level: null,
+          admin_seat: null,
+          admin_tasks: [],
+          account_kind: "member",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+      if (stripError) {
+        return json(500, { error: stripError.message });
+      }
+      return json(200, {
+        ok: true,
+        kind: "delete_staff",
+        action: "removed",
+        user_id: userId,
+        email: staff.email,
+        staff_code: staff.staff_code,
+        message:
+          "Staff access removed. Membership, member login, and reservations stay.",
+      });
+    }
+
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(
+      userId,
+    );
+    if (deleteError) {
+      return json(400, {
+        error:
+          deleteError.message ||
+          "Could not delete the staff Auth account. The staff record was not kept as closed.",
+      });
+    }
+
+    return json(200, {
+      ok: true,
+      kind: "delete_staff",
+      action: "deleted",
+      user_id: userId,
+      email: staff.email,
+      staff_code: staff.staff_code,
+      message: "Staff account permanently deleted.",
+    });
+  }
+
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.temporary_password || body.password || "");
   const fullName = String(body.full_name || "").trim();
@@ -581,6 +713,18 @@ Deno.serve(async (req) => {
   }
   if (password.length < 8) {
     return json(400, { error: "Temporary password must be at least 8 characters" });
+  }
+
+  const { data: existingEmail } = await adminClient
+    .from("profiles")
+    .select("id,member_id,staff_code,is_admin")
+    .eq("email", email)
+    .maybeSingle();
+  if (existingEmail) {
+    return json(409, {
+      error:
+        "An account with this email already exists. Do not create a second login. Open that record and use Add staff access or Add membership.",
+    });
   }
 
   if (kind === "member") {

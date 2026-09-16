@@ -8,7 +8,7 @@
   async function loadMembers() {
     const profiles = await Auth.listAllProfiles();
     const members = profiles.filter(
-      (p) => p.account_kind === "member" && p.account_status !== "closed"
+      (p) => AdminCommon.profileHasMembership(p) && p.account_status !== "closed"
     );
     select.innerHTML = `<option value="">Select member…</option>`;
     members.forEach((m) => {

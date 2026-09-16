@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Member | East Canyon Resort</title>
   <link rel="stylesheet" href="styles.css?v=site42">
+  <script>window.__ecrPageSearch=window.__ecrPageSearch||window.location.search||"";</script>
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -115,6 +116,40 @@
           </form>
           <p id="admin-edit-member-result" class="form-message" role="status" aria-live="polite"></p>
 
+          <div class="admin-card" id="member-staff-panel" hidden>
+            <h2>Add staff access</h2>
+            <p class="admin-help">
+              Uses this same Auth account. Do not create a second login. After this, they can
+              use Admin Sign In with email or staff code.
+            </p>
+            <form id="admin-add-staff-form" class="auth-form admin-form">
+              <div class="admin-form-row">
+                <div class="form-group">
+                  <label for="add-staff-level">Level</label>
+                  <select id="add-staff-level" required>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="add-staff-seat">Seat letter</label>
+                  <input type="text" id="add-staff-seat" placeholder="a" maxlength="2" required>
+                </div>
+                <div class="form-group">
+                  <label for="add-staff-code">Staff code</label>
+                  <input type="text" id="add-staff-code" placeholder="A-002" required>
+                </div>
+              </div>
+              <fieldset class="admin-task-fieldset">
+                <legend>Assigned tasks</legend>
+                <div id="add-staff-task-list"></div>
+              </fieldset>
+              <button type="submit" class="btn btn-primary">Add staff access</button>
+            </form>
+            <p id="admin-add-staff-result" class="form-message" role="status" aria-live="polite"></p>
+          </div>
+          <p id="member-existing-staff" class="admin-help" hidden></p>
+
           <div class="admin-member-danger" id="member-close-panel" hidden>
             <h2>Close or delete membership</h2>
             <p class="admin-danger-note">
@@ -130,13 +165,14 @@
     </div>
   </main>
 
+  <script>window.__ecrPageSearch=window.__ecrPageSearch||window.location.search||"";</script>
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
-  <script src="js/supabase-client.js?v=sb4"></script>
-  <script src="js/auth.js?v=sb27"></script>
-  <script src="js/site-header-auth.js?v=2"></script>
-  <script src="js/admin-common.js?v=sb10"></script>
-  <script src="js/admin-member-edit.js?v=sb10"></script>
+  <script src="js/supabase-client.js?v=sb5"></script>
+  <script src="js/auth.js?v=sb30"></script>
+  <script src="js/site-header-auth.js?v=3"></script>
+  <script src="js/admin-common.js?v=sb15"></script>
+  <script src="js/admin-member-edit.js?v=sb14"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

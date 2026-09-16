@@ -3,7 +3,7 @@
  */
 (function () {
   function logoutTarget(user) {
-    if (user?.accountKind === "admin") return "admin-login.html";
+    if (user?.sessionRole === "admin" || user?.isAdmin) return "admin-login.html";
     return "login.html";
   }
 

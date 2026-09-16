@@ -68,22 +68,25 @@
       }
     }
     if (!total) {
-      membersBody.innerHTML = `<tr><td colspan="8">No members yet.</td></tr>`;
+      membersBody.innerHTML = `<tr><td colspan="9">No members yet.</td></tr>`;
       return;
     }
     if (!rows.length) {
-      membersBody.innerHTML = `<tr><td colspan="8">No members match that search.</td></tr>`;
+      membersBody.innerHTML = `<tr><td colspan="9">No members match that search.</td></tr>`;
       return;
     }
     membersBody.innerHTML = rows
       .map((p) => {
         const status = p.account_status || "active";
         const password = p.must_change_password ? "Temp / change required" : "Set";
-        const href = `admin-member-edit.html?id=${encodeURIComponent(p.id)}`;
+        const href = AdminCommon.profileEditHref("admin-member-edit.html", p);
         const name = p.full_name || p.email || "Member";
         const memberId = p.member_id || "—";
-        return `<tr class="admin-row-link" data-href="${AdminCommon.escapeHtml(href)}" tabindex="0">
+        const staffCode = p.staff_code || "—";
+        const rowKey = AdminCommon.profileRowKey(p);
+        return `<tr class="admin-row-link" data-profile-id="${AdminCommon.escapeHtml(rowKey)}" data-href="${AdminCommon.escapeHtml(href)}" tabindex="0">
           <td class="admin-col-member-id"><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(memberId)}</a></td>
+          <td>${AdminCommon.escapeHtml(staffCode)}</td>
           <td><a href="${AdminCommon.escapeHtml(href)}">${AdminCommon.escapeHtml(name)}</a></td>
           <td>${AdminCommon.escapeHtml(p.username || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.email || "—")}</td>
@@ -105,6 +108,8 @@
     const flashes = {
       created: "Member access created.",
       updated: "Member record updated.",
+      staff: "Staff access added to this membership.",
+      removed: "Membership removed. Staff access and the same login stay.",
       closed: "Membership closed. Reservation history stays on file for admins.",
       deleted: "Unused member account permanently deleted.",
     };
@@ -120,27 +125,17 @@
   async function load() {
     try {
       const profiles = await Auth.listAllProfiles();
-      members = profiles.filter((p) => p.account_kind === "member");
+      members = profiles.filter((p) => AdminCommon.profileHasMembership(p));
       renderMembers();
     } catch (err) {
       AdminCommon.showMessage(message, err.message, "error");
-      membersBody.innerHTML = `<tr><td colspan="8">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
+      membersBody.innerHTML = `<tr><td colspan="9">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
     }
   }
 
-  membersBody?.addEventListener("click", (event) => {
-    if (event.target.closest("a, button, input, select, label")) return;
-    const row = event.target.closest("tr[data-href]");
-    const href = row?.getAttribute("data-href");
-    if (href) window.location.href = href;
-  });
-  membersBody?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    const row = event.target.closest("tr[data-href]");
-    const href = row?.getAttribute("data-href");
-    if (!href) return;
-    event.preventDefault();
-    window.location.href = href;
+  AdminCommon.bindProfileListClicks(membersBody, {
+    kind: "member",
+    getProfiles: () => members,
   });
 
   searchInput?.addEventListener("input", () => {

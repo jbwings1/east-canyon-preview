@@ -1929,18 +1929,58 @@ a:hover {
 
 .reservation-map-layout {
   display: grid;
-  grid-template-columns: 1fr 260px;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
   gap: 1rem;
   align-items: start;
 }
 
-.reservation-map-layout--solo {
-  grid-template-columns: 1fr;
-}
-
 .reservation-submit {
   margin-top: 1.5rem;
-  max-width: 20rem;
+  max-width: 22rem;
+}
+
+.booking-stay-summary {
+  margin: 0 0 0.9rem;
+  padding: 0.7rem 0.85rem 0.75rem;
+  background: #fff;
+  border: 1px solid var(--color-sand-dark, #e2d8c8);
+  border-radius: 10px;
+}
+
+.booking-stay-summary h3 {
+  margin: 0 0 0.45rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-pine, #1c3a32);
+}
+
+.booking-stay-summary p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--color-muted, #5c6864);
+}
+
+.booking-stay-summary .detail-list {
+  margin: 0;
+}
+
+.booking-stay-summary .detail-list dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted, #5c6864);
+}
+
+.booking-stay-summary .detail-list dd {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  color: var(--color-text, #1c1916);
+}
+
+.booking-stay-summary .detail-list dd:last-child {
+  margin-bottom: 0;
 }
 
 .booking-confirmed {
@@ -2058,55 +2098,21 @@ a:hover {
   margin-top: 1rem;
 }
 
-.reservation-map-stack {
-  position: relative;
-  width: 100%;
-}
-
-.map-site-overlay-shell {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-}
-
-.map-site-overlay-backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  padding: 0;
+.reservation-map-detail {
   margin: 0;
-  background: rgba(20, 17, 14, 0.28);
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.map-site-overlay {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  left: auto;
-  bottom: auto;
-  width: min(22rem, calc(100% - 1.5rem));
-  max-height: calc(100% - 1.5rem);
+  min-width: 0;
+  max-height: min(72vh, 860px);
   overflow: auto;
-  margin: 0;
-  padding: 1rem 1.1rem 1.15rem;
-  background: #f6f1e8;
-  border: 1px solid rgba(28, 58, 50, 0.28);
-  border-radius: 12px;
-  box-shadow: 0 14px 36px rgba(20, 17, 14, 0.28);
-  pointer-events: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.map-site-overlay-head {
+.map-site-panel-head {
   display: flex;
   justify-content: flex-end;
   margin: 0 0 0.65rem;
 }
 
-.map-site-overlay-close {
+.map-site-panel-close {
   appearance: none;
   border: 1px solid rgba(28, 58, 50, 0.35);
   background: #fff;
@@ -2120,37 +2126,12 @@ a:hover {
   cursor: pointer;
 }
 
-.map-site-overlay-close:hover,
-.map-site-overlay-close:focus-visible {
+.map-site-panel-close:hover,
+.map-site-panel-close:focus-visible {
   background: #1c3a32;
   border-color: #1c3a32;
   color: #fff;
   outline: none;
-}
-
-.page-reservations .map-site-overlay.spot-detail,
-.page-reservations .map-site-overlay.map-unit-detail {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: min(22rem, calc(100% - 1.5rem));
-  max-height: calc(100% - 1.5rem);
-  margin: 0;
-  background: #f6f1e8;
-  border: 1px solid rgba(28, 58, 50, 0.28);
-  box-shadow: 0 14px 36px rgba(20, 17, 14, 0.28);
-}
-
-@media (max-width: 640px) {
-  .map-site-overlay,
-  .page-reservations .map-site-overlay.spot-detail,
-  .page-reservations .map-site-overlay.map-unit-detail {
-    top: 0.5rem;
-    right: 0.5rem;
-    left: 0.5rem;
-    width: auto;
-    max-height: calc(100% - 1rem);
-  }
 }
 
 .occupancy-date-list {
@@ -2456,6 +2437,30 @@ a:hover {
 
 .admin-member-danger .btn {
   margin-top: 0.25rem;
+}
+
+.admin-status-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.admin-status-actions select {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.admin-status-actions .btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.admin-status-actions .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .admin-back {
@@ -3200,13 +3205,20 @@ a:hover {
   margin: 0 0 0.75rem;
 }
 
-.page-reservations .spot-detail {
+.page-reservations .spot-detail,
+.page-reservations .reservation-map-detail {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 1.05rem 1.15rem;
   background: #fff;
   font-size: 0.92rem;
+}
+
+.page-reservations .reservation-map-detail {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
 }
 
 .page-reservations .map-detail-label {
@@ -3261,6 +3273,18 @@ a:hover {
   font-weight: 600;
 }
 
+.detail-own-booking {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-pine, #1c3a32);
+}
+
+.own-booking-note {
+  font-weight: 600;
+  color: var(--color-pine, #1c3a32);
+}
+
 .page-reservations .map-spot {
   cursor: pointer;
 }
@@ -3290,9 +3314,14 @@ a:hover {
   color: var(--color-text);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .reservation-map-layout {
     grid-template-columns: 1fr;
+  }
+
+  .page-reservations .reservation-map-detail {
+    position: static;
+    max-height: none;
   }
 }
 
@@ -3846,18 +3875,8 @@ img.logo {
   top: 5.5rem;
 }
 
-.spot-detail.map-site-overlay {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  left: auto;
-  width: min(22rem, calc(100% - 1.5rem));
-  max-height: calc(100% - 1.5rem);
-  margin: 0;
-  padding: 1rem 1.1rem 1.15rem;
-  background: #f6f1e8;
-  border: 1px solid rgba(28, 58, 50, 0.28);
-  box-shadow: 0 14px 36px rgba(20, 17, 14, 0.28);
+.spot-detail.reservation-map-detail {
+  width: 100%;
 }
 
 .spot-detail h2 {

@@ -46,8 +46,8 @@
         <section class="admin-card">
           <h2>Create staff admin</h2>
           <p class="admin-help">
-            Level 1 can create lower-level staff with office emails and assigned tasks.
-            Staff passwords are separate from any personal member login.
+            Create staff-only logins here. To give an existing member staff access, open their
+            member record (Account roles task). Click a staff row to edit, close, or add membership.
           </p>
           <form id="admin-create-staff-form" class="auth-form admin-form">
             <div class="form-group">
@@ -81,11 +81,7 @@
             </div>
             <fieldset class="admin-task-fieldset">
               <legend>Assigned tasks</legend>
-              <label><input type="checkbox" name="staff-task" value="members"> Members</label>
-              <label><input type="checkbox" name="staff-task" value="passwords"> Passwords</label>
-              <label><input type="checkbox" name="staff-task" value="reservations_view"> Reservations view</label>
-              <label><input type="checkbox" name="staff-task" value="reservations_manage"> Reservations manage</label>
-              <label><input type="checkbox" name="staff-task" value="website"> Website</label>
+              <div id="staff-task-list"></div>
             </fieldset>
             <div class="form-group">
               <label for="staff-temp-password">Temporary password</label>
@@ -101,6 +97,7 @@
               <thead>
                 <tr>
                   <th>Code</th>
+                  <th>Member ID</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Level / seat</th>
@@ -108,7 +105,7 @@
                 </tr>
               </thead>
               <tbody id="admin-staff-body">
-                <tr><td colspan="5">Loading…</td></tr>
+                <tr><td colspan="6">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -121,11 +118,11 @@
 
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
-  <script src="js/supabase-client.js?v=sb4"></script>
-  <script src="js/auth.js?v=sb27"></script>
-  <script src="js/site-header-auth.js?v=2"></script>
-  <script src="js/admin-common.js?v=sb10"></script>
-  <script src="js/admin-staff.js?v=sb6"></script>
+  <script src="js/supabase-client.js?v=sb5"></script>
+  <script src="js/auth.js?v=sb30"></script>
+  <script src="js/site-header-auth.js?v=3"></script>
+  <script src="js/admin-common.js?v=sb15"></script>
+  <script src="js/admin-staff.js?v=sb11"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

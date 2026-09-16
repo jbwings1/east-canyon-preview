@@ -17,6 +17,7 @@ const membershipRightsNotice = document.getElementById("membership-rights-notice
 const memberIdInput = document.getElementById("res-member-id");
 const memberReservationNotice = document.getElementById("member-reservation-notice");
 const completeBookingBtn = document.getElementById("complete-booking-btn");
+const staySummary = document.getElementById("booking-stay-summary");
 const bookingConfirmed = document.getElementById("booking-confirmed");
 const bookAnotherBtn = document.getElementById("book-another-btn");
 const bookingSigninNotice = document.getElementById("booking-signin-notice");
@@ -157,6 +158,9 @@ async function refreshMemberBookings() {
   renderMyReservations();
   await refreshOccupancyForSelectedDates();
   updateMapAvailability();
+  if (typeof CampgroundMap?.setOwnBookings === "function") {
+    CampgroundMap.setOwnBookings(memberBookings);
+  }
   updateMemberReservationNotice();
 }
 
@@ -318,6 +322,68 @@ function formatSelectedUnit(unit) {
     : `Site ${unit.label} (${type})`;
 }
 
+function stayTypeLabel(type) {
+  if (typeof Auth !== "undefined" && Auth.reservationTypeLabel) {
+    return Auth.reservationTypeLabel(type) || "";
+  }
+  if (isCondoReservationType(type)) return "Condo";
+  if (isReunionReservationType(type)) return "Family reunion";
+  if (isRvReservationType(type)) return "RV";
+  return "";
+}
+
+function staySiteLabel() {
+  const spotId = preferredSpotInput?.value || "";
+  if (!spotId) return "";
+  const unit = window.SpotAvailability?.findUnit?.(spotId);
+  if (unit) return formatSelectedUnit(unit);
+  return formatSpotLabel(spotId);
+}
+
+function updateStaySummary() {
+  if (!staySummary) return;
+
+  const inDate = checkIn?.value || "";
+  const outDate = checkOut?.value || "";
+  const datesOk = Boolean(inDate && outDate && outDate > inDate);
+  const siteLabel = staySiteLabel();
+  const type = typeSelect?.value || "";
+  const typeLabel = stayTypeLabel(type);
+  const rig = selectedRigLength();
+  const isEdit = reservationMode === "edit" || Boolean(editingBookingId);
+
+  if (!datesOk || !siteLabel) {
+    staySummary.classList.add("booking-stay-summary--empty");
+    const prompt = !datesOk && !siteLabel
+      ? `Pick a site and dates to see the stay you are about to ${isEdit ? "save" : "book"}.`
+      : !siteLabel
+        ? `Pick a site on the map to see the stay you are about to ${isEdit ? "save" : "book"}.`
+        : `Pick check-in and check-out dates to see the stay you are about to ${isEdit ? "save" : "book"}.`;
+    staySummary.innerHTML = `<p>${escapeHtml(prompt)}</p>`;
+    return;
+  }
+
+  const nights = window.SpotAvailability.getStayNights(inDate, outDate);
+  const dateRange = window.SpotAvailability.formatDateRange(inDate, outDate);
+  const nightsLabel = nights === 1 ? "1 night" : `${nights} nights`;
+  const rows = [
+    `<div><dt>Site</dt><dd>${escapeHtml(siteLabel)}</dd></div>`,
+    `<div><dt>Dates</dt><dd>${escapeHtml(dateRange)} (${escapeHtml(nightsLabel)})</dd></div>`,
+  ];
+  if (typeLabel) {
+    rows.push(`<div><dt>Type</dt><dd>${escapeHtml(typeLabel)}</dd></div>`);
+  }
+  if (isRvReservationType(type) && rig != null) {
+    rows.push(`<div><dt>RV length</dt><dd>${escapeHtml(String(rig))}'</dd></div>`);
+  }
+
+  staySummary.classList.remove("booking-stay-summary--empty");
+  staySummary.innerHTML = `
+    <h3>${isEdit ? "You are saving" : "You are booking"}</h3>
+    <dl class="detail-list">${rows.join("")}</dl>
+  `;
+}
+
 function unitMatchesReservationType(unit, type) {
   if (isRvReservationType(type)) return unit.category === "rv";
   if (isCondoReservationType(type)) return unit.category === "condo";
@@ -440,6 +506,7 @@ CampgroundMap.init({
     preferredSpotInput.value = unit.id;
     selectedSpotLabel.textContent = formatSelectedUnit(unit);
     preferredSpotDisplay.hidden = false;
+    updateStaySummary();
   },
 });
 
@@ -468,6 +535,7 @@ function clearPreferredSpot() {
   preferredSpotDisplay.hidden = true;
   selectedSpotLabel.textContent = "";
   CampgroundMap.clearSelection();
+  updateStaySummary();
 }
 
 function updateRvFields() {
@@ -558,10 +626,14 @@ function updateMemberReservationNotice() {
   memberReservationNotice.classList.remove("stay-length-notice--limit");
   if (active.length > 0) {
     const remaining = maxActive - active.length;
+    const remainingPhrase =
+      remaining === 1
+        ? "You have one more booking available"
+        : `You may book ${remaining} more.`;
     memberReservationNotice.hidden = false;
     memberReservationNotice.textContent =
       `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-      `(${formatActiveReservationRanges(active)}). You may book ${remaining} more before office check-in.`;
+      `(${formatActiveReservationRanges(active)}). ${remainingPhrase}`;
     return;
   }
 
@@ -624,6 +696,7 @@ function updateMapAvailability() {
         clearPreferredSpot();
       }
     }
+    updateStaySummary();
     return;
   }
 
@@ -689,6 +762,8 @@ function updateMapAvailability() {
       CampgroundMap.selectUnit(preferredSpotInput.value, { force: true });
     }
   }
+
+  updateStaySummary();
 }
 
 async function syncAvailabilityFromDates() {

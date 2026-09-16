@@ -1,29 +1,36 @@
 (async function () {
+  const query = AdminCommon.readProfileQuery();
   const me = await AdminCommon.requireAdmin("members");
   if (!me) return;
 
   const form = document.getElementById("admin-edit-member-form");
   const result = document.getElementById("admin-edit-member-result");
-  const userId = new URLSearchParams(window.location.search).get("id");
 
-  if (!userId) {
+  if (!query.hasAny) {
     AdminCommon.showMessage(result, "Missing member.", "error");
     return;
   }
 
   let member = null;
   try {
-    const profiles = await Auth.listMemberProfiles();
-    member = profiles.find((p) => p.id === userId) || null;
+    const profiles = await Auth.listAllProfiles();
+    member = AdminCommon.resolveListedProfile(profiles, query, (p) =>
+      AdminCommon.isMemberProfile(p)
+    );
   } catch (err) {
-    AdminCommon.showMessage(result, err.message, "error");
-    return;
+    member = query.remembered?.profile || null;
+    if (!member) {
+      AdminCommon.showMessage(result, err.message, "error");
+      return;
+    }
   }
 
   if (!member) {
     AdminCommon.showMessage(result, "Member not found.", "error");
     return;
   }
+
+  const userId = AdminCommon.profileUserId(member);
 
   document.getElementById("edit-member-id").value = member.member_id || "";
   document.getElementById("edit-full-name").value = member.full_name || "";
@@ -45,11 +52,29 @@
   if (summary) {
     const bits = [
       member.member_id ? `Member ID ${member.member_id}` : null,
+      member.staff_code ? `Staff ${member.staff_code}` : null,
       AdminCommon.statusLabel(member.account_status),
     ].filter(Boolean);
     summary.textContent =
       bits.join(" · ") +
       ". Change the record below, or close this membership. Password resets stay on the Passwords admin task.";
+  }
+
+  const staffPanel = document.getElementById("member-staff-panel");
+  const existingStaff = document.getElementById("member-existing-staff");
+  const addStaffTasks = document.getElementById("add-staff-task-list");
+  if (addStaffTasks) addStaffTasks.innerHTML = AdminCommon.taskCheckboxHtml("add-staff-task");
+  if (AdminCommon.profileHasStaffAccess(member)) {
+    if (existingStaff) {
+      existingStaff.hidden = false;
+      existingStaff.innerHTML =
+        `This account already has staff access <strong>${AdminCommon.escapeHtml(
+          member.staff_code || "assigned"
+        )}</strong>. ` +
+        `<a href="${AdminCommon.escapeHtml(AdminCommon.profileEditHref("admin-staff-edit.html", member))}">Open staff record</a>.`;
+    }
+  } else if (Auth.hasAdminTask("account_roles") && staffPanel) {
+    staffPanel.hidden = false;
   }
 
   const closePanel = document.getElementById("member-close-panel");
@@ -62,7 +87,7 @@
         `<p class="admin-danger-note">You cannot close or delete your own signed-in account from this page.</p>`;
     }
   } else if (closePanel && closeLink) {
-    closeLink.href = `admin-member-delete.html?id=${encodeURIComponent(userId)}`;
+    closeLink.href = AdminCommon.profileEditHref("admin-member-delete.html", member);
     closePanel.hidden = false;
   }
 
@@ -94,6 +119,30 @@
       window.location.replace("admin-members.html?ok=updated");
     } catch (err) {
       AdminCommon.showMessage(result, err.message, "error");
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById("admin-add-staff-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const addResult = document.getElementById("admin-add-staff-result");
+    AdminCommon.showMessage(addResult, "", "");
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const tasks = Array.from(
+        document.querySelectorAll('input[name="add-staff-task"]:checked')
+      ).map((el) => el.value);
+      await Auth.attachStaffAccess({
+        userId,
+        staffCode: document.getElementById("add-staff-code").value.trim(),
+        adminLevel: Number(document.getElementById("add-staff-level").value),
+        adminSeat: document.getElementById("add-staff-seat").value.trim().toLowerCase(),
+        adminTasks: tasks,
+      });
+      window.location.replace("admin-members.html?ok=staff");
+    } catch (err) {
+      AdminCommon.showMessage(addResult, err.message, "error");
       if (submitBtn) submitBtn.disabled = false;
     }
   });

@@ -11,7 +11,6 @@
   const occMsg = document.getElementById("occupancy-message");
   const occWrap = document.getElementById("occupancy-map-wrap");
   const occDetail = document.getElementById("occupancy-unit-detail");
-  const occDetailShell = document.getElementById("occupancy-detail-shell");
 
   let bookings = [];
   let occupancyRows = [];
@@ -26,12 +25,15 @@
       .replace(/"/g, "&quot;");
   }
 
+  function occupancyPlaceholderHtml() {
+    return `<p class="spot-detail-placeholder">Click a site on the map to see booked dates in your range.</p>`;
+  }
+
   function openOccupancyDetailOverlay() {
     if (typeof CampgroundMap?.openDetailOverlay === "function") {
       CampgroundMap.openDetailOverlay();
       return;
     }
-    if (occDetailShell) occDetailShell.hidden = false;
     if (occDetail) occDetail.hidden = false;
   }
 
@@ -40,10 +42,9 @@
       CampgroundMap.closeDetailOverlay({ clearSelection: true });
       return;
     }
-    if (occDetailShell) occDetailShell.hidden = true;
     if (occDetail) {
-      occDetail.hidden = true;
-      occDetail.innerHTML = "";
+      occDetail.hidden = false;
+      occDetail.innerHTML = occupancyPlaceholderHtml();
     }
   }
 
@@ -51,8 +52,8 @@
     if (typeof CampgroundMap?._overlayCloseHtml === "function") {
       return CampgroundMap._overlayCloseHtml();
     }
-    return `<div class="map-site-overlay-head">
-      <button type="button" class="map-site-overlay-close" data-map-detail-close>Close</button>
+    return `<div class="map-site-panel-head">
+      <button type="button" class="map-site-panel-close" data-map-detail-close>Clear</button>
     </div>`;
   }
 
@@ -214,9 +215,13 @@
     } else {
       notice.classList.remove("stay-length-notice--limit");
       const remaining = maxActive - active.length;
+      const remainingPhrase =
+        remaining === 1
+          ? "You have one more booking available"
+          : `You may book ${remaining} more.`;
       notice.textContent =
         `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-        `(${bookingLines}). You may book ${remaining} more before office check-in.`;
+        `(${bookingLines}). ${remainingPhrase}`;
     }
   }
 
@@ -433,11 +438,19 @@
       return;
     }
 
+    const ownFlags = rows.map((r) =>
+      Boolean(window.SpotAvailability?.isOwnBookingRow?.(r, bookings))
+    );
+    const allOwn = ownFlags.length > 0 && ownFlags.every(Boolean);
     const items = rows
-      .map((r) => {
+      .map((r, i) => {
         const range = window.SpotAvailability.formatDateRange(r.check_in, r.check_out);
+        const ownBit =
+          ownFlags[i] && !allOwn
+            ? ` <span class="own-booking-note">This is your booking</span>`
+            : "";
         if (!isAdmin) {
-          return `<li>${escapeHtml(range)}</li>`;
+          return `<li>${escapeHtml(range)}${ownBit}</li>`;
         }
         const who = [r.full_name, r.member_id ? `ID ${r.member_id}` : "", r.email]
           .filter(Boolean)
@@ -446,6 +459,7 @@
         return `<li>
           <strong>${escapeHtml(range)}</strong>
           ${conf ? ` · ${escapeHtml(conf)}` : ""}
+          ${ownBit}
           ${who ? `<br>${escapeHtml(who)}` : ""}
           ${r.notes ? `<br>Notes: ${escapeHtml(r.notes)}` : ""}
           ${r.booked_by_kind ? `<br>Booked by: ${escapeHtml(r.booked_by_kind === "admin" ? "ECR admin" : "Member")}` : ""}
@@ -453,10 +467,14 @@
       })
       .join("");
 
+    const ownBanner = allOwn
+      ? `<p class="detail-own-booking">This is your booking.</p>`
+      : "";
     occDetail.innerHTML = `
       ${closeHtml}
       <p><strong>${escapeHtml(titleWithLength)}</strong>
         <span class="status-pill ${statusClass}">${statusLabel}</span></p>
+      ${ownBanner}
       <p>Booked dates in your range:</p>
       <ul class="occupancy-date-list">${items}</ul>`;
     openOccupancyDetailOverlay();
@@ -524,7 +542,7 @@
   try {
     isAdmin = await Auth.verifyAdmin();
   } catch {
-    isAdmin = current.accountKind === "admin" || current.isAdmin === true;
+    isAdmin = Auth.isAdmin(current);
   }
   if (!isAdmin && !Auth.canAccessMembers(current)) {
     window.location.href = "login.html?next=reservations.html";
@@ -559,6 +577,9 @@
 
   renderBookings();
   updateBookingNotice();
+  if (typeof CampgroundMap?.setOwnBookings === "function") {
+    CampgroundMap.setOwnBookings(bookings, { render: false });
+  }
 
   list?.addEventListener("click", (event) => {
     const card = event.target.closest(".reservation-booking-card.is-manageable");

@@ -6,6 +6,12 @@
  * (important on shared office / family computers).
  */
 (function () {
+  // Capture the landing query before the Auth client can rewrite it
+  // (PKCE `code` exchange calls history.replaceState and would drop ?id=).
+  if (window.__ecrPageSearch == null) {
+    window.__ecrPageSearch = window.location.search || "";
+  }
+
   const cfg = window.SUPABASE_CONFIG;
   if (!cfg?.url || !cfg?.anonKey) {
     throw new Error("Load js/supabase-config.js before js/supabase-client.js.");
