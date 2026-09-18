@@ -27,8 +27,6 @@
   document.getElementById("profile-state").value = user.state || "";
   document.getElementById("profile-zip").value = user.zip || "";
   document.getElementById("profile-rv").value = user.rv || "";
-  const typeSelect = document.getElementById("profile-type");
-  if (typeSelect) typeSelect.value = user.reservationType || "";
 
   const spotContent = document.getElementById("spot-content");
   const bookingsContent = document.getElementById("bookings-content");
@@ -113,7 +111,6 @@
         state: document.getElementById("profile-state").value.trim().toUpperCase(),
         zip: document.getElementById("profile-zip").value.trim(),
         rv: document.getElementById("profile-rv").value.trim(),
-        reservationType: typeSelect ? typeSelect.value : user.reservationType,
       });
       msg.textContent = "Profile saved.";
       msg.className = "form-message success";
