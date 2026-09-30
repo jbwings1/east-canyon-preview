@@ -554,11 +554,10 @@
   if (bookLink) bookLink.hidden = false;
 
   const today = window.SpotAvailability.getToday();
-  const maxDay = window.SpotAvailability.addDays(today, 90);
   occFrom.min = today;
-  occFrom.max = maxDay;
   occTo.min = today;
-  occTo.max = maxDay;
+  occFrom.removeAttribute("max");
+  occTo.removeAttribute("max");
   occFrom.value = today;
   occTo.value = window.SpotAvailability.addDays(today, 14);
 
