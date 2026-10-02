@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="View and manage your East Canyon Resort reservations.">
   <title>My Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site57">
+  <link rel="stylesheet" href="styles.css?v=site58">
 </head>
 <body class="page-visitor page-reservations">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -77,7 +77,8 @@
       <section class="reservation-form-section" id="hub-occupancy-section" aria-label="Site availability">
         <h2>Sites taken</h2>
         <p class="reservation-form-intro">
-          Pick from and to dates to see which sites are taken — any range, no date limit.
+          Pick from and to dates to see which sites and condos are open or taken — any range, no date limit.
+          Green is open, red is booked by someone else, and blue is your reservation.
           Members see occupancy only — not who booked.
           Click a colored site for booked dates in your range — details appear beside the map.
           <span id="hub-occupancy-admin-note" hidden> Admins also see member names and booking details.</span>
@@ -117,6 +118,7 @@
         <div class="map-legend occupancy-legend" id="occupancy-map-legend" aria-label="Map legend">
           <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
           <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+          <span class="legend-item" data-status="member"><span class="legend-swatch member"></span> Your reservation</span>
           <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
         </div>
         <div id="occupancy-map-wrap" class="occupancy-map-wrap" hidden>
@@ -160,15 +162,15 @@
   </main>
 
   <script src="js/map-units-generated.js"></script>
-  <script src="js/spots-data.js?v=10"></script>
-  <script src="js/campground-map.js?v=11"></script>
+  <script src="js/spots-data.js?v=11"></script>
+  <script src="js/campground-map.js?v=12"></script>
   <script src="js/map-zoom.js"></script>
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb4"></script>
   <script src="js/auth.js?v=sb29"></script>
   <script src="js/site-header-auth.js?v=2"></script>
-  <script src="js/reservation-hub.js?v=27"></script>
+  <script src="js/reservation-hub.js?v=28"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

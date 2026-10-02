@@ -2141,7 +2141,23 @@ a:hover {
 }
 
 .occupancy-legend {
-  margin: 0.75rem 0;
+  margin: 0.85rem 0 1rem;
+  gap: 0.7rem 1.1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text, #1c1916);
+  line-height: 1.35;
+}
+
+.page-reservations .occupancy-legend .legend-item {
+  padding: 0.35rem 0.6rem;
+}
+
+.page-reservations .occupancy-legend .legend-swatch {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.4rem;
+  border-radius: 3px;
 }
 
 .my-reservations .reservation-form-intro {
@@ -2802,9 +2818,6 @@ a:hover {
   margin-left: 0.35rem;
   font-weight: 600;
 }
-  max-width: 28rem;
-  margin-bottom: 1rem;
-}
 
 .campground-map-frame {
   position: relative;
@@ -2843,7 +2856,7 @@ a:hover {
 .page-reservations .legend-swatch.partial { background: #e6b800; }
 .page-reservations .legend-swatch.booked { background: #c0392b; }
 .page-reservations .legend-swatch.tooShort { background: #1a1a1a; }
-.page-reservations .legend-swatch.member { background: #4a7a9b; }
+.page-reservations .legend-swatch.member { background: #2f7dba; }
 .page-reservations .legend-swatch.maintenance { background: #c45c26; }
 
 .page-reservations .legend-item {
@@ -2881,7 +2894,7 @@ a:hover {
 }
 
 .page-reservations .legend-item[data-status="member"].legend-item--active .legend-swatch {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #4a7a9b;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #2f7dba;
 }
 
 .page-reservations .legend-item[data-status="maintenance"].legend-item--active .legend-swatch {
@@ -3255,7 +3268,7 @@ a:hover {
 .page-reservations .status-pill.partial { background: #e6b800; }
 .page-reservations .status-pill.booked { background: #c0392b; }
 .page-reservations .status-pill.tooShort { background: #1a1a1a; }
-.page-reservations .status-pill.member { background: #4a7a9b; }
+.page-reservations .status-pill.member { background: #2f7dba; }
 .page-reservations .status-pill.maintenance { background: #c45c26; }
 
 .page-reservations .detail-list {
@@ -3799,7 +3812,7 @@ img.logo {
 .legend-swatch.partial { background: #e6b800; }
 .legend-swatch.booked { background: #c0392b; }
 .legend-swatch.tooShort { background: #1a1a1a; }
-.legend-swatch.member { background: #4a7a9b; }
+.legend-swatch.member { background: #2f7dba; }
 .legend-swatch.maintenance { background: #c45c26; }
 
 .legend-item--active {
@@ -3830,7 +3843,7 @@ img.logo {
 }
 
 .legend-item[data-status="member"].legend-item--active .legend-swatch {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #4a7a9b;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #2f7dba;
 }
 
 .legend-item[data-status="maintenance"].legend-item--active .legend-swatch {
@@ -3942,7 +3955,7 @@ img.logo {
 .status-pill.partial { background: #e6b800; }
 .status-pill.booked { background: #c0392b; }
 .status-pill.tooShort { background: #1a1a1a; }
-.status-pill.member { background: #4a7a9b; }
+.status-pill.member { background: #2f7dba; }
 .status-pill.maintenance { background: #c45c26; }
 
 .btn-outline {
