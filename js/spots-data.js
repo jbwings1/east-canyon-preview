@@ -32,6 +32,7 @@ window.STATUS_LABELS = {
   available: "Available",
   partial: "Partially booked",
   booked: "Booked",
+  member: "Your reservation",
   tooShort: "Too short for your RV",
   unknown: "Select dates",
   previewOpen: "Open (next 90 days)",

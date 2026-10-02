@@ -26,7 +26,7 @@
   }
 
   function occupancyPlaceholderHtml() {
-    return `<p class="spot-detail-placeholder">Click a site on the map to see booked dates in your range.</p>`;
+    return `<p class="spot-detail-placeholder">Click a site or condo on the map to see booked dates in your range. Blue means it is your reservation.</p>`;
   }
 
   function openOccupancyDetailOverlay() {
@@ -424,8 +424,22 @@
         String(r.spot) === String(unit.id) &&
         window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)
     );
-    const statusLabel = rows.length ? "Booked" : "Available";
-    const statusClass = rows.length ? "booked" : "available";
+    const ownFlags = rows.map((r) =>
+      Boolean(window.SpotAvailability?.isOwnBookingRow?.(r, bookings))
+    );
+    const allOwn = ownFlags.length > 0 && ownFlags.every(Boolean);
+    const statusClass =
+      mapStatus === "member" || allOwn
+        ? "member"
+        : rows.length
+          ? "booked"
+          : "available";
+    const statusLabel =
+      statusClass === "member"
+        ? "Your reservation"
+        : statusClass === "booked"
+          ? "Booked"
+          : "Available";
 
     if (!rows.length) {
       occDetail.innerHTML = `
@@ -437,11 +451,6 @@
       openOccupancyDetailOverlay();
       return;
     }
-
-    const ownFlags = rows.map((r) =>
-      Boolean(window.SpotAvailability?.isOwnBookingRow?.(r, bookings))
-    );
-    const allOwn = ownFlags.length > 0 && ownFlags.every(Boolean);
     const items = rows
       .map((r, i) => {
         const range = window.SpotAvailability.formatDateRange(r.check_in, r.check_out);
@@ -505,6 +514,9 @@
         checkOut: r.check_out,
       }));
       ensureOccupancyMap();
+      if (typeof CampgroundMap?.setOwnBookings === "function") {
+        CampgroundMap.setOwnBookings(bookings, { render: false });
+      }
       applyOccupancyRigLength({ render: false });
       CampgroundMap.setDates(from, to);
       CampgroundMap.render?.();

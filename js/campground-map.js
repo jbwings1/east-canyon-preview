@@ -3,7 +3,7 @@ const STATUS_COLORS = {
   partial: { fill: "#e6b800", stroke: "#b89200" },
   booked: { fill: "#c0392b", stroke: "#922b21" },
   tooShort: { fill: "#1a1a1a", stroke: "#000000" },
-  member: { fill: "#4a7a9b", stroke: "#3d6580" },
+  member: { fill: "#2f7dba", stroke: "#246490" },
   maintenance: { fill: "#c45c26", stroke: "#9a4518" },
   unknown: { fill: "#c8c4be", stroke: "#a8a4a0" },
 };
@@ -135,7 +135,7 @@ window.CampgroundMap = {
 
     if (this._requireDatesForSpots) {
       return this._lookupOnly
-        ? `Pick dates above, then ${filterHint} Green is available; red is booked.`
+        ? `Pick dates above, then ${filterHint} Green is available; red is booked; blue is your reservation.`
         : `Pick dates above, then ${filterHint} Green is available; yellow is partially booked; red is fully booked.`;
     }
     if (this._unitFilter === "all") {
@@ -762,9 +762,22 @@ window.CampgroundMap = {
         rigLength: this._rigLength,
       }
     );
-    // Hub Check bookings: binary occupancy only (any overlap → booked).
+    // Hub Check bookings: available / booked / your reservation (blue).
     if (this._lookupOnly && status !== "tooShort" && status !== "unknown") {
-      return status === "available" ? "available" : "booked";
+      if (status === "available") return "available";
+      const overlapping = window.SpotAvailability.getBookingsForUnit(
+        unit.id,
+        this._checkIn,
+        this._checkOut,
+        this._availabilityExclude
+      );
+      if (
+        overlapping.length &&
+        overlapping.every((row) => this._isOwnStay(row))
+      ) {
+        return "member";
+      }
+      return "booked";
     }
     return status;
   },
@@ -860,6 +873,7 @@ window.CampgroundMap = {
       else if (isReunion) g.classList.add("map-spot--reunion");
       else g.classList.add("map-spot--rv");
       if (status === "available") g.classList.add("map-spot--available");
+      if (status === "member") g.classList.add("map-spot--member");
       if (status === "tooShort") g.classList.add("map-spot--too-short");
       if (showStatusFill) {
         g.classList.add("map-spot--dated");
@@ -1089,11 +1103,13 @@ window.CampgroundMap = {
         statusLabel = window.STATUS_LABELS.previewBooked;
       }
     } else if (this._lookupOnly && hasDates && status !== "tooShort") {
-      displayStatus = status === "available" ? "available" : "booked";
-      statusLabel =
-        displayStatus === "available"
-          ? window.STATUS_LABELS.available
-          : window.STATUS_LABELS.booked;
+      displayStatus =
+        status === "available"
+          ? "available"
+          : status === "member"
+            ? "member"
+            : "booked";
+      statusLabel = window.STATUS_LABELS[displayStatus] || displayStatus;
     }
 
     const noun = this._detailNoun(unit);
@@ -1117,6 +1133,7 @@ window.CampgroundMap = {
               booked: bookings.length
                 ? `This ${noun} is booked for all of your selected dates. See the booked dates above.`
                 : `This ${noun} is booked for your entire stay.`,
+              member: `This ${noun} is your reservation for the selected dates.`,
               unknown: "",
             }[status]
           : bookings.length
