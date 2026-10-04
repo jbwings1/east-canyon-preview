@@ -927,9 +927,9 @@ const Auth = {
     this.clearSession();
   },
 
-  logout(redirectTo = "login.html") {
+  logout(redirectTo = "index.html") {
     this.signOutQuiet().finally(() => {
-      window.location.href = redirectTo || "login.html";
+      window.location.href = redirectTo || "index.html";
     });
   },
 
