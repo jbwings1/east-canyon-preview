@@ -66,9 +66,14 @@
         const label = Auth.reservationTypeLabel(b.reservation_type) || "Reservation";
         const status = b.status || "confirmed";
         const spot = b.spot ? ` · ${b.spot}` : "";
+        const dates =
+          b.check_in && b.check_out && window.SpotAvailability?.formatDateRange
+            ? window.SpotAvailability.formatDateRange(b.check_in, b.check_out) ||
+              `${b.check_in} → ${b.check_out}`
+            : `${b.check_in} → ${b.check_out}`;
         return `
       <article class="booking-item">
-        <p><strong>${label}${spot}</strong> · ${b.check_in} → ${b.check_out}</p>
+        <p><strong>${label}${spot}</strong> · ${dates}</p>
         <span class="status-pill ${status === "confirmed" ? "available" : "reserved"}">${status}</span>
       </article>`;
       })

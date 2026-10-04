@@ -38,7 +38,11 @@
     bookingsBody.innerHTML = sorted
       .map((b) => {
         const type = Auth.reservationTypeLabel(b.reservation_type) || "—";
-        const dates = b.check_in && b.check_out ? `${b.check_in} → ${b.check_out}` : "—";
+        const dates =
+          b.check_in && b.check_out
+            ? window.SpotAvailability?.formatDateRange?.(b.check_in, b.check_out) ||
+              `${b.check_in} → ${b.check_out}`
+            : "—";
         const conf = Auth.bookingConfirmationId(b);
         const member = AdminCommon.memberLabel(profiles, b.user_id);
         const past = b.check_out && b.check_out < today;

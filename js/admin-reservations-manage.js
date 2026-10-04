@@ -54,7 +54,9 @@
   function officeCheckInTooEarlyMessage(booking) {
     const checkIn = booking?.check_in || "";
     if (!checkIn) return "Office check-in is only available on or after the reservation check-in date.";
-    return `Office check-in opens on the first day of the stay (${checkIn}).`;
+    const label =
+      window.SpotAvailability?.formatStayDate?.(checkIn) || checkIn;
+    return `Office check-in opens on the first day of the stay (${label}).`;
   }
 
   function uiType(dbType) {
@@ -141,6 +143,24 @@
         if (aIn !== bIn) return aIn < bIn ? -1 : 1;
         return String(a.created_at || "") < String(b.created_at || "") ? -1 : 1;
       });
+  }
+
+  function formatStayDate(value) {
+    if (!value) return "—";
+    return window.SpotAvailability?.formatStayDate?.(value) || String(value);
+  }
+
+  function formatStayRange(checkIn, checkOut) {
+    if (!checkIn || !checkOut) return "—";
+    return (
+      window.SpotAvailability?.formatDateRange?.(checkIn, checkOut) ||
+      `${checkIn} → ${checkOut}`
+    );
+  }
+
+  function formatEditSummary(text) {
+    if (!text) return "—";
+    return window.SpotAvailability?.formatStayDatesInText?.(text) || String(text);
   }
 
   function formatDateTime(value) {
@@ -254,15 +274,15 @@
         detailRow("Phone", profile?.phone || "—"),
         detailRow("Type", Auth.reservationTypeLabel(booking.reservation_type) || booking.reservation_type || "—"),
         detailRow("Spot / unit", booking.spot || "—"),
-        detailRow("Check in", booking.check_in || "—"),
-        detailRow("Check out", booking.check_out || "—"),
-        detailRow("Original check in", booking.original_check_in || "—"),
-        detailRow("Original check out", booking.original_check_out || "—"),
+        detailRow("Check in", formatStayDate(booking.check_in)),
+        detailRow("Check out", formatStayDate(booking.check_out)),
+        detailRow("Original check in", formatStayDate(booking.original_check_in)),
+        detailRow("Original check out", formatStayDate(booking.original_check_out)),
         detailRow("Booked by", bookedBy),
         detailRow("Created", formatDateTime(booking.created_at)),
         detailRow("Confirmed", formatDateTime(booking.confirmed_at)),
         detailRow("Last edited", formatDateTime(booking.edited_at)),
-        detailRow("Last edit summary", booking.last_edit_summary || "—", { span: true }),
+        detailRow("Last edit summary", formatEditSummary(booking.last_edit_summary), { span: true }),
         detailRow("Reservation notes", booking.notes || "—", { span: true }),
         detailRow("Office checked in", formatDateTime(booking.office_checked_in_at)),
         detailRow("Checked in by", staffLabel(booking.office_checked_in_by)),
@@ -351,7 +371,7 @@
     bookingsBody.innerHTML = rows
       .map((b) => {
         const type = Auth.reservationTypeLabel(b.reservation_type) || "—";
-        const dates = b.check_in && b.check_out ? `${b.check_in} → ${b.check_out}` : "—";
+        const dates = formatStayRange(b.check_in, b.check_out);
         const canConfirm = b.status !== "confirmed" && b.status !== "cancelled" && b.status !== "active";
         const canCancel = b.status !== "cancelled";
         const canEdit = b.status !== "cancelled";

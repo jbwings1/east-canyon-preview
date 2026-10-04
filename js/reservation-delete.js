@@ -59,7 +59,8 @@
   function editChangeTooltip(booking) {
     if (!bookingWasEdited(booking)) return "Original booking";
     const summary = String(booking.last_edit_summary || "").trim();
-    return summary || "Reservation was edited";
+    if (!summary) return "Reservation was edited";
+    return window.SpotAvailability?.formatStayDatesInText?.(summary) || summary;
   }
 
   /** Same-line Booked · Edited with native title tooltips for the last change. */

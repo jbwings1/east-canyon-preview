@@ -5236,3 +5236,82 @@ button.resort-cal-day:hover {
     font-weight: 700;
   }
 }
+
+/* Reservation stay dates: Month, Day, Year. ISO value stays on the hidden input. */
+.form-group:has(.stay-date-field) {
+  position: relative;
+}
+
+.stay-date-iso {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 2.55rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.stay-date-field {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(3.4rem, 0.62fr) minmax(4.6rem, 0.78fr);
+  gap: 0.35rem;
+  align-items: end;
+}
+
+.stay-date-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  margin: 0;
+  font-weight: 600;
+}
+
+.stay-date-part span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5c564e;
+}
+
+.stay-date-part select {
+  width: 100%;
+  min-width: 0;
+}
+
+.reservation-form .form-row--4:has(.stay-date-field),
+.occupancy-date-row:has(.stay-date-field) {
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1.55fr) minmax(0, 0.9fr) minmax(0, 0.72fr);
+}
+
+.admin-form-row:has(.stay-date-field) {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+@media (max-width: 960px) {
+  .reservation-form .form-row--4:has(.stay-date-field),
+  .occupancy-date-row:has(.stay-date-field) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .reservation-form .form-row--4:has(.stay-date-field) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .occupancy-date-row:has(.stay-date-field) {
+    grid-template-columns: 1fr;
+  }
+}

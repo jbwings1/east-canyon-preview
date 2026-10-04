@@ -831,7 +831,13 @@ const Auth = {
 
     const summaryParts = [];
     if (existing.check_in !== checkIn || existing.check_out !== checkOut) {
-      summaryParts.push(`dates ${existing.check_in}→${existing.check_out} to ${checkIn}→${checkOut}`);
+      const stayLabel = (iso) =>
+        (typeof window.SpotAvailability?.formatStayDate === "function" &&
+          window.SpotAvailability.formatStayDate(iso)) ||
+        iso;
+      summaryParts.push(
+        `dates ${stayLabel(existing.check_in)} \u2192 ${stayLabel(existing.check_out)} to ${stayLabel(checkIn)} \u2192 ${stayLabel(checkOut)}`
+      );
     }
     if (existing.reservation_type !== dbType) {
       summaryParts.push(`type to ${dbType}`);
@@ -1501,8 +1507,12 @@ const Auth = {
         now.getDate()
       ).padStart(2, "0")}`;
       if (today < checkIn) {
+        const stayLabel =
+          (typeof window.SpotAvailability?.formatStayDate === "function" &&
+            window.SpotAvailability.formatStayDate(checkIn)) ||
+          checkIn;
         throw new Error(
-          `Office check-in opens on the first day of the stay (${checkIn}).`
+          `Office check-in opens on the first day of the stay (${stayLabel}).`
         );
       }
     }

@@ -270,27 +270,62 @@ window.SpotAvailability = {
     return (window.MAP_UNITS || []).find((u) => u.id === id) || null;
   },
 
-  formatDateRange(checkIn, checkOut) {
-    const opts = { month: "short", day: "numeric", year: "numeric" };
-    const start = new Date(`${checkIn}T12:00:00`);
-    const end = new Date(`${checkOut}T12:00:00`);
-    return `${start.toLocaleDateString("en-US", opts)} \u2192 ${end.toLocaleDateString("en-US", opts)}`;
+  /**
+   * User-visible stay date: month, day, year. Example: "October 4, 2026".
+   * Empty string when the value is not a real calendar day.
+   */
+  formatStayDate(value) {
+    const iso = this.normalizeDate(value);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!match) return "";
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return "";
+    const dt = new Date(year, month - 1, day);
+    if (
+      dt.getFullYear() !== year ||
+      dt.getMonth() !== month - 1 ||
+      dt.getDate() !== day
+    ) {
+      return "";
+    }
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return `${months[month - 1]} ${day}, ${year}`;
   },
 
-  /** Short stay label e.g. "Sep 10–14" or "Sep 28–Oct 2". */
+  /** Stay range in month, day, year order. Example: "October 4, 2026 → October 8, 2026". */
+  formatDateRange(checkIn, checkOut) {
+    const start = this.formatStayDate(checkIn);
+    const end = this.formatStayDate(checkOut);
+    if (!start || !end) return "";
+    return `${start} \u2192 ${end}`;
+  },
+
+  /** Original booking window, same month-day-year order as other stay dates. */
   formatOriginalStayRange(checkIn, checkOut) {
-    if (!checkIn || !checkOut) return "";
-    const start = new Date(`${checkIn}T12:00:00`);
-    const end = new Date(`${checkOut}T12:00:00`);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "";
-    const sameMonth =
-      start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-    if (sameMonth) {
-      const mon = start.toLocaleDateString("en-US", { month: "short" });
-      return `${mon} ${start.getDate()}\u2013${end.getDate()}`;
-    }
-    const opts = { month: "short", day: "numeric" };
-    return `${start.toLocaleDateString("en-US", opts)}\u2013${end.toLocaleDateString("en-US", opts)}`;
+    return this.formatDateRange(checkIn, checkOut);
+  },
+
+  /** Replace ISO stay dates inside a sentence (edit summaries, tooltips). */
+  formatStayDatesInText(text) {
+    if (text == null || text === "") return "";
+    return String(text).replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (iso) => {
+      return this.formatStayDate(iso) || iso;
+    });
   },
 
 

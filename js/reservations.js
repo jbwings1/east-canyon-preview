@@ -73,6 +73,11 @@ function mapStatusOptions(extra = {}) {
   return opts;
 }
 
+function visibleStayRange(start, end) {
+  const label = window.SpotAvailability.formatDateRange(start, end);
+  return label || `${start} to ${end}`;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -281,11 +286,13 @@ function isCheckInTooFarOut(checkInValue) {
 
 function advanceBookingMessage() {
   const latest = window.SpotAvailability.getMaxCheckInDate();
-  const latestFormatted = new Date(`${latest}T12:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const latestFormatted =
+    window.SpotAvailability.formatStayDate(latest) ||
+    new Date(`${latest}T12:00:00`).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
   return `Reservations can only be made up to ${window.RESERVATION_MAX_ADVANCE_DAYS} days in advance. Latest check-in: ${latestFormatted}.`;
 }
 
@@ -713,7 +720,7 @@ function updateMapAvailability() {
       "rv",
       statusOpts
     );
-    mapSummary.textContent = `${available} RV site${available === 1 ? "" : "s"} open for your full stay (${inDate} to ${outDate}). Green = available, yellow = partially booked, red = fully booked.${lengthLegend}`;
+    mapSummary.textContent = `${available} RV site${available === 1 ? "" : "s"} open for your full stay (${visibleStayRange(inDate, outDate)}). Green = available, yellow = partially booked, red = fully booked.${lengthLegend}`;
   } else if (isCondo) {
     const available = window.SpotAvailability.countAvailable(
       inDate,
@@ -721,7 +728,7 @@ function updateMapAvailability() {
       "condo",
       statusOpts
     );
-    mapSummary.textContent = `${available} condo${available === 1 ? "" : "s"} open for your full stay (${inDate} to ${outDate}). Green = available, yellow = partially booked, red = fully booked.`;
+    mapSummary.textContent = `${available} condo${available === 1 ? "" : "s"} open for your full stay (${visibleStayRange(inDate, outDate)}). Green = available, yellow = partially booked, red = fully booked.`;
   } else if (isReunion) {
     const available = window.SpotAvailability.countAvailable(
       inDate,
@@ -729,7 +736,7 @@ function updateMapAvailability() {
       "reunion",
       statusOpts
     );
-    mapSummary.textContent = `${available} family site${available === 1 ? "" : "s"} open for your full stay (${inDate} to ${outDate}). Green = available, yellow = partially booked, red = fully booked.`;
+    mapSummary.textContent = `${available} family site${available === 1 ? "" : "s"} open for your full stay (${visibleStayRange(inDate, outDate)}). Green = available, yellow = partially booked, red = fully booked.`;
   } else {
     const rvOpen = window.SpotAvailability.countAvailable(inDate, outDate, "rv", statusOpts);
     const condoOpen = window.SpotAvailability.countAvailable(
@@ -745,7 +752,7 @@ function updateMapAvailability() {
       statusOpts
     );
     mapSummary.textContent =
-      `${rvOpen} RV site${rvOpen === 1 ? "" : "s"}, ${condoOpen} condo${condoOpen === 1 ? "" : "s"}, and ${reunionOpen} family site${reunionOpen === 1 ? "" : "s"} open for ${inDate} to ${outDate}. Click any unit to view its schedule, or choose a reservation type above to book.`;
+      `${rvOpen} RV site${rvOpen === 1 ? "" : "s"}, ${condoOpen} condo${condoOpen === 1 ? "" : "s"}, and ${reunionOpen} family site${reunionOpen === 1 ? "" : "s"} open for ${visibleStayRange(inDate, outDate)}. Click any unit to view its schedule, or choose a reservation type above to book.`;
     clearPreferredSpot();
   }
 
@@ -1297,7 +1304,7 @@ form.addEventListener("submit", async (e) => {
   const detail = wasEditing
     ? `Reservation updated.${unitNote} Confirmation #${confirmationId}.`
     : `You're booked, ${data.name.split(" ")[0]}! Your ${typeLabels[data.type] || "reservation"} for ` +
-      `${data.checkIn} to ${data.checkOut} is confirmed.${unitNote} Confirmation #${confirmationId} was sent to ${data.email}.`;
+      `${visibleStayRange(data.checkIn, data.checkOut)} is confirmed.${unitNote} Confirmation #${confirmationId} was sent to ${data.email}.`;
 
   const record = {
     id: booking.id,
