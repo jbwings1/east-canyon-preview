@@ -13,7 +13,22 @@
   const back = document.getElementById("resort-cal-back");
   if (!root || !list) return;
 
-  if (back) {
+  if (back && typeof Auth !== "undefined") {
+    const user = Auth.getCurrentUser?.();
+    if (Auth.isAdmin?.(user)) {
+      back.href = "admin.html";
+      back.textContent = "← Admin";
+    } else if (Auth.canAccessMembers?.(user)) {
+      back.href = "member-home.html";
+      back.textContent = "← Members";
+    } else {
+      const ref = document.referrer || "";
+      if (/member-home\.html|\/members\.html/i.test(ref)) {
+        back.href = "member-home.html";
+        back.textContent = "← Members";
+      }
+    }
+  } else if (back) {
     const ref = document.referrer || "";
     if (/member-home\.html|\/members\.html/i.test(ref)) {
       back.href = "member-home.html";
