@@ -82,7 +82,14 @@
           <td>${AdminCommon.escapeHtml(type)}</td>
           <td>${AdminCommon.escapeHtml(b.spot || "—")}</td>
           <td>${AdminCommon.escapeHtml(dates)}</td>
-          <td><span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span></td>
+          <td>${
+            typeof BookingLimits !== "undefined"
+              ? BookingLimits.statusWithFlags(
+                  `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`,
+                  b.rule_overrides
+                )
+              : `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`
+          }</td>
           ${actions}
         </tr>`;
       })
@@ -93,6 +100,19 @@
   }
 
   bookingsBody?.addEventListener("click", async (event) => {
+    const flagBtn = event.target.closest(".status-flag");
+    if (flagBtn && bookingsBody.contains(flagBtn)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const index = flagBtn.getAttribute("data-flag-index");
+      const cell = flagBtn.closest("td");
+      const detail = cell?.querySelector(`.status-flag-detail[data-flag-index="${index}"]`);
+      const open = flagBtn.getAttribute("aria-expanded") !== "true";
+      flagBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (detail) detail.hidden = !open;
+      return;
+    }
+
     const button = event.target.closest("button[data-action='cancelled']");
     if (!button || !canManage) return;
     const id = button.getAttribute("data-booking-id");

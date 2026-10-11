@@ -26,8 +26,10 @@
 
   let profiles = [];
   let bookings = [];
+  let invoices = [];
   let editingId = null;
   let viewingId = null;
+  let adminMapReady = false;
   const createOverrideSession =
     typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
   const editOverrideSession =
@@ -528,7 +530,14 @@
           <td>${AdminCommon.escapeHtml(type)}</td>
           <td>${AdminCommon.escapeHtml(b.spot || "—")}</td>
           <td>${AdminCommon.escapeHtml(dates)}</td>
-          <td><span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span></td>
+          <td>${
+            typeof BookingLimits !== "undefined"
+              ? BookingLimits.statusWithFlags(
+                  `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`,
+                  b.rule_overrides
+                )
+              : `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`
+          }</td>
           <td class="admin-booking-actions">
             <div class="admin-row-menu">
               <button type="button" class="btn btn-outline btn-small admin-row-menu-toggle" aria-expanded="false" aria-haspopup="menu">Actions</button>
@@ -559,8 +568,11 @@
   }
 
   async function load() {
-    profiles = await Auth.listAllProfiles();
-    bookings = await Auth.listAllBookings();
+    [profiles, bookings, invoices] = await Promise.all([
+      Auth.listAllProfiles(),
+      Auth.listAllBookings(),
+      Auth.listInvoices(),
+    ]);
     renderBookingMemberOptions();
     renderBookings();
     const flagged = bookings.filter((b) => !ruleFlagForBooking(b).ok).length;
@@ -580,31 +592,202 @@
       if (still) openView(still);
       else closeView();
     }
+    if (adminMapReady && createCard && !createCard.hidden) refreshAdminMap();
+  }
+
+  function mapFilterForType(type) {
+    if (type === "rv") return "rv";
+    if (type === "condo") return "condo";
+    if (type === "family-reunion" || type === "reunion" || type === "family_reunion") return "reunion";
+    return "all";
+  }
+
+  function unitMatchesType(unit, type) {
+    if (!unit) return false;
+    const filter = mapFilterForType(type);
+    if (filter === "all") return true;
+    return unit.category === filter;
+  }
+
+  function formatAdminUnit(unit) {
+    if (!unit) return "";
+    if (unit.category === "condo") {
+      return unit.bedrooms ? `Condo ${unit.label} (${unit.bedrooms}-bedroom)` : `Condo ${unit.label}`;
+    }
+    if (unit.category === "reunion") return unit.name || `Family site ${unit.label}`;
+    const typeLabel = window.SPOT_TYPE_LABELS?.[unit.type] || unit.type || "RV";
+    const lengthBit = window.SpotAvailability?.formatUnitLengthBit?.(unit);
+    return lengthBit
+      ? `Site ${unit.label} (${typeLabel} · ${lengthBit})`
+      : `Site ${unit.label} (${typeLabel})`;
+  }
+
+  function updateAdminSpotBanner(unit) {
+    const banner = document.getElementById("admin-selected-spot-banner");
+    const label = document.getElementById("admin-selected-spot");
+    if (!banner || !label) return;
+    if (!unit) {
+      banner.hidden = true;
+      label.textContent = "";
+      return;
+    }
+    label.textContent = formatAdminUnit(unit);
+    banner.hidden = false;
+  }
+
+  function syncAdminMapBookings() {
+    if (!window.SpotAvailability?.normalizeDate) return;
+    window.SPOT_BOOKINGS = (bookings || [])
+      .filter((row) => row && row.status !== "cancelled" && row.spot && row.check_in && row.check_out)
+      .map((row) => ({
+        bookingId: row.id || null,
+        spotId: String(row.spot),
+        checkIn: window.SpotAvailability.normalizeDate(row.check_in),
+        checkOut: window.SpotAvailability.normalizeDate(row.check_out),
+      }))
+      .filter((row) => row.checkIn && row.checkOut);
+  }
+
+  function refreshAdminMap() {
+    if (!adminMapReady || typeof CampgroundMap === "undefined") return;
+    syncAdminMapBookings();
+    const type = document.getElementById("booking-type")?.value || "";
+    const checkIn = document.getElementById("booking-check-in")?.value || "";
+    const checkOut = document.getElementById("booking-check-out")?.value || "";
+    const spotInput = document.getElementById("booking-spot");
+    const typedId = spotInput?.value.trim() || "";
+    const datesReady = Boolean(checkIn && checkOut && checkOut > checkIn);
+    if (CampgroundMap._selectedId && CampgroundMap._selectedId !== typedId) {
+      CampgroundMap._selectedId = null;
+    }
+    CampgroundMap.setUnitFilter(mapFilterForType(type));
+    CampgroundMap.setDates(checkIn, checkOut);
+
+    const unit = typedId ? window.SpotAvailability?.findUnit?.(typedId) || null : null;
+    if (!typedId) {
+      if (CampgroundMap._selectedId) CampgroundMap.clearSelection();
+      updateAdminSpotBanner(null);
+      return;
+    }
+    if (!unit) {
+      if (CampgroundMap._selectedId) CampgroundMap.clearSelection();
+      updateAdminSpotBanner(null);
+      return;
+    }
+    if (!unitMatchesType(unit, type)) {
+      if (spotInput) spotInput.value = "";
+      CampgroundMap.clearSelection();
+      updateAdminSpotBanner(null);
+      return;
+    }
+    const status = CampgroundMap.getUnitStatus(unit);
+    if (status === "available") {
+      CampgroundMap.selectUnit(unit.id, { force: true });
+      updateAdminSpotBanner(unit);
+      return;
+    }
+    if (datesReady) {
+      if (spotInput) spotInput.value = "";
+      CampgroundMap.clearSelection();
+      updateAdminSpotBanner(null);
+      return;
+    }
+    if (CampgroundMap._selectedId) CampgroundMap.clearSelection();
+    updateAdminSpotBanner(unit);
+  }
+
+  function ensureAdminMap() {
+    if (adminMapReady || typeof CampgroundMap === "undefined") return;
+    if (!document.getElementById("admin-spots-layer") || !document.getElementById("admin-campground-map")) {
+      return;
+    }
+    syncAdminMapBookings();
+    CampgroundMap.init({
+      layerId: "admin-spots-layer",
+      detailId: "admin-map-unit-detail",
+      svgId: "admin-campground-map",
+      photoId: "admin-map-photo",
+      legendId: "admin-map-legend",
+      requireDatesForSpots: false,
+      lookupOnly: false,
+      unitFilter: mapFilterForType(document.getElementById("booking-type")?.value),
+      canBookSelect(unit) {
+        return unitMatchesType(unit, document.getElementById("booking-type")?.value || "");
+      },
+      onSpotSelect(unit) {
+        const type = document.getElementById("booking-type")?.value || "";
+        if (!unitMatchesType(unit, type)) return;
+        const spotInput = document.getElementById("booking-spot");
+        if (spotInput) spotInput.value = unit.id;
+        updateAdminSpotBanner(unit);
+      },
+    });
+    if (typeof MapZoom !== "undefined") {
+      MapZoom.init({
+        viewport: document.getElementById("admin-map-viewport"),
+        stage: document.getElementById("admin-map-zoom-stage"),
+        zoomInBtn: document.getElementById("admin-map-zoom-in"),
+        zoomOutBtn: document.getElementById("admin-map-zoom-out"),
+        resetBtn: document.getElementById("admin-map-zoom-reset"),
+      });
+    }
+    adminMapReady = true;
+    refreshAdminMap();
+  }
+
+  function overdueViolation(userId) {
+    const today = todayIso();
+    const open = invoices.filter(
+      (invoice) => invoice.user_id === userId && Auth.invoiceIsOverdue(invoice, today)
+    );
+    if (!open.length) return null;
+    const total = open.reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
+    return {
+      rule: "account_overdue",
+      label: "Account overdue",
+      message: `This member's account is overdue (${Auth.formatMoney(total)}). Override to book and record who approved it.`,
+    };
+  }
+
+  function withOverdue(gate, userId) {
+    const extra = overdueViolation(userId);
+    if (!extra) return gate || { ok: true, violations: [] };
+    return {
+      ...(gate || {}),
+      ok: false,
+      violations: [...(gate?.violations || []), extra],
+    };
   }
 
   function evaluateSelectedMemberRights() {
     if (typeof BookingLimits === "undefined") {
-      if (typeof MembershipRights === "undefined") return { ok: true, violations: [] };
+      if (typeof MembershipRights === "undefined") return withOverdue({ ok: true, violations: [] }, bookingMember.value);
       const memberUserId = bookingMember.value;
       const profile = profiles.find((p) => p.id === memberUserId);
-      return MembershipRights.validateBooking({
+      return withOverdue(
+        MembershipRights.validateBooking({
+          memberId: profile?.member_id || "",
+          reservationType: bookingType.value,
+          checkIn: document.getElementById("booking-check-in").value,
+          checkOut: document.getElementById("booking-check-out").value,
+          existingBookings: bookings.filter((b) => b.user_id === memberUserId),
+        }),
+        memberUserId
+      );
+    }
+    const memberUserId = bookingMember.value;
+    const profile = profiles.find((p) => p.id === memberUserId);
+    return withOverdue(
+      BookingLimits.evaluateProposedStay({
         memberId: profile?.member_id || "",
         reservationType: bookingType.value,
         checkIn: document.getElementById("booking-check-in").value,
         checkOut: document.getElementById("booking-check-out").value,
         existingBookings: bookings.filter((b) => b.user_id === memberUserId),
-      });
-    }
-    const memberUserId = bookingMember.value;
-    const profile = profiles.find((p) => p.id === memberUserId);
-    return BookingLimits.evaluateProposedStay({
-      memberId: profile?.member_id || "",
-      reservationType: bookingType.value,
-      checkIn: document.getElementById("booking-check-in").value,
-      checkOut: document.getElementById("booking-check-out").value,
-      existingBookings: bookings.filter((b) => b.user_id === memberUserId),
-      isNewBooking: true,
-    });
+        isNewBooking: true,
+      }),
+      memberUserId
+    );
   }
 
   function evaluateEditRights(booking) {
@@ -658,7 +841,12 @@
     const checkOut = document.getElementById("booking-check-out")?.value;
     if (!bookingMember?.value || !checkIn || !checkOut || checkOut <= checkIn) {
       createOverrideSession?.clear();
-      if (typeof BookingLimits !== "undefined") {
+      const extra = bookingMember?.value ? overdueViolation(bookingMember.value) : null;
+      if (extra && el) {
+        el.hidden = false;
+        el.classList.add("stay-length-notice--limit", "booking-limits-notice");
+        el.textContent = extra.message;
+      } else if (typeof BookingLimits !== "undefined") {
         BookingLimits.renderLimitNotice(el, { ok: true, violations: [], condoStatus: null });
       } else if (el) {
         el.hidden = true;
@@ -809,6 +997,8 @@
       closeMemberList();
       createOverrideSession?.clear();
       refreshCreateRightsNotice();
+      updateAdminSpotBanner(null);
+      if (adminMapReady && typeof CampgroundMap !== "undefined") CampgroundMap.clearSelection();
       await load();
     } catch (err) {
       AdminCommon.showMessage(result, err.message, "error");
@@ -875,6 +1065,10 @@
     createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
       createCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.requestAnimationFrame(() => {
+        ensureAdminMap();
+        refreshAdminMap();
+      });
       memberSearchField()?.focus();
       showMemberList();
     }
@@ -1014,8 +1208,18 @@
   ["booking-member", "booking-type", "booking-check-in", "booking-check-out"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", () => {
       AdminCommon.showMessage(document.getElementById("admin-create-booking-result"), "", "");
+      if (id !== "booking-member") refreshAdminMap();
       refreshCreateRightsNotice();
     });
+  });
+  document.getElementById("booking-spot")?.addEventListener("change", () => {
+    refreshAdminMap();
+  });
+  document.getElementById("admin-clear-spot")?.addEventListener("click", () => {
+    const spotInput = document.getElementById("booking-spot");
+    if (spotInput) spotInput.value = "";
+    if (adminMapReady && typeof CampgroundMap !== "undefined") CampgroundMap.clearSelection();
+    updateAdminSpotBanner(null);
   });
   ["edit-booking-type", "edit-booking-check-in", "edit-booking-check-out"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", () => {
@@ -1034,6 +1238,19 @@
   }
 
   bookingsBody?.addEventListener("click", async (event) => {
+    const flagBtn = event.target.closest(".status-flag");
+    if (flagBtn && bookingsBody.contains(flagBtn)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const index = flagBtn.getAttribute("data-flag-index");
+      const cell = flagBtn.closest("td");
+      const detail = cell?.querySelector(`.status-flag-detail[data-flag-index="${index}"]`);
+      const open = flagBtn.getAttribute("aria-expanded") !== "true";
+      flagBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (detail) detail.hidden = !open;
+      return;
+    }
+
     const toggle = event.target.closest(".admin-row-menu-toggle");
     if (toggle && bookingsBody.contains(toggle)) {
       event.stopPropagation();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reports | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site64">
+  <link rel="stylesheet" href="styles.css?v=site66">
 </head>
 <body class="page-visitor page-admin page-reports">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -48,6 +48,7 @@
             <button type="button" class="btn btn-outline" data-report-picker="reservations" aria-pressed="true">All reservations</button>
             <button type="button" class="btn btn-outline" data-report-picker="members" aria-pressed="false">Current members</button>
             <button type="button" class="btn btn-outline" data-report-picker="types" aria-pressed="false">Reservations by type</button>
+            <button type="button" class="btn btn-outline" data-report-picker="overrides" aria-pressed="false">Overrides</button>
           </div>
           <button type="button" class="btn btn-outline" id="report-print-btn">Print</button>
         </div>
@@ -197,6 +198,68 @@
           </div>
         </section>
 
+        <section class="admin-card" data-report-panel="overrides" aria-labelledby="report-overrides-heading" hidden>
+          <h2 id="report-overrides-heading">Overrides</h2>
+          <p class="report-print-range" id="report-override-print-range"></p>
+          <p class="admin-help">
+            Every rule override and overdue-account override saved on a reservation.
+            Search by the member the stay is for, or by the admin who cleared it.
+          </p>
+          <div class="admin-toolbar">
+            <div class="admin-toolbar-filters">
+              <div class="form-group form-group-search member-lookup">
+                <label for="report-override-member-search">Member</label>
+                <input
+                  type="text"
+                  id="report-override-member-search"
+                  placeholder="Name or member number"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="report-override-member-list"
+                  aria-autocomplete="list"
+                >
+                <ul id="report-override-member-list" class="member-lookup-list" role="listbox" hidden></ul>
+                <input type="hidden" id="report-override-member" value="">
+              </div>
+              <div class="form-group form-group-search member-lookup">
+                <label for="report-override-admin-search">Admin</label>
+                <input
+                  type="text"
+                  id="report-override-admin-search"
+                  placeholder="Name or admin id"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="report-override-admin-list"
+                  aria-autocomplete="list"
+                >
+                <ul id="report-override-admin-list" class="member-lookup-list" role="listbox" hidden></ul>
+                <input type="hidden" id="report-override-admin" value="">
+              </div>
+            </div>
+          </div>
+          <p id="report-override-summary" class="admin-count"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Cleared</th>
+                  <th>Member</th>
+                  <th>Confirmation</th>
+                  <th>Stay</th>
+                  <th>Kind</th>
+                  <th>Admin</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody id="report-override-body">
+                <tr><td colspan="7">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
       </div>
     </div>
@@ -210,7 +273,7 @@
   <script src="js/admin-common.js?v=sb17"></script>
   <script src="js/spots-data.js?v=12"></script>
   <script src="js/stay-date-fields.js?v=3"></script>
-  <script src="js/admin-reports.js?v=7"></script>
+  <script src="js/admin-reports.js?v=8"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

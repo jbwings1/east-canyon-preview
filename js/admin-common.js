@@ -31,7 +31,14 @@ window.AdminCommon = {
       id: "reports",
       label: "Reports",
       href: "admin-reports.html",
-      blurb: "Reservations, current members, and counts by RV, condo, and family reunion.",
+      blurb: "Reservations, current members, stay counts, and booking overrides.",
+    },
+    {
+      id: "invoices",
+      label: "Member accounts",
+      href: "admin-invoices.html",
+      blurb: "Create a charge for dues, a penalty, or another amount a member owes.",
+      gate: "reservations_manage",
     },
     {
       id: "website",

@@ -1055,12 +1055,126 @@ if (cancelEditBtn && cancelEditBtn.tagName === "BUTTON") {
   });
 }
 
+const BOOKING_DRAFT_KEY = "ecrBookingDraft";
+let memberInvoices = [];
+
+function overdueInvoiceRows() {
+  const today = typeof Auth?.localToday === "function" ? Auth.localToday() : "";
+  return memberInvoices.filter((invoice) =>
+    typeof Auth?.invoiceIsOverdue === "function"
+      ? Auth.invoiceIsOverdue(invoice, today)
+      : invoice?.status === "open" && invoice.due_date && invoice.due_date < today
+  );
+}
+
+function saveBookingDraft() {
+  const draft = {
+    checkIn: checkIn?.value || "",
+    checkOut: checkOut?.value || "",
+    type: typeSelect?.value || "",
+    guests: document.getElementById("res-guests")?.value || "",
+    rig: rigSelect?.value || "",
+    notes: document.getElementById("res-notes")?.value || "",
+    preferredSpot: preferredSpotInput?.value || "",
+    name: document.getElementById("res-name")?.value || "",
+    memberId: memberIdInput?.value || "",
+    email: document.getElementById("res-email")?.value || "",
+    phone: document.getElementById("res-phone")?.value || "",
+  };
+  try {
+    sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* the booking page can still be opened again */
+  }
+}
+
+function restoreBookingDraft() {
+  let raw = "";
+  try {
+    raw = sessionStorage.getItem(BOOKING_DRAFT_KEY) || "";
+  } catch {
+    return;
+  }
+  if (!raw) return;
+  let draft;
+  try {
+    draft = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  if (checkIn && draft.checkIn) checkIn.value = draft.checkIn;
+  if (checkOut && draft.checkOut) checkOut.value = draft.checkOut;
+  if (typeSelect && draft.type) typeSelect.value = draft.type;
+  const guests = document.getElementById("res-guests");
+  if (guests && draft.guests) guests.value = draft.guests;
+  if (rigSelect && draft.rig) rigSelect.value = draft.rig;
+  const notes = document.getElementById("res-notes");
+  if (notes && draft.notes) notes.value = draft.notes;
+  const name = document.getElementById("res-name");
+  if (name && draft.name) name.value = draft.name;
+  if (memberIdInput && draft.memberId) memberIdInput.value = draft.memberId;
+  const email = document.getElementById("res-email");
+  if (email && draft.email) email.value = draft.email;
+  const phone = document.getElementById("res-phone");
+  if (phone && draft.phone) phone.value = draft.phone;
+  syncCheckoutMin();
+  updateRvFields();
+  if (draft.preferredSpot && preferredSpotInput) {
+    const unit = window.SpotAvailability?.findUnit?.(draft.preferredSpot);
+    if (unit) {
+      preferredSpotInput.value = unit.id;
+      if (selectedSpotLabel) selectedSpotLabel.textContent = formatSelectedUnit(unit);
+      if (preferredSpotDisplay) preferredSpotDisplay.hidden = false;
+      if (typeof CampgroundMap?.selectUnit === "function") {
+        CampgroundMap.selectUnit(unit.id, { force: true });
+      }
+    }
+  }
+  updateMapAvailability();
+  updateStaySummary();
+}
+
+function renderOverdueNotice() {
+  const el = document.getElementById("account-overdue-notice");
+  if (!el || reservationMode === "edit") return;
+  const overdue = overdueInvoiceRows();
+  if (!overdue.length) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  const lines = overdue
+    .map(
+      (invoice) =>
+        `${escapeHtml(invoice.invoice_number)} · ${escapeHtml(
+          Auth.chargeTypeLabel(invoice.charge_type)
+        )} · ${escapeHtml(Auth.formatMoney(invoice.amount))}`
+    )
+    .join("<br>");
+  el.hidden = false;
+  el.innerHTML = `<p>Your account is overdue. Pay the open charge, then you can finish this reservation.</p><p>${lines}</p><p><button type="button" class="btn btn-primary" id="account-overdue-pay">Pay now</button></p>`;
+  document.getElementById("account-overdue-pay")?.addEventListener("click", () => {
+    saveBookingDraft();
+    window.location.href = "member-account.html?return=book";
+  });
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   message.textContent = "";
   message.className = "form-message";
 
   const user = typeof Auth !== "undefined" ? Auth.getCurrentUser() : null;
+  if (reservationMode !== "edit" && overdueInvoiceRows().length) {
+    renderOverdueNotice();
+    message.textContent = "Your account is overdue. Pay the open charge before booking.";
+    message.className = "form-message error";
+    document.getElementById("account-overdue-notice")?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+    return;
+  }
   if (!user) {
     message.textContent = "Sign in to complete a booking.";
     message.className = "form-message error";
@@ -1367,6 +1481,13 @@ form.addEventListener("submit", async (e) => {
     }
     loadBookingIntoForm(booking);
   } else {
+    try {
+      memberInvoices = typeof Auth.listInvoices === "function" ? await Auth.listInvoices() : [];
+    } catch {
+      memberInvoices = [];
+    }
+    restoreBookingDraft();
+    renderOverdueNotice();
     showBookingFormState();
   }
   updateMemberReservationNotice();

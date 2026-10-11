@@ -2562,6 +2562,30 @@ a:hover {
   max-width: 40rem;
 }
 
+.page-visitor .page-content.admin-manage-wide {
+  width: min(1480px, 96vw);
+}
+
+.page-admin #admin-create-booking-form.admin-form {
+  max-width: none;
+}
+
+.page-admin #admin-create-booking-form > :not(.admin-create-map) {
+  max-width: 40rem;
+}
+
+.page-admin .admin-create-map {
+  margin: 0.25rem 0 1.25rem;
+}
+
+.page-admin .admin-create-map .map-panel {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+
 .admin-form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
@@ -4134,6 +4158,62 @@ img.logo {
 .status-pill.tooShort { background: #1a1a1a; }
 .status-pill.member { background: #2f7dba; }
 .status-pill.maintenance { background: #c45c26; }
+
+.status-with-flags {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  vertical-align: middle;
+}
+
+.status-flag-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.status-flag {
+  width: 1.15rem;
+  height: 1.35rem;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: #e6b800;
+  appearance: none;
+  clip-path: polygon(0 0, 22% 0, 22% 10%, 100% 10%, 76% 34%, 100% 58%, 22% 58%, 22% 100%, 0 100%);
+}
+
+.status-flag--rule {
+  background: #e6b800;
+}
+
+.status-flag--overdue {
+  background: #c0392b;
+}
+
+.status-flag-detail {
+  display: block;
+  margin-top: 0.35rem;
+  max-width: 16rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #1c1916;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.status-flag-detail span {
+  display: block;
+}
+
+.status-flag-detail span + span {
+  margin-top: 0.2rem;
+}
+
+.admin-table tr.admin-booking-past .status-flag-detail {
+  color: #1c1916;
+}
 
 .btn-outline {
   background: transparent;

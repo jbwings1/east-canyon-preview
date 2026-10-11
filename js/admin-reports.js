@@ -259,7 +259,7 @@
     if (input) input.value = iso || "";
   }
 
-  const REPORT_PANELS = ["reservations", "members", "types"];
+  const REPORT_PANELS = ["reservations", "members", "types", "overrides"];
 
   function showReport(id) {
     const next = REPORT_PANELS.includes(id) ? id : "reservations";
@@ -651,12 +651,178 @@
         `<tr class="report-total"><td>Total</td><td>${counts.total}</td></tr>`;
     }
 
+    let adminOptions = [];
+    let adminHighlight = -1;
+
+    function buildAdminOptions() {
+      const map = new Map();
+      const add = (id, name, code) => {
+        const key = String(id || "").trim();
+        if (!key || map.has(key)) return;
+        const label = code && code !== name ? `${name} · ${code}` : name || code || key;
+        map.set(key, {
+          id: key,
+          label,
+          full_name: name || label,
+          member_id: code || "",
+        });
+      };
+      bookings.forEach((booking) => {
+        const list = Array.isArray(booking.rule_overrides) ? booking.rule_overrides : [];
+        list.forEach((item) => {
+          if (!item?.rule) return;
+          add(item.by || item.by_name, item.by_name || item.by || "Admin", item.by || "");
+        });
+      });
+      profiles.forEach((profile) => {
+        if (!profile?.is_admin && !String(profile?.staff_code || "").trim()) return;
+        const name = profile.full_name || profile.email || "Admin";
+        add(profile.staff_code || profile.email || profile.id, name, profile.staff_code || "");
+      });
+      adminOptions = [...map.values()].sort((a, b) =>
+        a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" })
+      );
+    }
+
+    function selectedAdminId() {
+      return document.getElementById("report-override-admin")?.value || "";
+    }
+
+    function adminSearchInput() {
+      return document.getElementById("report-override-admin-search");
+    }
+
+    function adminList() {
+      return document.getElementById("report-override-admin-list");
+    }
+
+    function closeAdminList() {
+      const list = adminList();
+      const input = adminSearchInput();
+      adminHighlight = -1;
+      if (list) {
+        list.hidden = true;
+        list.innerHTML = "";
+      }
+      if (input) {
+        input.setAttribute("aria-expanded", "false");
+        input.removeAttribute("aria-activedescendant");
+      }
+    }
+
+    function showAdminMatches(query) {
+      const list = adminList();
+      const input = adminSearchInput();
+      if (!list || !input) return;
+      const q = String(query || "").trim();
+      if (!q) {
+        closeAdminList();
+        return;
+      }
+      const matches = adminOptions
+        .filter((option) =>
+          memberMatchesQuery(
+            { full_name: option.full_name, member_id: option.member_id, label: option.label },
+            q
+          )
+        )
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+      const shown = matches.slice(0, 12);
+      adminHighlight = shown.length ? 0 : -1;
+      list.innerHTML =
+        shown
+          .map(
+            (option, index) =>
+              `<li role="presentation"><button type="button" role="option" data-admin-id="${escapeHtml(
+                option.id
+              )}" aria-selected="${index === 0 ? "true" : "false"}">${escapeHtml(option.label)}</button></li>`
+          )
+          .join("") +
+        (shown.length ? "" : `<li class="member-lookup-note" role="presentation">No admins match.</li>`);
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+
+    function applyAdminSelection(id) {
+      const hidden = document.getElementById("report-override-admin");
+      const input = adminSearchInput();
+      const next = id || "";
+      if (hidden) hidden.value = next;
+      const option = adminOptions.find((item) => item.id === next);
+      if (input) input.value = option ? option.label : "";
+      closeAdminList();
+      renderOverrides();
+    }
+
+    function renderOverrides() {
+      const body = document.getElementById("report-override-body");
+      const summary = document.getElementById("report-override-summary");
+      const printRange = document.getElementById("report-override-print-range");
+      if (!body || !summary) return;
+      const memberId = document.getElementById("report-override-member")?.value || "";
+      const adminId = selectedAdminId();
+      const memberLabel = memberId ? memberName(profiles, memberId) : "";
+      const adminLabel = adminOptions.find((item) => item.id === adminId)?.label || "";
+      const bits = [memberLabel, adminLabel].filter(Boolean);
+      if (printRange) printRange.textContent = bits.length ? bits.join(". ") + "." : "All overrides.";
+      const rows = [];
+      bookings.forEach((booking) => {
+        const list = Array.isArray(booking.rule_overrides) ? booking.rule_overrides : [];
+        list.forEach((item) => {
+          if (!item?.rule) return;
+          if (memberId && booking.user_id !== memberId) return;
+          if (adminId && item.by !== adminId && item.by_name !== adminId) return;
+          rows.push({ booking, item });
+        });
+      });
+      rows.sort((a, b) => String(b.item.at || "").localeCompare(String(a.item.at || "")));
+      const overdueCount = rows.filter((row) => row.item.rule === "account_overdue").length;
+      summary.textContent = rows.length
+        ? `${rows.length} override${rows.length === 1 ? "" : "s"}. ${overdueCount} overdue account${
+            overdueCount === 1 ? "" : "s"
+          }.`
+        : "No overrides match.";
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="7">No overrides match.</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows
+        .map(({ booking, item }) => {
+          const when = item.at
+            ? (() => {
+                const date = new Date(item.at);
+                return Number.isNaN(date.getTime()) ? item.at : date.toLocaleString();
+              })()
+            : "—";
+          const kind = item.rule === "account_overdue" ? "Overdue" : "Rule";
+          const who =
+            item.by && item.by !== item.by_name
+              ? `${item.by_name || "Admin"} (${item.by})`
+              : item.by_name || item.by || "—";
+          const stay =
+            booking.check_in && booking.check_out
+              ? `${formatStayDate(booking.check_in)} – ${formatStayDate(booking.check_out)}`
+              : "—";
+          return `<tr>
+            <td>${escapeHtml(when)}</td>
+            <td>${escapeHtml(memberName(profiles, booking.user_id))}</td>
+            <td><code>${escapeHtml(confirmationId(booking))}</code></td>
+            <td>${escapeHtml(stay)}</td>
+            <td>${escapeHtml(kind)}</td>
+            <td>${escapeHtml(who)}</td>
+            <td>${escapeHtml(item.note || "—")}</td>
+          </tr>`;
+        })
+        .join("");
+    }
+
     function renderAll() {
       const printed = document.getElementById("report-printed-on");
       if (printed) printed.textContent = `Printed ${formatStayDate(todayIso())}`;
       renderReservations();
       renderMembers();
       renderTypes();
+      renderOverrides();
     }
 
     document.querySelectorAll("[data-report][data-preset]").forEach((button) => {
@@ -726,9 +892,149 @@
       event.preventDefault();
       applyMemberSelection(button.getAttribute("data-member-id"));
     });
+    let overrideMemberHighlight = -1;
+
+    function overrideMemberInput() {
+      return document.getElementById("report-override-member-search");
+    }
+
+    function overrideMemberList() {
+      return document.getElementById("report-override-member-list");
+    }
+
+    function closeOverrideMemberList() {
+      const list = overrideMemberList();
+      const input = overrideMemberInput();
+      overrideMemberHighlight = -1;
+      if (list) {
+        list.hidden = true;
+        list.innerHTML = "";
+      }
+      if (input) input.setAttribute("aria-expanded", "false");
+    }
+
+    function showOverrideMemberMatches(query) {
+      const list = overrideMemberList();
+      const input = overrideMemberInput();
+      if (!list || !input) return;
+      const q = String(query || "").trim();
+      if (!q) {
+        closeOverrideMemberList();
+        return;
+      }
+      const matches = matchingMembers(q).slice(0, 12);
+      overrideMemberHighlight = matches.length ? 0 : -1;
+      list.innerHTML = matches.length
+        ? matches
+            .map(
+              (option, index) =>
+                `<li role="presentation"><button type="button" role="option" data-override-member-id="${escapeHtml(
+                  option.id
+                )}" aria-selected="${index === 0 ? "true" : "false"}">${escapeHtml(option.label)}</button></li>`
+            )
+            .join("")
+        : `<li class="member-lookup-note" role="presentation">No members match.</li>`;
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+
+    function applyOverrideMember(id) {
+      const hidden = document.getElementById("report-override-member");
+      const input = overrideMemberInput();
+      const next = id || "";
+      if (hidden) hidden.value = next;
+      const option = memberOptions.find((item) => item.id === next);
+      if (input) input.value = option ? option.label : "";
+      closeOverrideMemberList();
+      renderOverrides();
+    }
+
+    const overrideMemberSearch = overrideMemberInput();
+    overrideMemberSearch?.addEventListener("input", () => {
+      const hidden = document.getElementById("report-override-member");
+      if (hidden) hidden.value = "";
+      showOverrideMemberMatches(overrideMemberSearch.value);
+      if (!overrideMemberSearch.value.trim()) renderOverrides();
+    });
+    overrideMemberSearch?.addEventListener("keydown", (event) => {
+      const list = overrideMemberList();
+      const open = list && !list.hidden;
+      const buttons = open ? [...list.querySelectorAll("[data-override-member-id]")] : [];
+      if (event.key === "ArrowDown" && buttons.length) {
+        event.preventDefault();
+        overrideMemberHighlight = (overrideMemberHighlight + 1) % buttons.length;
+      } else if (event.key === "ArrowUp" && buttons.length) {
+        event.preventDefault();
+        overrideMemberHighlight = (overrideMemberHighlight - 1 + buttons.length) % buttons.length;
+      } else if (event.key === "Enter" && buttons.length) {
+        event.preventDefault();
+        const index = overrideMemberHighlight >= 0 ? overrideMemberHighlight : 0;
+        applyOverrideMember(buttons[index].getAttribute("data-override-member-id"));
+        return;
+      } else if (event.key === "Escape") {
+        closeOverrideMemberList();
+        return;
+      } else {
+        return;
+      }
+      buttons.forEach((button, index) => {
+        button.classList.toggle("is-active", index === overrideMemberHighlight);
+      });
+    });
+    overrideMemberList()?.addEventListener("mousedown", (event) => {
+      const button = event.target.closest("[data-override-member-id]");
+      if (!button) return;
+      event.preventDefault();
+      applyOverrideMember(button.getAttribute("data-override-member-id"));
+    });
+
+    const adminSearch = adminSearchInput();
+    const adminResultList = adminList();
+    adminSearch?.addEventListener("input", () => {
+      const hidden = document.getElementById("report-override-admin");
+      if (hidden) hidden.value = "";
+      showAdminMatches(adminSearch.value);
+      if (!adminSearch.value.trim()) renderOverrides();
+    });
+    adminSearch?.addEventListener("keydown", (event) => {
+      const list = adminList();
+      const open = list && !list.hidden;
+      const buttons = open ? [...list.querySelectorAll("[data-admin-id]")] : [];
+      if (event.key === "ArrowDown" && open && buttons.length) {
+        event.preventDefault();
+        adminHighlight = (adminHighlight + 1) % buttons.length;
+      } else if (event.key === "ArrowUp" && open && buttons.length) {
+        event.preventDefault();
+        adminHighlight = (adminHighlight - 1 + buttons.length) % buttons.length;
+      } else if (event.key === "Enter" && open && buttons.length) {
+        event.preventDefault();
+        const index = adminHighlight >= 0 ? adminHighlight : 0;
+        applyAdminSelection(buttons[index].getAttribute("data-admin-id"));
+        return;
+      } else if (event.key === "Escape") {
+        closeAdminList();
+        return;
+      } else {
+        return;
+      }
+      buttons.forEach((button, index) => {
+        button.classList.toggle("is-active", index === adminHighlight);
+        button.setAttribute("aria-selected", index === adminHighlight ? "true" : "false");
+      });
+    });
+    adminResultList?.addEventListener("mousedown", (event) => {
+      const button = event.target.closest("[data-admin-id]");
+      if (!button) return;
+      event.preventDefault();
+      applyAdminSelection(button.getAttribute("data-admin-id"));
+    });
     document.addEventListener("click", (event) => {
-      const field = document.querySelector(".member-lookup");
-      if (field && !field.contains(event.target)) closeMemberList();
+      const memberField = memberSearchInput()?.closest(".member-lookup");
+      if (memberField && !memberField.contains(event.target)) closeMemberList();
+      const overrideMemberField = overrideMemberInput()?.closest(".member-lookup");
+      if (overrideMemberField && !overrideMemberField.contains(event.target)) closeOverrideMemberList();
+      const adminField = adminSearchInput()?.closest(".member-lookup");
+      if (adminField && !adminField.contains(event.target)) closeAdminList();
     });
 
     ["report-res-from", "report-res-to"].forEach((id) => {
@@ -752,6 +1058,7 @@
         root.Auth.listAllBookings(),
       ]);
       buildMemberOptions();
+      buildAdminOptions();
       applyPreset("reservations", "current-year", "report-res-from", "report-res-to");
       applyPreset("types", "current-year", "report-type-from", "report-type-to");
       renderAll();

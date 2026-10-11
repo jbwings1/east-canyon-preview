@@ -1242,6 +1242,68 @@ const Auth = {
     return true;
   },
 
+  chargeTypeLabel(type) {
+    if (type === "annual_dues") return "Annual dues";
+    if (type === "penalty") return "Penalty";
+    if (type === "other") return "Other";
+    return type || "Charge";
+  },
+
+  formatMoney(amount) {
+    const value = Number(amount);
+    if (!Number.isFinite(value)) return "—";
+    return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  },
+
+  localToday() {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
+  },
+
+  invoiceIsOverdue(invoice, today = this.localToday()) {
+    return Boolean(
+      invoice && invoice.status === "open" && invoice.due_date && String(invoice.due_date) < today
+    );
+  },
+
+  async listInvoices() {
+    const { data, error } = await getClient()
+      .from("member_invoices")
+      .select(
+        "id,invoice_number,user_id,member_id,member_name,charge_type,description,amount,due_date,status,created_at,created_by,created_by_name,paid_at,paid_amount,payment_kind"
+      )
+      .order("created_at", { ascending: false });
+    throwIfError(error);
+    return data || [];
+  },
+
+  async createMemberInvoice({ userId, chargeType, description, amount, dueDate }) {
+    if (!this.hasAdminTask("reservations_manage")) {
+      throw new Error("You are not assigned the Reservations manage task.");
+    }
+    const { data, error } = await getClient().rpc("create_member_invoice", {
+      p_user_id: userId,
+      p_charge_type: chargeType,
+      p_description: String(description || "").trim(),
+      p_amount: amount,
+      p_due_date: dueDate,
+    });
+    throwIfError(error);
+    if (!data) throw new Error("Invoice could not be saved.");
+    return data;
+  },
+
+  async payOwnInvoice(invoiceId) {
+    const { data, error } = await getClient().rpc("pay_own_invoice", {
+      p_invoice_id: invoiceId,
+    });
+    throwIfError(error);
+    if (!data) throw new Error("Payment could not be saved.");
+    return data;
+  },
+
   async createBooking({ reservationType, spot, checkIn, checkOut, notes }) {
     const user = this.getCurrentUser();
     if (!user?.id) throw new Error("Sign in to complete a booking.");
@@ -1250,6 +1312,10 @@ const Auth = {
     }
     if (!this.canAccessMembers(user)) {
       throw new Error("Member access required to book.");
+    }
+    const invoices = await this.listInvoices();
+    if (invoices.some((invoice) => this.invoiceIsOverdue(invoice))) {
+      throw new Error("Your account is overdue. Pay the open charge before booking.");
     }
     const dbType = toDbReservationType(reservationType);
     if (!dbType) throw new Error("Choose Condo, Family reunion, or RV.");

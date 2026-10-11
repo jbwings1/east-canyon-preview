@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site64">
+  <link rel="stylesheet" href="styles.css?v=site66">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -29,7 +29,7 @@
   </header>
 
   <main>
-    <div class="container page-content page-content--wide">
+    <div class="container page-content page-content--wide admin-manage-wide">
       <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
       <h1>Manage reservations</h1>
       <p id="admin-denied" class="form-message error" hidden>
@@ -45,7 +45,7 @@
 
         <section class="admin-card" id="admin-create-card" hidden>
           <h2>Make a reservation for a member</h2>
-          <p class="admin-help">You cannot book for yourself while signed in as admin. Type a name or member number and choose the member from the list that opens under the field.</p>
+          <p class="admin-help">You cannot book for yourself while signed in as admin. Type a name or member number and choose the member from the list that opens under the field. Pick the type and dates, then click an open site on the map.</p>
           <form id="admin-create-booking-form" class="auth-form admin-form">
             <div class="form-group member-lookup">
               <label for="booking-member-search">Member</label>
@@ -71,10 +71,6 @@
                 <option value="rv">RV</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="booking-spot">Spot / unit</label>
-              <input type="text" id="booking-spot" placeholder="Optional">
-            </div>
             <div class="admin-form-row">
               <div class="form-group">
                 <label for="booking-check-in">Check in</label>
@@ -84,6 +80,63 @@
                 <label for="booking-check-out">Check out</label>
                 <input type="date" id="booking-check-out" required>
               </div>
+            </div>
+            <section class="reservation-map-section admin-create-map" id="admin-booking-map" aria-label="Booking map">
+              <h2 id="admin-map-section-title">Booking map</h2>
+              <p id="admin-map-summary" class="reservation-map-summary">
+                Choose the reservation type and dates, then click an open site. Green is open for the whole stay, yellow is partly booked, and red is booked. Drag to pan, scroll or +/− to zoom.
+              </p>
+              <div class="map-layout reservation-map-layout">
+                <div class="map-panel">
+                  <div class="reservation-map-toolbar">
+                    <div class="map-legend" id="admin-map-legend" aria-label="Map legend">
+                      <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+                      <span class="legend-item" data-status="partial"><span class="legend-swatch partial"></span> Partially booked</span>
+                      <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+                      <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
+                    </div>
+                    <div class="map-zoom-controls" aria-label="Map zoom controls">
+                      <button type="button" class="map-zoom-btn" id="admin-map-zoom-out" aria-label="Zoom out">-</button>
+                      <button type="button" class="map-zoom-btn map-zoom-btn--reset" id="admin-map-zoom-reset" aria-label="Reset zoom">100%</button>
+                      <button type="button" class="map-zoom-btn" id="admin-map-zoom-in" aria-label="Zoom in">+</button>
+                    </div>
+                  </div>
+                  <div class="reservation-map-viewport" id="admin-map-viewport">
+                    <div class="map-zoom-stage" id="admin-map-zoom-stage">
+                      <div class="campground-map-frame">
+                        <p class="map-image-fallback" hidden>
+                          Add the campground map as <code>pix/map.png</code> to show the real site layout.
+                        </p>
+                        <img
+                          src="pix/map.png"
+                          alt="East Canyon Resort site map"
+                          class="campground-map-photo"
+                          id="admin-map-photo"
+                        >
+                        <svg id="admin-campground-map" class="campground-map-overlay" role="img" aria-label="Site availability overlay">
+                          <g id="admin-spots-layer"></g>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <aside
+                  class="map-unit-detail spot-detail reservation-map-detail"
+                  id="admin-map-unit-detail"
+                  aria-label="Site details"
+                  aria-live="polite"
+                >
+                  <p class="spot-detail-placeholder">Click a site on the map to see details.</p>
+                </aside>
+              </div>
+            </section>
+            <div class="form-group">
+              <label for="booking-spot">Spot / unit</label>
+              <input type="text" id="booking-spot" placeholder="Click a site on the map, or type a unit">
+              <p class="selected-spot-banner" id="admin-selected-spot-banner" hidden>
+                Selected: <strong id="admin-selected-spot"></strong>
+                <button type="button" id="admin-clear-spot" class="btn-link">Clear</button>
+              </p>
             </div>
             <div class="form-group">
               <label for="booking-notes">Notes</label>
@@ -184,7 +237,7 @@
             <h2>All bookings</h2>
             <button type="button" class="btn btn-outline" id="admin-create-open" aria-expanded="false" aria-controls="admin-create-card">Make a reservation</button>
           </div>
-          <p class="admin-help">Use <strong>Actions</strong> on each row for View, Edit, Check in, Confirm, or Cancel. Open Edit to perform <strong>Office check-in</strong> when the member arrives (on or after check-in day). <strong>Rule flags</strong> mark broken booking rules. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
+          <p class="admin-help">Use <strong>Actions</strong> on each row for View, Edit, Check in, Confirm, or Cancel. Open Edit to perform <strong>Office check-in</strong> when the member arrives (on or after check-in day). <strong>Rule flags</strong> mark broken booking rules. A yellow pennant on the status pill means a rule was overridden. A red pennant means an overdue account was overridden. Click a pennant to see who cleared it. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
           <div class="admin-form-row admin-booking-filters">
             <div class="form-group">
               <label for="booking-filter-status">Show</label>
@@ -228,16 +281,18 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb4"></script>
-  <script src="js/auth.js?v=sb35"></script>
+  <script src="js/auth.js?v=sb36"></script>
   <script src="js/site-header-auth.js?v=4"></script>
   <script src="js/map-units-generated.js?v=1"></script>
   <script src="js/spots-data.js?v=12"></script>
+  <script src="js/campground-map.js?v=11"></script>
+  <script src="js/map-zoom.js"></script>
   <script src="js/membership-rights.js?v=7"></script>
-  <script src="js/booking-limits.js?v=1"></script>
+  <script src="js/booking-limits.js?v=2"></script>
   <script src="js/booking-rule-flags.js?v=8"></script>
   <script src="js/admin-common.js?v=sb13"></script>
   <script src="js/stay-date-fields.js?v=2"></script>
-  <script src="js/admin-reservations-manage.js?v=sb29"></script>
+  <script src="js/admin-reservations-manage.js?v=sb31"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

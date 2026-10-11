@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Accounts | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site66">
+</head>
+<body class="page-visitor page-admin">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Member accounts</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+        </p>
+
+        <section class="admin-card">
+          <h2>New charge</h2>
+          <p class="admin-help">
+            Create an invoice for annual dues, a penalty, or another charge.
+            This test account does not charge a card and does not update the office accounting software.
+          </p>
+          <form id="invoice-form">
+            <div class="form-group member-lookup">
+              <label for="invoice-member-search">Member</label>
+              <input type="text" id="invoice-member-search" placeholder="Name or member number" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="invoice-member-list" aria-autocomplete="list" required>
+              <ul id="invoice-member-list" class="member-lookup-list" role="listbox" hidden></ul>
+              <input type="hidden" id="invoice-member" value="">
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="invoice-type">Charge type</label>
+                <select id="invoice-type" required>
+                  <option value="annual_dues">Annual dues</option>
+                  <option value="penalty">Penalty</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="invoice-amount">Amount</label>
+                <input type="number" id="invoice-amount" min="0.01" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="invoice-due">Due date</label>
+                <input type="date" id="invoice-due" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="invoice-description">Description</label>
+              <input type="text" id="invoice-description" maxlength="500" required placeholder="What this charge is for">
+            </div>
+            <button type="submit" class="btn btn-primary">Create invoice</button>
+          </form>
+          <p id="invoice-result" class="form-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="admin-card">
+          <h2>Invoices</h2>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Member</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="invoice-body">
+                <tr><td colspan="6">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb4"></script>
+  <script src="js/auth.js?v=sb36"></script>
+  <script src="js/site-header-auth.js?v=4"></script>
+  <script src="js/admin-common.js?v=sb19"></script>
+  <script src="js/admin-invoices.js?v=1"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

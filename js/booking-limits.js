@@ -1,7 +1,7 @@
 /**
  * Unified booking limit evaluation + admin per-rule override UX.
  * Rule ids: max_nights, max_open_reservations, regular_time, type_disallowed,
- * consecutive_14_vacate_7.
+ * consecutive_14_vacate_7, account_overdue.
  */
 (function (global) {
   const RULE = {
@@ -10,6 +10,7 @@
     REGULAR_TIME: "regular_time",
     TYPE_DISALLOWED: "type_disallowed",
     CONSECUTIVE_14: "consecutive_14_vacate_7",
+    ACCOUNT_OVERDUE: "account_overdue",
   };
 
   const RULE_LABELS = {
@@ -18,6 +19,7 @@
     [RULE.REGULAR_TIME]: "Regular Time condo allotment",
     [RULE.TYPE_DISALLOWED]: "Membership class lodging rights",
     [RULE.CONSECUTIVE_14]: "14 consecutive days then 7 days off",
+    [RULE.ACCOUNT_OVERDUE]: "Account overdue",
   };
 
   const STREAK_MAX_DAYS = 14;
@@ -655,10 +657,67 @@
   }
 
   function actorFromUser(user) {
+    const name = user?.name || user?.fullName || user?.email || "Admin";
+    const id = String(
+      user?.staffCode || user?.adminSeat || user?.profileEmail || user?.email || user?.id || ""
+    ).trim();
     return {
-      by: user?.profileEmail || user?.email || user?.id || "",
-      by_name: user?.name || user?.fullName || user?.email || "Admin",
+      by: id,
+      by_name: name,
     };
+  }
+
+  function isOverdueOverride(override) {
+    return override?.rule === RULE.ACCOUNT_OVERDUE;
+  }
+
+  function clearedByLabel(override) {
+    const name = String(override?.by_name || override?.by || "an admin").trim() || "an admin";
+    const id = String(override?.by || "").trim();
+    if (id && id !== name) return `${name} (${id})`;
+    return name;
+  }
+
+  function overrideFlagLine(override) {
+    const note = String(override?.note || "").trim();
+    const who = clearedByLabel(override);
+    if (isOverdueOverride(override)) {
+      return note
+        ? `Account overdue. Booking cleared by ${who}. ${note}`
+        : `Account overdue. Booking cleared by ${who}.`;
+    }
+    const label = override?.label || RULE_LABELS[override?.rule] || "Booking rule";
+    return note ? `${label}. Cleared by ${who}. ${note}` : `${label}. Cleared by ${who}.`;
+  }
+
+  function overrideFlagGroups(overrides) {
+    const list = Array.isArray(overrides) ? overrides.filter((item) => item && item.rule) : [];
+    const overdue = list.filter(isOverdueOverride);
+    const rules = list.filter((item) => !isOverdueOverride(item));
+    const groups = [];
+    if (rules.length) groups.push({ tone: "rule", label: "Rule override", items: rules });
+    if (overdue.length) groups.push({ tone: "overdue", label: "Overdue", items: overdue });
+    return groups;
+  }
+
+  function statusWithFlags(pillHtml, overrides) {
+    const groups = overrideFlagGroups(overrides);
+    if (!groups.length) return pillHtml;
+    const buttons = groups
+      .map((group, index) => {
+        const name = group.tone === "overdue" ? "Overdue account" : "Rule override";
+        return `<button type="button" class="status-flag status-flag--${group.tone}" data-flag-index="${index}" aria-expanded="false" aria-label="${escapeHtml(name)}"></button>`;
+      })
+      .join("");
+    const details = groups
+      .map((group, index) => {
+        const lines = group.items
+          .map((item) => `<span>${escapeHtml(overrideFlagLine(item))}</span>`)
+          .join("");
+        return `<span class="status-flag-detail" data-flag-index="${index}" hidden>${lines}</span>`;
+      })
+      .join("");
+    return `<span class="status-with-flags">${pillHtml}<span class="status-flag-group">${buttons}</span></span>${details}`;
   }
 
   function mergeOverrides(existing, draftList) {
@@ -711,6 +770,8 @@
     actorFromUser,
     mergeOverrides,
     formatOverridesForDisplay,
+    statusWithFlags,
+    isOverdueOverride,
     isLodgingForStreak,
   };
 })(typeof window !== "undefined" ? window : globalThis);

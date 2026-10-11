@@ -593,6 +593,23 @@
 
   renderBookings();
   updateBookingNotice();
+  if (!isAdmin && typeof Auth.listInvoices === "function") {
+    try {
+      const invoices = await Auth.listInvoices();
+      const today = Auth.localToday();
+      const overdue = invoices.filter((invoice) => Auth.invoiceIsOverdue(invoice, today));
+      const accountNotice = document.getElementById("hub-account-notice");
+      if (accountNotice && overdue.length) {
+        const total = overdue.reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
+        accountNotice.hidden = false;
+        accountNotice.innerHTML =
+          `Your account is overdue (${escapeHtml(Auth.formatMoney(total))}). ` +
+          `<a href="member-account.html?return=book">Pay now</a> and you can return to the booking.`;
+      }
+    } catch {
+      /* booking list still works if charges cannot be loaded */
+    }
+  }
   if (typeof CampgroundMap?.setOwnBookings === "function") {
     CampgroundMap.setOwnBookings(bookings, { render: false });
   }
