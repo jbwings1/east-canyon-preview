@@ -25,7 +25,13 @@ window.AdminCommon = {
       id: "reservations_manage",
       label: "Manage reservations",
       href: "admin-reservations-manage.html",
-      blurb: "Book for a member, edit dates/spot, confirm, or cancel.",
+      blurb: "Edit, check in, confirm, or cancel. Make a reservation when you need a new one.",
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      href: "admin-reports.html",
+      blurb: "Reservations, current members, and counts by RV, condo, and family reunion.",
     },
     {
       id: "website",
@@ -87,6 +93,14 @@ window.AdminCommon = {
 
   profileHasMembership(profile) {
     return Boolean(String(profile?.member_id || "").trim());
+  },
+
+  canViewReports() {
+    return (
+      Auth.hasAdminTask("members") ||
+      Auth.hasAdminTask("reservations_view") ||
+      Auth.hasAdminTask("reservations_manage")
+    );
   },
 
   profileHasStaffAccess(profile) {
@@ -366,7 +380,17 @@ window.AdminCommon = {
       return null;
     }
 
-    if (requiredTask && !Auth.hasAdminTask(requiredTask)) {
+    if (requiredTask === "reports" && !this.canViewReports()) {
+      if (denied) {
+        denied.hidden = false;
+        denied.innerHTML =
+          `You are not assigned this task. <a href="admin.html">Back to Admin</a>`;
+      }
+      if (app) app.hidden = true;
+      return null;
+    }
+
+    if (requiredTask && requiredTask !== "reports" && !Auth.hasAdminTask(requiredTask)) {
       if (denied) {
         denied.hidden = false;
         denied.innerHTML =
@@ -465,8 +489,12 @@ window.AdminCommon = {
     if (!container) return;
     container.innerHTML = this.TASKS.map((task) => {
       if (task.hub === false) return "";
-      const needed = task.gate || task.id;
-      if (!Auth.hasAdminTask(needed)) return "";
+      if (task.id === "reports") {
+        if (!this.canViewReports()) return "";
+      } else {
+        const needed = task.gate || task.id;
+        if (!Auth.hasAdminTask(needed)) return "";
+      }
       return `<a class="admin-task-btn" href="${task.href}">
         <span class="admin-task-btn-label">${this.escapeHtml(task.label)}</span>
         <span class="admin-task-btn-blurb">${this.escapeHtml(task.blurb)}</span>

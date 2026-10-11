@@ -31,7 +31,7 @@
     const sorted = [...bookings].sort((a, b) => {
       const aIn = a.check_in || "";
       const bIn = b.check_in || "";
-      if (aIn !== bIn) return aIn < bIn ? -1 : 1;
+      if (aIn !== bIn) return aIn > bIn ? -1 : 1;
       return 0;
     });
 
@@ -53,11 +53,13 @@
             ? Auth.bookingDisplayStatus(b)
             : b.status || "—";
         const pillClass =
-          displayStatus === "Cancelled"
-            ? "booked"
-            : displayStatus === "Active"
-              ? "available"
-              : displayStatus === "Confirmed"
+          typeof Auth.bookingStatusClass === "function"
+            ? Auth.bookingStatusClass(displayStatus)
+            : displayStatus === "Past"
+              ? "booked"
+              : displayStatus === "Cancelled"
+                ? "cancelled"
+              : displayStatus === "Active" || displayStatus === "Confirmed"
                 ? "available"
                 : "partial";
         const actions = canManage

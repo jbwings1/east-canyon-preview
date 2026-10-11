@@ -2186,6 +2186,23 @@ a:hover {
   margin-top: 0;
 }
 
+.admin-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin: 0 0 0.85rem;
+}
+
+.admin-card-head h2 {
+  margin: 0;
+}
+
+.admin-card-head .btn {
+  flex: 0 0 auto;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
 }
@@ -2635,10 +2652,168 @@ a:hover {
   min-width: 14rem;
 }
 
+.member-lookup {
+  position: relative;
+}
+
+.member-lookup-list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.2rem);
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid rgba(28, 58, 50, 0.28);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(20, 17, 14, 0.12);
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.member-lookup-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  color: #1c1916;
+  cursor: pointer;
+}
+
+.member-lookup-list button:hover,
+.member-lookup-list button.is-active {
+  background: #f6f1e8;
+}
+
+.member-lookup-note {
+  padding: 0.4rem 0.75rem;
+  color: #5c564e;
+  font-size: 0.85rem;
+}
+
 .admin-count {
   margin: 0 0 0.75rem;
   color: #5c564e;
   font-size: 0.95rem;
+}
+
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1.25rem;
+}
+
+.report-toolbar .report-presets {
+  margin: 0;
+  flex: 1 1 18rem;
+}
+
+.report-print-banner,
+.report-print-range {
+  display: none;
+}
+
+.report-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.report-presets .btn {
+  min-width: 8.5rem;
+}
+
+.report-presets .btn[aria-pressed="true"] {
+  background: #1c3a32;
+  border-color: #1c3a32;
+  color: #fff;
+}
+
+.report-total td {
+  font-weight: 700;
+  color: #1c3a32;
+  border-top: 2px solid rgba(28, 58, 50, 0.28);
+}
+
+@media print {
+  .page-reports {
+    background: #fff !important;
+  }
+
+  .page-reports .home-alert-banner,
+  .page-reports .site-header,
+  .page-reports .home-footer,
+  .page-reports .admin-back,
+  .page-reports .admin-intro,
+  .page-reports .report-toolbar,
+  .page-reports .admin-help,
+  .page-reports .admin-toolbar,
+  .page-reports .report-presets,
+  .page-reports #admin-message,
+  .page-reports #admin-denied {
+    display: none !important;
+  }
+
+  .page-reports .report-print-banner,
+  .page-reports .report-print-range {
+    display: block;
+    margin: 0 0 0.75rem;
+    color: #1c1916;
+  }
+
+  .page-reports main {
+    padding: 0;
+  }
+
+  .page-reports .page-content,
+  .page-reports .page-content--wide {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+  }
+
+  .page-reports .admin-card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+
+  .page-reports .admin-card[hidden] {
+    display: none !important;
+  }
+
+  .page-reports .admin-table-wrap {
+    overflow: visible;
+  }
+
+  .page-reports .admin-table {
+    font-size: 10.5pt;
+  }
+
+  .page-reports .status-pill {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .page-reports h1 {
+    margin-top: 0;
+  }
 }
 
 .admin-card .form-message {
@@ -3267,6 +3442,7 @@ a:hover {
 .page-reservations .status-pill.available { background: #4a9b6e; }
 .page-reservations .status-pill.partial { background: #e6b800; }
 .page-reservations .status-pill.booked { background: #c0392b; }
+.page-reservations .status-pill.cancelled { background: #b7daf2; color: #1c3a32; }
 .page-reservations .status-pill.tooShort { background: #1a1a1a; }
 .page-reservations .status-pill.member { background: #2f7dba; }
 .page-reservations .status-pill.maintenance { background: #c45c26; }
@@ -3952,8 +4128,9 @@ img.logo {
 }
 
 .status-pill.available { background: #4a9b6e; }
-.status-pill.partial { background: #e6b800; }
+.status-pill.partial { background: #e6b800; color: #1c1916; }
 .status-pill.booked { background: #c0392b; }
+.status-pill.cancelled { background: #b7daf2; color: #1c3a32; }
 .status-pill.tooShort { background: #1a1a1a; }
 .status-pill.member { background: #2f7dba; }
 .status-pill.maintenance { background: #c45c26; }

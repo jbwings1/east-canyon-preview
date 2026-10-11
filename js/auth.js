@@ -331,7 +331,7 @@ const Auth = {
     const { data, error } = await getClient()
       .from("profiles")
       .select(
-        "id,email,full_name,phone,address,city,state,zip,reservation_type,assigned_spot,profile_complete,is_admin,account_kind,account_status,member_id,username,must_change_password,admin_level,admin_seat,staff_code,admin_tasks"
+        "id,email,full_name,phone,address,city,state,zip,reservation_type,assigned_spot,profile_complete,is_admin,account_kind,account_status,member_id,username,must_change_password,admin_level,admin_seat,staff_code,admin_tasks,created_at"
       )
       .order("full_name", { ascending: true, nullsFirst: false });
     throwIfError(error);
@@ -1398,9 +1398,9 @@ const Auth = {
   },
 
   /**
-   * Member list order: active (non-cancelled) first by stay date, then cancelled.
-   * Active: upcoming/current by soonest check_in, then past (most recent check_in first).
-   * Cancelled: same date rules (upcoming cancelled ascending, then past descending).
+   * Member list order: active (non-cancelled) first, then cancelled.
+   * Current and upcoming stays come before past stays.
+   * Within each group, later check-in dates come first and the earliest stay is last.
    * Same check_in: original before edited, then created_at / id.
    */
   sortBookingsForDisplay(bookings = []) {
@@ -1417,10 +1417,7 @@ const Auth = {
       if (pastA !== pastB) return pastA - pastB;
       const checkInA = a?.check_in || "";
       const checkInB = b?.check_in || "";
-      if (checkInA !== checkInB) {
-        if (pastA) return checkInA > checkInB ? -1 : 1;
-        return checkInA < checkInB ? -1 : 1;
-      }
+      if (checkInA !== checkInB) return checkInA > checkInB ? -1 : 1;
       const byEdited = editedRank(a) - editedRank(b);
       if (byEdited !== 0) return byEdited;
       const createdA = a?.created_at || "";
@@ -1458,22 +1455,48 @@ const Auth = {
     );
   },
 
-  /** Human status: Confirmed → Active after office check-in → Completed after stay end. */
-  bookingDisplayStatus(booking) {
-    if (typeof window.BookingRuleFlags?.displayStatus === "function") {
-      return window.BookingRuleFlags.displayStatus(booking);
-    }
+  /**
+   * Human status.
+   * Office check-in (status active, or office_checked_in_at) stays Active until checkout,
+   * then Completed. Checkout is exclusive, so the stay is over on the checkout date.
+   * A stay that was never checked in is Past once the check-in day itself is over
+   * (the day after check-in), shown in red like Cancelled.
+   * Pass today (YYYY-MM-DD) to check a specific calendar day.
+   */
+  bookingDisplayStatus(booking, today) {
+    const day = today || this.localCalendarToday();
     const status = String(booking?.status || "").toLowerCase();
     if (status === "cancelled") return "Cancelled";
+    const checkIn = String(booking?.check_in || "").slice(0, 10);
+    const checkOut = String(booking?.check_out || "").slice(0, 10);
+    const checkedIn =
+      status === "active" || status === "completed" || Boolean(booking?.office_checked_in_at);
+    if (checkedIn) {
+      if (status === "completed" || (checkOut && checkOut <= day)) return "Completed";
+      return "Active";
+    }
+    if (checkIn && checkIn < day) return "Past";
     if (status === "pending") return "Pending";
-    if (status === "completed") return "Completed";
-    if (status === "active") return "Active";
-    if (status !== "confirmed") return booking?.status || "—";
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    const checkOut = booking?.check_out || "";
-    if (checkOut && checkOut <= today) return "Completed";
-    return "Confirmed";
+    if (status === "confirmed") return "Confirmed";
+    return booking?.status || "—";
+  },
+
+  localCalendarToday(now = new Date()) {
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+      now.getDate()
+    ).padStart(2, "0")}`;
+  },
+
+  /**
+   * Pill color.
+   * Confirmed and Active are green. Completed is yellow.
+   * Past (never checked in) is red. Cancelled is light blue.
+   */
+  bookingStatusClass(label) {
+    if (label === "Past") return "booked";
+    if (label === "Cancelled") return "cancelled";
+    if (label === "Active" || label === "Confirmed" || label === "Edit confirmed") return "available";
+    return "partial";
   },
 
   /**

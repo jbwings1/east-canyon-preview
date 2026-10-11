@@ -51,9 +51,20 @@
   }
 
   function bookingStatusLabel(booking) {
+    const display =
+      typeof Auth.bookingDisplayStatus === "function" ? Auth.bookingDisplayStatus(booking) : "";
+    if (
+      display === "Past" ||
+      display === "Completed" ||
+      display === "Active" ||
+      display === "Cancelled" ||
+      display === "Pending"
+    ) {
+      return display;
+    }
     const status = booking?.status || "unknown";
-    if (status === "cancelled") return "Cancelled";
     if (status === "confirmed" && bookingWasEdited(booking)) return "Edit confirmed";
+    if (display) return display;
     if (status === "confirmed") return "Confirmed";
     return status;
   }

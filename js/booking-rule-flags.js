@@ -333,20 +333,22 @@
   }
 
   function displayStatus(booking, today = todayIso()) {
+    if (typeof global.Auth?.bookingDisplayStatus === "function") {
+      return global.Auth.bookingDisplayStatus(booking, today);
+    }
     const status = String(booking?.status || "").toLowerCase();
     if (status === "cancelled") return "Cancelled";
-    if (status === "pending") return "Pending";
-    if (status === "completed") return "Completed";
-    if (status === "active") {
-      const checkOut = normalizeDate(booking.check_out || booking.checkOut);
-      if (checkOut && checkOut <= today) return "Completed";
+    const checkIn = normalizeDate(booking?.check_in || booking?.checkIn);
+    const checkOut = normalizeDate(booking?.check_out || booking?.checkOut);
+    const checkedIn =
+      status === "active" || status === "completed" || Boolean(booking?.office_checked_in_at);
+    if (checkedIn) {
+      if (status === "completed" || (checkOut && checkOut <= today)) return "Completed";
       return "Active";
     }
-    if (status === "confirmed") {
-      const checkOut = normalizeDate(booking.check_out || booking.checkOut);
-      if (checkOut && checkOut <= today) return "Completed";
-      return "Confirmed";
-    }
+    if (checkIn && checkIn < today) return "Past";
+    if (status === "pending") return "Pending";
+    if (status === "confirmed") return "Confirmed";
     return booking?.status || "—";
   }
 

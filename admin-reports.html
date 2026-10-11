@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site64">
+</head>
+<body class="page-visitor page-admin page-reports">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Stage 2 fire restrictions. UT-66 from Morgan and UT-65 from Henefer are closed.
+      ATV access is limited to Kurzy and Westlake trails.
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Reports</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+        </p>
+
+        <div class="report-toolbar">
+          <div class="report-presets" role="group" aria-label="Choose a report">
+            <button type="button" class="btn btn-outline" data-report-picker="reservations" aria-pressed="true">All reservations</button>
+            <button type="button" class="btn btn-outline" data-report-picker="members" aria-pressed="false">Current members</button>
+            <button type="button" class="btn btn-outline" data-report-picker="types" aria-pressed="false">Reservations by type</button>
+          </div>
+          <button type="button" class="btn btn-outline" id="report-print-btn">Print</button>
+        </div>
+
+        <p class="report-print-banner">
+          East Canyon Resort<br>
+          8896 South Highway 65, Morgan, UT 84050<br>
+          <span id="report-printed-on"></span>
+        </p>
+
+        <section class="admin-card" data-report-panel="reservations" aria-labelledby="report-reservations-heading">
+          <h2 id="report-reservations-heading">All reservations</h2>
+          <p class="report-print-range" id="report-res-print-range"></p>
+          <p class="admin-help">
+            Type a name or member number, then choose the member.
+            That shows every reservation for them. Clear the box to see everyone.
+            Dates still narrow the list.
+            Upcoming lists stays that start today or later.
+            Completed means they checked in and the checkout date has passed.
+            Past, in red, means the check-in day has passed and they never checked in.
+          </p>
+          <div class="admin-toolbar">
+            <div class="admin-toolbar-filters">
+              <div class="form-group form-group-search member-lookup">
+                <label for="report-res-member-search">Member</label>
+                <input
+                  type="text"
+                  id="report-res-member-search"
+                  placeholder="Name or member number"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="report-res-member-list"
+                  aria-autocomplete="list"
+                >
+                <ul id="report-res-member-list" class="member-lookup-list" role="listbox" hidden></ul>
+                <input type="hidden" id="report-res-member" value="">
+              </div>
+              <div class="form-group">
+                <label for="report-res-from">From</label>
+                <input type="date" id="report-res-from" min="2020-01-01" max="2036-12-31">
+              </div>
+              <div class="form-group">
+                <label for="report-res-to">To</label>
+                <input type="date" id="report-res-to" min="2020-01-01" max="2036-12-31">
+              </div>
+            </div>
+          </div>
+          <div class="report-presets" role="group" aria-label="Reservation date presets">
+            <button type="button" class="btn btn-outline" data-report="reservations" data-preset="past-year" aria-pressed="false">Past year</button>
+            <button type="button" class="btn btn-outline" data-report="reservations" data-preset="current-year" aria-pressed="false">Current year</button>
+            <button type="button" class="btn btn-outline" data-report="reservations" data-preset="upcoming" aria-pressed="false">Upcoming</button>
+          </div>
+          <p id="report-res-summary" class="admin-count"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Confirmation</th>
+                  <th>Member</th>
+                  <th>Type</th>
+                  <th>Spot</th>
+                  <th>Check in</th>
+                  <th>Check out</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="report-res-body">
+                <tr><td colspan="7">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="admin-card" data-report-panel="members" aria-labelledby="report-members-heading" hidden>
+          <h2 id="report-members-heading">Current members</h2>
+          <p class="report-print-range" id="report-members-print-range"></p>
+          <p class="admin-help">
+            Active and pending members. Closed memberships are left off.
+            Password shows whether a sign-in password is set or is still a temporary password that must be changed.
+            The site does not keep a readable copy of the password.
+            Stays counts reservations that overlap the period you pick, not counting cancelled stays.
+            Member since is the date the member record was created.
+          </p>
+          <div class="report-presets" role="group" aria-label="Member stay period">
+            <button type="button" class="btn btn-outline" data-report="members" data-months="3" aria-pressed="false">Past 3 months</button>
+            <button type="button" class="btn btn-outline" data-report="members" data-months="6" aria-pressed="false">Past 6 months</button>
+            <button type="button" class="btn btn-outline" data-report="members" data-months="9" aria-pressed="false">Past 9 months</button>
+            <button type="button" class="btn btn-outline" data-report="members" data-months="12" aria-pressed="true">Past 12 months</button>
+          </div>
+          <p id="report-members-summary" class="admin-count"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Member ID</th>
+                  <th>Name</th>
+                  <th>Password</th>
+                  <th>Member since</th>
+                  <th id="report-stays-heading">Stays (past 12 months)</th>
+                </tr>
+              </thead>
+              <tbody id="report-members-body">
+                <tr><td colspan="5">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="admin-card" data-report-panel="types" aria-labelledby="report-types-heading" hidden>
+          <h2 id="report-types-heading">Reservations by type</h2>
+          <p class="report-print-range" id="report-type-print-range"></p>
+          <p class="admin-help">
+            Counts of RV, condo, and family reunion reservations for the dates you pick.
+            Cancelled reservations are left out of the counts.
+          </p>
+          <div class="admin-toolbar">
+            <div class="admin-toolbar-filters">
+              <div class="form-group">
+                <label for="report-type-from">From</label>
+                <input type="date" id="report-type-from" min="2020-01-01" max="2036-12-31">
+              </div>
+              <div class="form-group">
+                <label for="report-type-to">To</label>
+                <input type="date" id="report-type-to" min="2020-01-01" max="2036-12-31">
+              </div>
+            </div>
+          </div>
+          <div class="report-presets" role="group" aria-label="Reservation type date presets">
+            <button type="button" class="btn btn-outline" data-report="types" data-preset="past-year" aria-pressed="false">Past year</button>
+            <button type="button" class="btn btn-outline" data-report="types" data-preset="current-year" aria-pressed="false">Current year</button>
+            <button type="button" class="btn btn-outline" data-report="types" data-preset="upcoming" aria-pressed="false">Upcoming</button>
+          </div>
+          <p id="report-type-summary" class="admin-count"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Reservations</th>
+                </tr>
+              </thead>
+              <tbody id="report-type-body">
+                <tr><td colspan="2">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb5"></script>
+  <script src="js/auth.js?v=sb35"></script>
+  <script src="js/site-header-auth.js?v=4"></script>
+  <script src="js/admin-common.js?v=sb17"></script>
+  <script src="js/spots-data.js?v=12"></script>
+  <script src="js/stay-date-fields.js?v=3"></script>
+  <script src="js/admin-reports.js?v=7"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

@@ -13,6 +13,10 @@
     "booking-check-out",
     "edit-booking-check-in",
     "edit-booking-check-out",
+    "report-res-from",
+    "report-res-to",
+    "report-type-from",
+    "report-type-to",
   ];
 
   const MONTHS = [

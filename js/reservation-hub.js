@@ -123,20 +123,20 @@
 
   /** Hub/view status text. Pills use text-transform:uppercase → EDIT CONFIRMED. */
   function bookingStatusLabel(booking) {
+    const display =
+      typeof Auth.bookingDisplayStatus === "function" ? Auth.bookingDisplayStatus(booking) : "";
+    if (
+      display === "Past" ||
+      display === "Completed" ||
+      display === "Active" ||
+      display === "Cancelled" ||
+      display === "Pending"
+    ) {
+      return display;
+    }
     const status = booking?.status || "unknown";
-    if (status === "cancelled") return "Cancelled";
-    if (status === "confirmed" && bookingWasEdited(booking)) {
-      const display =
-        typeof Auth.bookingDisplayStatus === "function"
-          ? Auth.bookingDisplayStatus(booking)
-          : "Confirmed";
-      if (display === "Active") return "Active";
-      if (display === "Completed") return "Completed";
-      return "Edit confirmed";
-    }
-    if (typeof Auth.bookingDisplayStatus === "function") {
-      return Auth.bookingDisplayStatus(booking);
-    }
+    if (status === "confirmed" && bookingWasEdited(booking)) return "Edit confirmed";
+    if (display) return display;
     if (status === "confirmed") return "Confirmed";
     return status;
   }
@@ -250,11 +250,15 @@
         const gate = bookingEditGate(b);
         const editable = gate.allowed;
         const statusClass =
-          status === "confirmed"
-            ? "available"
-            : status === "cancelled"
+          typeof Auth.bookingStatusClass === "function"
+            ? Auth.bookingStatusClass(statusLabel)
+            : statusLabel === "Past"
               ? "booked"
-              : "partial";
+              : statusLabel === "Cancelled"
+                ? "cancelled"
+              : statusLabel === "Active" || statusLabel === "Confirmed" || statusLabel === "Edit confirmed"
+                ? "available"
+                : "partial";
         const disabledActions =
           !editable && status !== "cancelled" && gate.code === "too-late"
             ? `<span class="btn btn-primary" aria-disabled="true" title="${escapeHtml(

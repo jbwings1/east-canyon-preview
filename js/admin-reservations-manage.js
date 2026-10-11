@@ -95,18 +95,147 @@
       <span class="admin-class-flag-detail">${AdminCommon.escapeHtml(flag.message)}</span>`;
   }
 
-  function renderBookingMemberOptions() {
-    const current = bookingMember.value;
-    bookingMember.innerHTML = `<option value="">Select member…</option>`;
-    profiles
-      .filter((m) => AdminCommon.profileHasMembership(m) && m.account_status !== "closed")
-      .forEach((m) => {
-        const option = document.createElement("option");
-        option.value = m.id;
-        option.textContent = `${m.full_name || m.email}${m.member_id ? ` · ${m.member_id}` : ""}`;
-        bookingMember.appendChild(option);
+  function memberChoiceLabel(member) {
+    const name = member.full_name || member.email || "Member";
+    return member.member_id ? `${name} · ${member.member_id}` : name;
+  }
+
+  function memberChoices() {
+    return profiles
+      .filter((member) => AdminCommon.profileHasMembership(member) && member.account_status !== "closed")
+      .sort((a, b) =>
+        memberChoiceLabel(a).localeCompare(memberChoiceLabel(b), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        })
+      );
+  }
+
+  function memberMatchesSearch(member, query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return true;
+    const name = String(member.full_name || "").toLowerCase();
+    const memberId = String(member.member_id || "").toLowerCase();
+    const label = memberChoiceLabel(member).toLowerCase();
+    return name.includes(q) || memberId.includes(q) || label.includes(q);
+  }
+
+  const MEMBER_LIST_LIMIT = 20;
+  let memberHighlight = -1;
+
+  function memberSearchField() {
+    return document.getElementById("booking-member-search");
+  }
+
+  function memberListEl() {
+    return document.getElementById("booking-member-list");
+  }
+
+  function rankMemberChoice(member, query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return 3;
+    const memberId = String(member.member_id || "").toLowerCase();
+    const name = String(member.full_name || "").toLowerCase();
+    if (memberId && memberId === q) return 0;
+    if (memberId && memberId.startsWith(q)) return 1;
+    if (name.startsWith(q)) return 2;
+    return 3;
+  }
+
+  function matchingMemberChoices(query) {
+    return memberChoices()
+      .filter((member) => memberMatchesSearch(member, query))
+      .sort((a, b) => {
+        const rank = rankMemberChoice(a, query) - rankMemberChoice(b, query);
+        if (rank) return rank;
+        return memberChoiceLabel(a).localeCompare(memberChoiceLabel(b), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       });
-    if (current) bookingMember.value = current;
+  }
+
+  function closeMemberList() {
+    const list = memberListEl();
+    const input = memberSearchField();
+    memberHighlight = -1;
+    if (list) {
+      list.hidden = true;
+      list.innerHTML = "";
+    }
+    if (input) {
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function paintMemberHighlight() {
+    const list = memberListEl();
+    const input = memberSearchField();
+    if (!list) return;
+    [...list.querySelectorAll("[data-member-id]")].forEach((button, index) => {
+      const on = index === memberHighlight;
+      button.setAttribute("aria-selected", on ? "true" : "false");
+      button.classList.toggle("is-active", on);
+      if (on) {
+        button.id = "booking-member-active";
+        input?.setAttribute("aria-activedescendant", button.id);
+        button.scrollIntoView({ block: "nearest" });
+      } else if (button.id === "booking-member-active") {
+        button.removeAttribute("id");
+      }
+    });
+  }
+
+  function showMemberList() {
+    const input = memberSearchField();
+    const list = memberListEl();
+    if (!input || !list) return;
+    const query = input.value || "";
+    const matches = matchingMemberChoices(query);
+    const shown = matches.slice(0, MEMBER_LIST_LIMIT);
+    memberHighlight = shown.length ? 0 : -1;
+    const items = shown
+      .map(
+        (member, index) =>
+          `<li role="presentation"><button type="button" role="option" data-member-id="${AdminCommon.escapeHtml(
+            member.id
+          )}" aria-selected="${index === 0 ? "true" : "false"}">${AdminCommon.escapeHtml(
+            memberChoiceLabel(member)
+          )}</button></li>`
+      )
+      .join("");
+    const more =
+      matches.length > shown.length
+        ? `<li class="member-lookup-note" role="presentation">Showing ${shown.length} of ${matches.length}. Keep typing to narrow the list.</li>`
+        : "";
+    const empty = shown.length
+      ? ""
+      : `<li class="member-lookup-note" role="presentation">No members match.</li>`;
+    list.innerHTML = items + more + empty;
+    list.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    const first = list.querySelector("[data-member-id]");
+    if (first) {
+      first.id = "booking-member-active";
+      input.setAttribute("aria-activedescendant", first.id);
+    }
+  }
+
+  function applyMemberPick(id) {
+    const member = memberChoices().find((item) => item.id === id);
+    const input = memberSearchField();
+    if (!member || !bookingMember) return;
+    const changed = bookingMember.value !== member.id;
+    bookingMember.value = member.id;
+    if (input) input.value = memberChoiceLabel(member);
+    closeMemberList();
+    if (changed) bookingMember.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function renderBookingMemberOptions() {
+    const list = memberListEl();
+    if (list && !list.hidden) showMemberList();
   }
 
   function filteredBookings() {
@@ -140,7 +269,7 @@
       .sort((a, b) => {
         const aIn = a.check_in || "";
         const bIn = b.check_in || "";
-        if (aIn !== bIn) return aIn < bIn ? -1 : 1;
+        if (aIn !== bIn) return aIn > bIn ? -1 : 1;
         return String(a.created_at || "") < String(b.created_at || "") ? -1 : 1;
       });
   }
@@ -382,11 +511,15 @@
             ? Auth.bookingDisplayStatus(b)
             : b.status || "—";
         const pillClass =
-          displayStatus === "Cancelled"
-            ? "booked"
-            : displayStatus === "Active"
-              ? "available"
-              : displayStatus === "Confirmed" || displayStatus === "Edit confirmed"
+          typeof Auth.bookingStatusClass === "function"
+            ? Auth.bookingStatusClass(displayStatus)
+            : displayStatus === "Past"
+              ? "booked"
+              : displayStatus === "Cancelled"
+                ? "cancelled"
+              : displayStatus === "Active" ||
+                  displayStatus === "Confirmed" ||
+                  displayStatus === "Edit confirmed"
                 ? "available"
                 : "partial";
         return `<tr class="${rowClass.trim()}" data-booking-id="${AdminCommon.escapeHtml(b.id)}">
@@ -634,6 +767,12 @@
     const result = document.getElementById("admin-create-booking-result");
     AdminCommon.showMessage(result, "", "");
     const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (!bookingMember?.value) {
+      AdminCommon.showMessage(result, "Choose a member from the list.", "error");
+      memberSearchField()?.focus();
+      showMemberList();
+      return;
+    }
     if (submitBtn) submitBtn.disabled = true;
     try {
       syncCreateOverrideFingerprint();
@@ -666,6 +805,8 @@
       });
       AdminCommon.showMessage(result, "Reservation created for the member.", "success");
       e.target.reset();
+      if (bookingMember) bookingMember.value = "";
+      closeMemberList();
       createOverrideSession?.clear();
       refreshCreateRightsNotice();
       await load();
@@ -723,6 +864,81 @@
     } finally {
       if (submitBtn) submitBtn.disabled = false;
     }
+  });
+
+  const createCard = document.getElementById("admin-create-card");
+  const createOpenBtn = document.getElementById("admin-create-open");
+
+  function setCreateFormOpen(open) {
+    if (!createCard) return;
+    createCard.hidden = !open;
+    createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      createCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      memberSearchField()?.focus();
+      showMemberList();
+    }
+  }
+
+  memberSearchField()?.addEventListener("focus", () => {
+    showMemberList();
+  });
+  memberSearchField()?.addEventListener("input", () => {
+    const input = memberSearchField();
+    const selected = memberChoices().find((member) => member.id === bookingMember?.value);
+    const label = selected ? memberChoiceLabel(selected) : "";
+    if (bookingMember && input && input.value !== label && bookingMember.value) {
+      bookingMember.value = "";
+      bookingMember.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    showMemberList();
+  });
+  memberSearchField()?.addEventListener("keydown", (event) => {
+    const list = memberListEl();
+    const open = list && !list.hidden;
+    const buttons = open ? [...list.querySelectorAll("[data-member-id]")] : [];
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!open) showMemberList();
+      else if (buttons.length) {
+        memberHighlight = (memberHighlight + 1) % buttons.length;
+        paintMemberHighlight();
+      }
+    } else if (event.key === "ArrowUp" && open && buttons.length) {
+      event.preventDefault();
+      memberHighlight = (memberHighlight - 1 + buttons.length) % buttons.length;
+      paintMemberHighlight();
+    } else if (event.key === "Enter" && open && buttons.length) {
+      event.preventDefault();
+      const index = memberHighlight >= 0 ? memberHighlight : 0;
+      applyMemberPick(buttons[index].getAttribute("data-member-id"));
+    } else if (event.key === "Escape") {
+      closeMemberList();
+    }
+  });
+  memberSearchField()?.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      const list = memberListEl();
+      if (list && list.contains(document.activeElement)) return;
+      closeMemberList();
+    }, 150);
+  });
+  memberListEl()?.addEventListener("mousedown", (event) => {
+    const button = event.target.closest("[data-member-id]");
+    if (!button) return;
+    event.preventDefault();
+    applyMemberPick(button.getAttribute("data-member-id"));
+  });
+
+  createOpenBtn?.addEventListener("click", () => {
+    const open = Boolean(createCard?.hidden);
+    setCreateFormOpen(open);
+    if (!open) createOpenBtn.focus();
+  });
+
+  document.getElementById("admin-create-close")?.addEventListener("click", () => {
+    setCreateFormOpen(false);
+    createOpenBtn?.focus();
   });
 
   document.getElementById("admin-edit-cancel")?.addEventListener("click", () => {
@@ -890,7 +1106,12 @@
     }
   });
 
-  document.addEventListener("click", () => closeAllRowMenus());
+  document.addEventListener("click", (event) => {
+    closeAllRowMenus();
+    if (event.target.closest("#admin-create-open")) return;
+    const field = document.querySelector("#admin-create-card .member-lookup");
+    if (field && !field.contains(event.target)) closeMemberList();
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeAllRowMenus();
   });
