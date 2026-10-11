@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Member Accounts | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site66">
+  <link rel="stylesheet" href="styles.css?v=site67">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -30,7 +30,7 @@
   </header>
 
   <main>
-    <div class="container page-content page-content--wide">
+    <div class="container page-content page-content--wide admin-manage-wide">
       <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
       <h1>Member accounts</h1>
       <p id="admin-denied" class="form-message error" hidden>
@@ -83,23 +83,37 @@
           <p id="invoice-result" class="form-message" role="status" aria-live="polite"></p>
         </section>
 
+        <section class="admin-card" id="invoice-detail" hidden>
+          <h2 id="invoice-detail-title">Invoice</h2>
+          <dl class="admin-checkin-details" id="invoice-detail-list"></dl>
+          <div class="admin-actions">
+            <button type="button" class="btn btn-outline" id="invoice-detail-close">Close</button>
+          </div>
+        </section>
+
         <section class="admin-card">
-          <h2>Invoices</h2>
+          <h2>Ledger</h2>
+          <p class="admin-help">One sheet for every invoice. Total is that member’s balance still owed after the row. Select an invoice number to open that invoice.</p>
           <div class="admin-table-wrap">
-            <table class="admin-table">
+            <table class="admin-table account-ledger">
               <thead>
                 <tr>
-                  <th>Invoice</th>
+                  <th>Inv number</th>
                   <th>Member</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Due</th>
-                  <th>Status</th>
+                  <th>Date</th>
+                  <th class="ledger-text">Description</th>
+                  <th class="ledger-money">Amount</th>
+                  <th>Due date</th>
+                  <th class="ledger-money">Paid</th>
+                  <th>On</th>
+                  <th>Paid with</th>
+                  <th class="ledger-money">Total</th>
                 </tr>
               </thead>
               <tbody id="invoice-body">
-                <tr><td colspan="6">Loading…</td></tr>
+                <tr><td colspan="10">Loading…</td></tr>
               </tbody>
+              <tfoot id="invoice-foot"></tfoot>
             </table>
           </div>
         </section>
@@ -113,7 +127,8 @@
   <script src="js/auth.js?v=sb36"></script>
   <script src="js/site-header-auth.js?v=4"></script>
   <script src="js/admin-common.js?v=sb19"></script>
-  <script src="js/admin-invoices.js?v=1"></script>
+  <script src="js/account-ledger.js?v=1"></script>
+  <script src="js/admin-invoices.js?v=3"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

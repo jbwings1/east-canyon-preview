@@ -579,17 +579,21 @@ function updateStayLengthNotice() {
     `then submit a new booking for the remaining nights of your trip.`;
 }
 
+function activeReservationLines(active) {
+  return active.map((r) => {
+    const range = window.SpotAvailability.formatDateRange(r.checkIn, r.checkOut);
+    const conf =
+      typeof Auth !== "undefined" && typeof Auth.bookingConfirmationId === "function"
+        ? Auth.bookingConfirmationId(r.id || r)
+        : "";
+    return conf ? `Confirmation #${conf} · ${range}` : range;
+  });
+}
+
 function formatActiveReservationRanges(active) {
-  return active
-    .map((r) => {
-      const range = window.SpotAvailability.formatDateRange(r.checkIn, r.checkOut);
-      const conf =
-        typeof Auth !== "undefined" && typeof Auth.bookingConfirmationId === "function"
-          ? Auth.bookingConfirmationId(r.id || r)
-          : "";
-      return conf ? `Confirmation #${conf} · ${range}` : range;
-    })
-    .join("; ");
+  return activeReservationLines(active)
+    .map((line) => escapeHtml(line))
+    .join("<br>");
 }
 
 function getActiveMemberBookings() {
@@ -624,9 +628,10 @@ function updateMemberReservationNotice() {
   if (active.length >= maxActive) {
     memberReservationNotice.hidden = false;
     memberReservationNotice.classList.add("stay-length-notice--limit");
-    memberReservationNotice.textContent =
-      `You have ${active.length} upcoming reservations (maximum ${maxActive}): ` +
-      `${formatActiveReservationRanges(active)}. Once the office checks you in, or after deleting one, you can book again.`;
+    memberReservationNotice.innerHTML =
+      `You have ${active.length} upcoming reservations (maximum ${maxActive}):<br>` +
+      `${formatActiveReservationRanges(active)}<br>` +
+      `Once the office checks you in, or after deleting one, you can book again.`;
     return;
   }
 
@@ -635,12 +640,13 @@ function updateMemberReservationNotice() {
     const remaining = maxActive - active.length;
     const remainingPhrase =
       remaining === 1
-        ? "You have one more booking available"
+        ? "You have one more booking available."
         : `You may book ${remaining} more.`;
     memberReservationNotice.hidden = false;
-    memberReservationNotice.textContent =
-      `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-      `(${formatActiveReservationRanges(active)}). ${remainingPhrase}`;
+    memberReservationNotice.innerHTML =
+      `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"}:<br>` +
+      `${formatActiveReservationRanges(active)}<br>` +
+      remainingPhrase;
     return;
   }
 
@@ -1240,7 +1246,7 @@ form.addEventListener("submit", async (e) => {
   if (!editingBookingId && active.length >= maxActive) {
     message.textContent =
       `You have ${active.length} upcoming reservations (maximum ${maxActive}): ` +
-      `${formatActiveReservationRanges(active)}. Once the office checks you in, or after deleting one, you can book again.`;
+      `${activeReservationLines(active).join("; ")}. Once the office checks you in, or after deleting one, you can book again.`;
     message.className = "form-message error";
     updateMemberReservationNotice();
     memberReservationNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });

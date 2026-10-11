@@ -204,25 +204,27 @@
     const bookingLines = active
       .map((b) => {
         const range = window.SpotAvailability.formatDateRange(b.check_in, b.check_out);
-        return `Confirmation #${confirmationId(b)} · ${range}`;
+        return escapeHtml(`Confirmation #${confirmationId(b)} · ${range}`);
       })
-      .join("; ");
+      .join("<br>");
     notice.hidden = false;
     if (active.length >= maxActive) {
       notice.classList.add("stay-length-notice--limit");
-      notice.textContent =
-        `You have ${active.length} upcoming reservations (maximum ${maxActive}): ${bookingLines}. ` +
+      notice.innerHTML =
+        `You have ${active.length} upcoming reservations (maximum ${maxActive}):<br>` +
+        `${bookingLines}<br>` +
         `Once the office checks you in, or after deleting one, you can book again.`;
     } else {
       notice.classList.remove("stay-length-notice--limit");
       const remaining = maxActive - active.length;
       const remainingPhrase =
         remaining === 1
-          ? "You have one more booking available"
+          ? "You have one more booking available."
           : `You may book ${remaining} more.`;
-      notice.textContent =
-        `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"} ` +
-        `(${bookingLines}). ${remainingPhrase}`;
+      notice.innerHTML =
+        `You have ${active.length} upcoming reservation${active.length === 1 ? "" : "s"}:<br>` +
+        `${bookingLines}<br>` +
+        remainingPhrase;
     }
   }
 

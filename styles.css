@@ -2726,6 +2726,44 @@ a:hover {
   font-size: 0.95rem;
 }
 
+.account-ledger .ledger-money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.account-ledger .ledger-text {
+  white-space: normal;
+  min-width: 12rem;
+}
+
+.account-ledger tfoot td {
+  font-weight: 600;
+  border-top: 2px solid rgba(28, 26, 23, 0.16);
+}
+
+.ledger-invoice {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #1c3a32;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ledger-row-selected {
+  background: rgba(28, 58, 50, 0.08);
+}
+
+.ledger-overdue {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+
 .report-toolbar {
   display: flex;
   flex-wrap: wrap;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Account | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site66">
+  <link rel="stylesheet" href="styles.css?v=site67">
 </head>
 <body class="page-visitor">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -30,11 +30,11 @@
   </header>
 
   <main>
-    <div class="container page-content page-content--wide">
+    <div class="container page-content page-content--wide admin-manage-wide">
       <p class="admin-back"><a href="member-home.html">← Members home</a></p>
       <h1>Account</h1>
       <p class="reservation-form-intro">
-        Charges on your membership, including what is still open and what has been paid.
+        One ledger of charges on your membership. Select an invoice number to open that invoice.
         Pay is a test on this site. No card is charged, and the office accounting software is not updated.
       </p>
       <p id="account-balance" class="admin-count"></p>
@@ -48,43 +48,37 @@
         <button type="button" class="btn btn-outline" id="account-confirm-no">Go back</button>
       </section>
 
-      <section class="admin-card">
-        <h2>Open</h2>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Due</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="account-open-body">
-              <tr><td colspan="6">Loading…</td></tr>
-            </tbody>
-          </table>
+      <section class="admin-card" id="account-invoice" hidden>
+        <h2 id="account-invoice-title">Invoice</h2>
+        <dl class="admin-checkin-details" id="account-invoice-details"></dl>
+        <div class="admin-actions">
+          <button type="button" class="btn btn-primary" id="account-invoice-pay" hidden>Pay</button>
+          <button type="button" class="btn btn-outline" id="account-invoice-close">Close</button>
         </div>
       </section>
 
       <section class="admin-card">
-        <h2>Paid</h2>
+        <h2>Ledger</h2>
+        <p class="admin-help">Total is the balance still owed after that charge. Select an invoice number to open that invoice.</p>
         <div class="admin-table-wrap">
-          <table class="admin-table">
+          <table class="admin-table account-ledger">
             <thead>
               <tr>
-                <th>Invoice</th>
+                <th>Inv number</th>
                 <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Paid</th>
+                <th class="ledger-text">Description</th>
+                <th class="ledger-money">Amount</th>
+                <th>Due date</th>
+                <th class="ledger-money">Paid</th>
+                <th>On</th>
+                <th>Paid with</th>
+                <th class="ledger-money">Total</th>
               </tr>
             </thead>
-            <tbody id="account-paid-body">
-              <tr><td colspan="5">Loading…</td></tr>
+            <tbody id="account-ledger-body">
+              <tr><td colspan="9">Loading…</td></tr>
             </tbody>
+            <tfoot id="account-ledger-foot"></tfoot>
           </table>
         </div>
       </section>
@@ -96,7 +90,8 @@
   <script src="js/supabase-client.js?v=sb4"></script>
   <script src="js/auth.js?v=sb36"></script>
   <script src="js/site-header-auth.js?v=4"></script>
-  <script src="js/member-account.js?v=1"></script>
+  <script src="js/account-ledger.js?v=1"></script>
+  <script src="js/member-account.js?v=3"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

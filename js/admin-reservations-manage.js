@@ -648,6 +648,23 @@
       .filter((row) => row.checkIn && row.checkOut);
   }
 
+  function adminRigLength() {
+    const type = document.getElementById("booking-type")?.value || "";
+    if (type !== "rv") return null;
+    const raw = document.getElementById("booking-rig")?.value;
+    const feet = Number(raw);
+    return Number.isFinite(feet) && feet > 0 ? feet : null;
+  }
+
+  function syncAdminRigField() {
+    const type = document.getElementById("booking-type")?.value || "";
+    const group = document.getElementById("booking-rig-group");
+    const select = document.getElementById("booking-rig");
+    const show = type === "rv";
+    if (group) group.hidden = !show;
+    if (!show && select) select.value = "";
+  }
+
   function refreshAdminMap() {
     if (!adminMapReady || typeof CampgroundMap === "undefined") return;
     syncAdminMapBookings();
@@ -659,6 +676,9 @@
     const datesReady = Boolean(checkIn && checkOut && checkOut > checkIn);
     if (CampgroundMap._selectedId && CampgroundMap._selectedId !== typedId) {
       CampgroundMap._selectedId = null;
+    }
+    if (typeof CampgroundMap.setRigLength === "function") {
+      CampgroundMap.setRigLength(type === "rv" ? adminRigLength() : null, { render: false });
     }
     CampgroundMap.setUnitFilter(mapFilterForType(type));
     CampgroundMap.setDates(checkIn, checkOut);
@@ -686,7 +706,7 @@
       updateAdminSpotBanner(unit);
       return;
     }
-    if (datesReady) {
+    if (datesReady || status === "tooShort") {
       if (spotInput) spotInput.value = "";
       CampgroundMap.clearSelection();
       updateAdminSpotBanner(null);
@@ -712,7 +732,12 @@
       lookupOnly: false,
       unitFilter: mapFilterForType(document.getElementById("booking-type")?.value),
       canBookSelect(unit) {
-        return unitMatchesType(unit, document.getElementById("booking-type")?.value || "");
+        const type = document.getElementById("booking-type")?.value || "";
+        if (!unitMatchesType(unit, type)) return false;
+        if (type === "rv" && typeof window.SpotAvailability?.unitFitsRigLength === "function") {
+          return window.SpotAvailability.unitFitsRigLength(unit, adminRigLength());
+        }
+        return true;
       },
       onSpotSelect(unit) {
         const type = document.getElementById("booking-type")?.value || "";
@@ -961,6 +986,11 @@
       showMemberList();
       return;
     }
+    if (document.getElementById("booking-type")?.value === "rv" && !adminRigLength()) {
+      AdminCommon.showMessage(result, "Choose an RV length.", "error");
+      document.getElementById("booking-rig")?.focus();
+      return;
+    }
     if (submitBtn) submitBtn.disabled = true;
     try {
       syncCreateOverrideFingerprint();
@@ -993,6 +1023,7 @@
       });
       AdminCommon.showMessage(result, "Reservation created for the member.", "success");
       e.target.reset();
+      syncAdminRigField();
       if (bookingMember) bookingMember.value = "";
       closeMemberList();
       createOverrideSession?.clear();
@@ -1065,6 +1096,7 @@
     createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
       createCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      syncAdminRigField();
       window.requestAnimationFrame(() => {
         ensureAdminMap();
         refreshAdminMap();
@@ -1205,9 +1237,10 @@
   filterStatus?.addEventListener("change", renderBookings);
   filterSearch?.addEventListener("input", renderBookings);
 
-  ["booking-member", "booking-type", "booking-check-in", "booking-check-out"].forEach((id) => {
+  ["booking-member", "booking-type", "booking-rig", "booking-check-in", "booking-check-out"].forEach((id) => {
     document.getElementById(id)?.addEventListener("change", () => {
       AdminCommon.showMessage(document.getElementById("admin-create-booking-result"), "", "");
+      if (id === "booking-type") syncAdminRigField();
       if (id !== "booking-member") refreshAdminMap();
       refreshCreateRightsNotice();
     });

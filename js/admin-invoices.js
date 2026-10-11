@@ -8,12 +8,18 @@
   const form = document.getElementById("invoice-form");
   const result = document.getElementById("invoice-result");
   const body = document.getElementById("invoice-body");
+  const foot = document.getElementById("invoice-foot");
+  const detailCard = document.getElementById("invoice-detail");
+  const detailTitle = document.getElementById("invoice-detail-title");
+  const detailList = document.getElementById("invoice-detail-list");
+  const detailClose = document.getElementById("invoice-detail-close");
   const search = document.getElementById("invoice-member-search");
   const list = document.getElementById("invoice-member-list");
   const hidden = document.getElementById("invoice-member");
   let profiles = [];
   let invoices = [];
   let highlight = -1;
+  let selectedId = "";
 
   function choices() {
     return profiles
@@ -87,29 +93,114 @@
     closeList();
   }
 
-  function renderInvoices() {
-    if (!invoices.length) {
-      body.innerHTML = `<tr><td colspan="6">No invoices yet.</td></tr>`;
+  function money(value) {
+    return AdminCommon.escapeHtml(Auth.formatMoney(value));
+  }
+
+  function detailRow(label, value) {
+    return `<div><dt>${AdminCommon.escapeHtml(label)}</dt><dd>${AdminCommon.escapeHtml(value)}</dd></div>`;
+  }
+
+  function selectedInvoice() {
+    return invoices.find((invoice) => invoice.id === selectedId) || null;
+  }
+
+  function renderDetail() {
+    const invoice = selectedInvoice();
+    if (!detailCard || !detailList || !detailTitle) return;
+    if (!invoice) {
+      detailCard.hidden = true;
+      detailList.innerHTML = "";
       return;
     }
     const today = Auth.localToday();
-    body.innerHTML = invoices
-      .map((invoice) => {
+    const overdue = Auth.invoiceIsOverdue(invoice, today);
+    const paid = invoice.status === "paid";
+    const paidAmount = paid ? Number(invoice.paid_amount ?? invoice.amount ?? 0) : 0;
+    const owed = Number(invoice.amount || 0) - paidAmount;
+    detailTitle.textContent = `Invoice ${invoice.invoice_number}`;
+    detailList.innerHTML = [
+      detailRow("Inv number", invoice.invoice_number || "—"),
+      detailRow("Date", AccountLedger.dateLabel(invoice.created_at)),
+      detailRow("Added by", invoice.created_by_name || "—"),
+      detailRow("Member", `${invoice.member_name || "—"}${invoice.member_id ? ` · ${invoice.member_id}` : ""}`),
+      detailRow("Description", AccountLedger.description(invoice)),
+      detailRow("Amount", Auth.formatMoney(invoice.amount)),
+      detailRow("Due date", `${AccountLedger.dateLabel(invoice.due_date)}${overdue ? " · Overdue" : ""}`),
+      detailRow("Paid", paid ? Auth.formatMoney(paidAmount) : "—"),
+      detailRow("On", paid ? AccountLedger.dateLabel(invoice.paid_at) : "—"),
+      detailRow("Paid with", AccountLedger.howPaid(invoice)),
+      detailRow("Balance", Auth.formatMoney(owed)),
+    ].join("");
+    detailCard.hidden = false;
+  }
+
+  function renderInvoices() {
+    const today = Auth.localToday();
+    const lines = AccountLedger.lines(invoices, { byMember: true });
+    const totals = AccountLedger.totals(lines);
+    if (!lines.length) {
+      body.innerHTML = `<tr><td colspan="10">No invoices yet.</td></tr>`;
+      if (foot) foot.innerHTML = "";
+      renderDetail();
+      return;
+    }
+    body.innerHTML = lines
+      .map((line) => {
+        const invoice = line.invoice;
         const overdue = Auth.invoiceIsOverdue(invoice, today);
-        const status = overdue ? "Overdue" : invoice.status === "paid" ? "Paid" : "Open";
-        const paidNote =
-          invoice.status === "paid" && invoice.payment_kind === "test" ? " · test" : "";
-        return `<tr>
-          <td><code>${AdminCommon.escapeHtml(invoice.invoice_number)}</code></td>
-          <td>${AdminCommon.escapeHtml(invoice.member_name)} · ${AdminCommon.escapeHtml(invoice.member_id)}</td>
-          <td>${AdminCommon.escapeHtml(Auth.chargeTypeLabel(invoice.charge_type))}<br>${AdminCommon.escapeHtml(invoice.description)}</td>
-          <td>${AdminCommon.escapeHtml(Auth.formatMoney(invoice.amount))}</td>
-          <td>${AdminCommon.escapeHtml(invoice.due_date || "—")}</td>
-          <td>${AdminCommon.escapeHtml(status + paidNote)}</td>
+        const paid = invoice.status === "paid";
+        const selected = invoice.id === selectedId ? " ledger-row-selected" : "";
+        const member = `${invoice.member_name || "—"}${invoice.member_id ? ` · ${invoice.member_id}` : ""}`;
+        return `<tr class="${selected.trim()}" data-invoice-id="${AdminCommon.escapeHtml(invoice.id)}">
+          <td><button type="button" class="ledger-invoice" data-invoice-id="${AdminCommon.escapeHtml(invoice.id)}">${AdminCommon.escapeHtml(invoice.invoice_number)}</button></td>
+          <td>${AdminCommon.escapeHtml(member)}</td>
+          <td>${AdminCommon.escapeHtml(AccountLedger.dateLabel(invoice.created_at))}</td>
+          <td class="ledger-text">${AdminCommon.escapeHtml(AccountLedger.description(invoice))}</td>
+          <td class="ledger-money">${money(line.amount)}</td>
+          <td class="${overdue ? "ledger-overdue" : ""}">${AdminCommon.escapeHtml(AccountLedger.dateLabel(invoice.due_date))}${overdue ? " · Overdue" : ""}</td>
+          <td class="ledger-money">${paid ? money(line.paid) : "—"}</td>
+          <td>${paid ? AdminCommon.escapeHtml(AccountLedger.dateLabel(invoice.paid_at)) : "—"}</td>
+          <td>${AdminCommon.escapeHtml(AccountLedger.howPaid(invoice))}</td>
+          <td class="ledger-money">${money(line.total)}</td>
         </tr>`;
       })
       .join("");
+    if (foot) {
+      foot.innerHTML = `<tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Total</td>
+        <td class="ledger-money">${money(totals.amount)}</td>
+        <td></td>
+        <td class="ledger-money">${money(totals.paid)}</td>
+        <td></td>
+        <td></td>
+        <td class="ledger-money">${money(totals.owed)}</td>
+      </tr>`;
+    }
+    renderDetail();
   }
+
+  function openInvoice(id) {
+    selectedId = id || "";
+    renderInvoices();
+    if (selectedId && detailCard && !detailCard.hidden) {
+      detailCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
+  body?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-invoice-id]");
+    if (!button || !body.contains(button)) return;
+    openInvoice(button.getAttribute("data-invoice-id"));
+  });
+
+  detailClose?.addEventListener("click", () => {
+    selectedId = "";
+    renderInvoices();
+  });
 
   search?.addEventListener("focus", showList);
   search?.addEventListener("input", () => {
@@ -181,7 +272,11 @@
       if (hidden) hidden.value = "";
       closeList();
       invoices = await Auth.listInvoices();
+      if (invoice?.id) selectedId = invoice.id;
       renderInvoices();
+      if (invoice?.id && detailCard && !detailCard.hidden) {
+        detailCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     } catch (err) {
       AdminCommon.showMessage(result, err.message, "error");
     } finally {
@@ -194,6 +289,6 @@
     renderInvoices();
   } catch (err) {
     AdminCommon.showMessage(result, err.message, "error");
-    body.innerHTML = `<tr><td colspan="6">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="10">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
   }
 })();
