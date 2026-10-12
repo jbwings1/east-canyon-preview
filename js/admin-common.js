@@ -4,28 +4,65 @@
 window.AdminCommon = {
   TASKS: [
     {
+      id: "reservations_manage",
+      label: "Manage reservations",
+      href: "admin-reservations-manage.html",
+      blurb:
+        "See every reservation and check guests in. Reservation agents can also book, edit, confirm, cancel, and override a rule.",
+      gate: "front_desk",
+    },
+    {
+      id: "wedding_calendar",
+      label: "Booking calendar",
+      href: "admin-wedding-calendar.html",
+      blurb: "Mark dates booked, on hold, or closed, or edit the public note.",
+      gateAny: ["special_events", "website"],
+    },
+    {
+      id: "website",
+      label: "Website",
+      href: "admin-website.html",
+      blurb: "Add, edit, or turn site alerts on or off, and add or remove alert photos.",
+    },
+    {
+      id: "pictures",
+      label: "Pictures",
+      href: "admin-pictures.html",
+      blurb: "Upload, reorder, or remove gallery pictures, and edit gallery sections.",
+      gate: "website",
+    },
+    {
+      id: "resort_calendar",
+      label: "Resort Calendar",
+      href: "admin-resort-calendar.html",
+      blurb: "Add, edit, or remove events on the public resort calendar.",
+      gate: "website",
+    },
+    {
+      id: "board",
+      label: "Board Members",
+      href: "admin-board.html",
+      blurb: "Add, edit, reorder, or remove board member names, photos, and committees.",
+      gate: "website",
+    },
+    {
       id: "members",
       label: "Members",
       href: "admin-members.html",
-      blurb: "Search, edit, or close member website access.",
+      blurb: "Search, create, edit, close, or delete member accounts.",
     },
     {
       id: "passwords",
       label: "Passwords",
       href: "admin-passwords.html",
-      blurb: "Issue a temporary password so a member can sign in and set a new one.",
+      blurb: "Set a temporary password so a member can sign in and choose a new one.",
     },
     {
-      id: "reservations_view",
-      label: "View reservations",
-      href: "admin-reservations-view.html",
-      blurb: "See all bookings. Edit or cancel if you also have Manage reservations.",
-    },
-    {
-      id: "reservations_manage",
-      label: "Manage reservations",
-      href: "admin-reservations-manage.html",
-      blurb: "Edit, check in, confirm, or cancel. Make a reservation when you need a new one.",
+      id: "invoices",
+      label: "Member accounts",
+      href: "admin-invoices.html",
+      blurb: "Create a charge and view member accounts, including overdue accounts.",
+      gate: "accounts_manager",
     },
     {
       id: "reports",
@@ -34,68 +71,20 @@ window.AdminCommon = {
       blurb: "Reservations, current members, stay counts, and booking overrides.",
     },
     {
-      id: "invoices",
-      label: "Member accounts",
-      href: "admin-invoices.html",
-      blurb: "Create a charge for dues, a penalty, or another amount a member owes.",
-      gate: "reservations_manage",
-    },
-    {
-      id: "website",
-      label: "Website",
-      href: "admin-website.html",
-      blurb: "Update site alerts (banner header, details, and photos).",
-    },
-    {
-      id: "pictures",
-      label: "Pictures",
-      href: "admin-pictures.html",
-      blurb: "Upload, reorder, or remove Pictures page gallery images.",
-      gate: "website",
-    },
-    {
-      id: "wedding_calendar",
-      label: "Booking calendar",
-      href: "admin-wedding-calendar.html",
-      blurb: "Mark wedding dates booked, on hold, or closed for the public calendar.",
-      gate: "website",
-    },
-    {
-      id: "resort_calendar",
-      label: "Resort Calendar",
-      href: "admin-resort-calendar.html",
-      blurb: "Add, edit, or remove ECR-planned events on the public resort calendar.",
-      gate: "website",
-    },
-    {
-      id: "board",
-      label: "Board Members",
-      href: "admin-board.html",
-      blurb: "Edit Board of Directors names, photos, phone, email, and committees.",
-      gate: "website",
-    },
-    {
       id: "staff",
       label: "Staff",
       href: "admin-staff.html",
-      blurb: "Create lower-level admin accounts and assign tasks.",
-    },
-    {
-      id: "account_roles",
-      label: "Account roles",
-      href: "admin-staff.html",
-      blurb: "Attach staff access to a member, or membership to a staff account.",
-      hub: false,
+      blurb: "Create staff logins, edit jobs, and close, suspend, or delete a staff account.",
     },
   ],
 
   ASSIGNABLE_TASKS: [
-    { id: "members", label: "Members" },
-    { id: "passwords", label: "Passwords" },
-    { id: "reservations_view", label: "Reservations view" },
-    { id: "reservations_manage", label: "Reservations manage" },
-    { id: "website", label: "Website" },
-    { id: "account_roles", label: "Account roles" },
+    { id: "front_desk", label: "Front desk" },
+    { id: "reservation_agent", label: "Reservation agent" },
+    { id: "special_events", label: "Special events agent" },
+    { id: "website_editor", label: "Website editor" },
+    { id: "accounts_manager", label: "Accounts manager" },
+    { id: "site_manager", label: "Site manager" },
   ],
 
   profileHasMembership(profile) {
@@ -103,11 +92,18 @@ window.AdminCommon = {
   },
 
   canViewReports() {
-    return (
-      Auth.hasAdminTask("members") ||
-      Auth.hasAdminTask("reservations_view") ||
-      Auth.hasAdminTask("reservations_manage")
+    return Auth.hasAdminTask("reports");
+  },
+
+  jobsFromStored(adminTasks, adminLevel) {
+    return this.ASSIGNABLE_TASKS.map((task) => task.id).filter((id) =>
+      Auth.impliesAdminTask(id, adminLevel, adminTasks)
     );
+  },
+
+  jobLabels(adminTasks, adminLevel) {
+    const ids = this.jobsFromStored(adminTasks, adminLevel);
+    return this.ASSIGNABLE_TASKS.filter((task) => ids.includes(task.id)).map((task) => task.label);
   },
 
   profileHasStaffAccess(profile) {
@@ -387,21 +383,16 @@ window.AdminCommon = {
       return null;
     }
 
-    if (requiredTask === "reports" && !this.canViewReports()) {
+    const required = Array.isArray(requiredTask)
+      ? requiredTask.filter(Boolean)
+      : requiredTask
+        ? [requiredTask]
+        : [];
+    if (required.length && !required.some((task) => Auth.hasAdminTask(task))) {
       if (denied) {
         denied.hidden = false;
         denied.innerHTML =
-          `You are not assigned this task. <a href="admin.html">Back to Admin</a>`;
-      }
-      if (app) app.hidden = true;
-      return null;
-    }
-
-    if (requiredTask && requiredTask !== "reports" && !Auth.hasAdminTask(requiredTask)) {
-      if (denied) {
-        denied.hidden = false;
-        denied.innerHTML =
-          `You are not assigned this task. <a href="admin.html">Back to Admin</a>`;
+          `You are not assigned this job. <a href="admin.html">Back to Admin</a>`;
       }
       if (app) app.hidden = true;
       return null;
@@ -496,12 +487,8 @@ window.AdminCommon = {
     if (!container) return;
     container.innerHTML = this.TASKS.map((task) => {
       if (task.hub === false) return "";
-      if (task.id === "reports") {
-        if (!this.canViewReports()) return "";
-      } else {
-        const needed = task.gate || task.id;
-        if (!Auth.hasAdminTask(needed)) return "";
-      }
+      const needed = task.gateAny || [task.gate || task.id];
+      if (!needed.some((id) => Auth.hasAdminTask(id))) return "";
       return `<a class="admin-task-btn" href="${task.href}">
         <span class="admin-task-btn-label">${this.escapeHtml(task.label)}</span>
         <span class="admin-task-btn-blurb">${this.escapeHtml(task.blurb)}</span>

@@ -21,7 +21,7 @@
     manageHint.hidden = false;
     manageHint.innerHTML = canManage
       ? `You can <strong>Edit</strong> or <strong>Cancel</strong> below, or open <a href="admin-reservations-manage.html">Manage reservations</a>.`
-      : `This list is view-only. Cancel and edit are on <a href="admin-reservations-manage.html">Manage reservations</a> (requires the Manage reservations task).`;
+      : `This list is view-only. Check-in is on <a href="admin-reservations-manage.html">Manage reservations</a>. Edit, confirm, and cancel need the Reservation agent job.`;
   }
 
   function formatStayDate(value) {

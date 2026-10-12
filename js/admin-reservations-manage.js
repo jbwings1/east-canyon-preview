@@ -2,8 +2,11 @@
  * Admin Manage Reservations — create, edit, confirm, cancel.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("reservations_manage");
+  const me = await AdminCommon.requireAdmin("front_desk");
   if (!me) return;
+
+  const canBook = Auth.hasAdminTask("reservations_manage");
+  const canCheckIn = Auth.hasAdminTask("front_desk");
 
   const bookingsBody = document.getElementById("admin-bookings-body");
   const bookingMember = document.getElementById("booking-member");
@@ -29,6 +32,7 @@
   let invoices = [];
   let editingId = null;
   let viewingId = null;
+  let editMode = "edit";
   let adminMapReady = false;
   const createOverrideSession =
     typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
@@ -480,7 +484,7 @@
       ].join("");
     }
 
-    if (viewEditBtn) viewEditBtn.hidden = booking.status === "cancelled";
+    if (viewEditBtn) viewEditBtn.hidden = !canBook || booking.status === "cancelled";
     if (viewCard) {
       viewCard.hidden = false;
       viewCard.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -490,6 +494,7 @@
 
   function closeEdit() {
     editingId = null;
+    editMode = "edit";
     editOverrideSession?.clear();
     if (editCard) editCard.hidden = true;
     editForm?.reset();
@@ -503,10 +508,20 @@
     syncBookingQuery();
   }
 
-  function openEdit(booking) {
+  function applyEditChrome(mode) {
+    const checkinOnly = mode === "checkin" && !canBook;
+    if (editForm) editForm.hidden = checkinOnly;
+    const title = editCard?.querySelector("h2");
+    if (title) title.textContent = checkinOnly ? "Office check-in" : "Edit reservation";
+  }
+
+  function openEdit(booking, mode = "edit") {
     if (!booking || booking.status === "cancelled") return;
+    if (!canBook && mode !== "checkin") return;
     closeView();
     editingId = booking.id;
+    editMode = canBook ? mode : "checkin";
+    applyEditChrome(editMode);
     editOverrideSession?.clear();
     document.getElementById("edit-booking-id").value = booking.id;
     document.getElementById("edit-booking-type").value = uiType(booking.reservation_type);
@@ -579,19 +594,23 @@
               <button type="button" class="btn btn-outline btn-small admin-row-menu-toggle" aria-expanded="false" aria-haspopup="menu">Actions</button>
               <div class="admin-row-menu-panel" role="menu" hidden>
                 <button type="button" role="menuitem" data-action="view">View</button>
-                ${canEdit ? `<button type="button" role="menuitem" data-action="edit">Edit</button>` : ""}
                 ${
-                  canOfficeCheckIn(b)
+                  canBook && canEdit
+                    ? `<button type="button" role="menuitem" data-action="edit">Edit</button>`
+                    : ""
+                }
+                ${
+                  canCheckIn && canOfficeCheckIn(b)
                     ? `<button type="button" role="menuitem" data-action="checkin">Check in</button>`
                     : ""
                 }
                 ${
-                  canConfirm
+                  canBook && canConfirm
                     ? `<button type="button" role="menuitem" data-action="confirmed">Confirm</button>`
                     : ""
                 }
                 ${
-                  canCancel
+                  canBook && canCancel
                     ? `<button type="button" role="menuitem" class="is-danger" data-action="cancelled">Cancel</button>`
                     : ""
                 }
@@ -604,10 +623,14 @@
   }
 
   async function load() {
+    const invoicePromise =
+      canBook || Auth.hasAdminTask("accounts_manager")
+        ? Auth.listInvoices()
+        : Promise.resolve([]);
     [profiles, bookings, invoices] = await Promise.all([
       Auth.listAllProfiles(),
       Auth.listAllBookings(),
-      Auth.listInvoices(),
+      invoicePromise,
     ]);
     if (typeof BookingLimits?.setAdminDirectory === "function") {
       BookingLimits.setAdminDirectory(profiles);
@@ -624,7 +647,7 @@
     }
     if (editingId) {
       const still = bookings.find((b) => b.id === editingId);
-      if (still && still.status !== "cancelled") openEdit(still);
+      if (still && still.status !== "cancelled") openEdit(still, editMode);
       else closeEdit();
     } else if (viewingId) {
       const still = bookings.find((b) => b.id === viewingId);
@@ -1186,9 +1209,10 @@
 
   const createCard = document.getElementById("admin-create-card");
   const createOpenBtn = document.getElementById("admin-create-open");
+  if (!canBook && createOpenBtn) createOpenBtn.hidden = true;
 
   function setCreateFormOpen(open) {
-    if (!createCard) return;
+    if (!canBook || !createCard) return;
     createCard.hidden = !open;
     createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
@@ -1274,7 +1298,7 @@
 
   document.getElementById("admin-view-edit")?.addEventListener("click", () => {
     const booking = bookings.find((b) => b.id === viewingId);
-    if (booking) openEdit(booking);
+    if (canBook && booking) openEdit(booking, "edit");
   });
 
   document.getElementById("admin-office-check-in-btn")?.addEventListener("click", async () => {
@@ -1302,7 +1326,7 @@
       AdminCommon.showMessage(message, "Office check-in saved.", "success");
       await load();
       const updated = bookings.find((b) => b.id === id);
-      if (updated) openEdit(updated);
+      if (updated) openEdit(updated, canBook ? "edit" : "checkin");
     } catch (err) {
       AdminCommon.showMessage(checkinResult, err.message, "error");
     } finally {
@@ -1323,7 +1347,7 @@
         AdminCommon.showMessage(checkinResult, "Check-in notes saved.", "success");
         await load();
         const updated = bookings.find((b) => b.id === id);
-        if (updated) openEdit(updated);
+        if (updated) openEdit(updated, canBook ? "edit" : "checkin");
       } catch (err) {
         AdminCommon.showMessage(checkinResult, err.message, "error");
       } finally {
@@ -1418,13 +1442,13 @@
     }
 
     if (action === "edit") {
-      if (booking) openEdit(booking);
+      if (canBook && booking) openEdit(booking, "edit");
       return;
     }
 
     if (action === "checkin") {
-      if (booking) {
-        openEdit(booking);
+      if (canCheckIn && booking) {
+        openEdit(booking, "checkin");
         document.getElementById("admin-checkin-block")?.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
@@ -1432,6 +1456,8 @@
       }
       return;
     }
+
+    if (!canBook) return;
 
     if (action === "cancelled") {
       const label = booking
@@ -1479,7 +1505,7 @@
     const viewId = params.get("view");
     if (editId) {
       const booking = bookings.find((b) => b.id === editId);
-      if (booking) openEdit(booking);
+      if (booking) openEdit(booking, canBook ? "edit" : "checkin");
     } else if (viewId) {
       const booking = bookings.find((b) => b.id === viewId);
       if (booking) openView(booking);

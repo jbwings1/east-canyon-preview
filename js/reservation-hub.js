@@ -15,6 +15,7 @@
   let bookings = [];
   let occupancyRows = [];
   let isAdmin = false;
+  let showGuestNames = false;
   let mapReady = false;
 
   function escapeHtml(value) {
@@ -482,7 +483,7 @@
           ownFlags[i] && !allOwn
             ? ` <span class="own-booking-note">This is your booking</span>`
             : "";
-        if (!isAdmin) {
+        if (!showGuestNames) {
           return `<li>${escapeHtml(range)}${ownBit}</li>`;
         }
         const who = [r.full_name, r.member_id ? `ID ${r.member_id}` : "", r.email]
@@ -585,6 +586,7 @@
     return;
   }
 
+  showGuestNames = isAdmin && Auth.hasAdminTask("front_desk");
   if (adminNote) adminNote.hidden = !isAdmin;
 
   if (bookLink) bookLink.hidden = false;

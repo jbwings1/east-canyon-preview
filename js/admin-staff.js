@@ -15,7 +15,8 @@
       .map((p) => {
         const levelSeat =
           p.admin_level != null ? `${p.admin_level}${p.admin_seat || ""}` : "—";
-        const tasks = Array.isArray(p.admin_tasks) ? p.admin_tasks.join(", ") : "—";
+        const jobs = AdminCommon.jobLabels(p.admin_tasks, p.admin_level);
+        const tasks = p.admin_level === 1 ? "All jobs" : jobs.join(", ");
         const href = AdminCommon.profileEditHref("admin-staff-edit.html", p);
         const safeHref = AdminCommon.escapeHtml(href);
         const rowKey = AdminCommon.profileRowKey(p);
@@ -29,7 +30,7 @@
           <td><a href="${safeHref}">${AdminCommon.escapeHtml(name)}</a></td>
           <td><a href="${safeHref}">${AdminCommon.escapeHtml(email)}</a></td>
           <td>${AdminCommon.escapeHtml(levelSeat)}</td>
-          <td>${AdminCommon.escapeHtml(p.admin_level === 1 ? "All tasks" : tasks || "—")}</td>
+          <td>${AdminCommon.escapeHtml(tasks || "—")}</td>
         </tr>`;
       })
       .join("");

@@ -222,10 +222,10 @@
   function reservationHref(booking) {
     const id = encodeURIComponent(booking?.id || "");
     if (!booking?.id) return "";
-    if (typeof root.Auth?.hasAdminTask === "function" && root.Auth.hasAdminTask("reservations_manage")) {
+    if (typeof root.Auth?.hasAdminTask === "function" && root.Auth.hasAdminTask("front_desk")) {
       return `admin-reservations-manage.html?view=${id}`;
     }
-    return `admin-reservations-view.html?view=${id}`;
+    return "";
   }
 
   function confirmationCell(booking, conf) {

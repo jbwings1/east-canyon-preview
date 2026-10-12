@@ -2,8 +2,12 @@
  * Admin wedding calendar — mark days booked / hold / closed, edit the public note.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("website");
+  const me = await AdminCommon.requireAdmin(["special_events", "website"]);
   if (!me) return;
+
+  const canMark = Auth.hasAdminTask("special_events");
+  const canNote = Auth.hasAdminTask("website");
+  const canHeading = Auth.hasAdminTask("site_manager");
 
   const yearLabel = document.getElementById("admin-cal-year");
   const root = document.getElementById("admin-cal-root");
@@ -29,6 +33,45 @@
     AdminCommon.showMessage(el, text, type);
   }
 
+  function applyJobChrome() {
+    const settingsSection = settingsForm?.closest("section");
+    const daySection = dayForm?.closest("section");
+    const rangeSection = rangeForm?.closest("section");
+    const headingField = headingInput?.closest(".form-group");
+    const yearField = displayYearInput?.closest(".form-group");
+    const lead = document.getElementById("admin-cal-lead");
+    if (settingsSection) settingsSection.hidden = !(canNote || canHeading);
+    if (headingField) headingField.hidden = !canHeading;
+    if (yearField) yearField.hidden = !canHeading;
+    if (!canHeading) {
+      headingInput?.removeAttribute("required");
+      displayYearInput?.removeAttribute("required");
+    }
+    if (daySection) daySection.hidden = !canMark;
+    if (rangeSection) rangeSection.hidden = !canMark;
+    const settingsHelp = document.getElementById("admin-cal-settings-help");
+    if (settingsHelp) {
+      settingsHelp.textContent = canHeading
+        ? "Heading, note, and display year appear on the public booking calendar."
+        : "The note appears above the calendar visitors see.";
+    }
+    if (lead) {
+      if (canHeading && canMark) {
+        lead.textContent =
+          "Mark dates booked, on hold, or closed, and change the heading, year, and public note. ";
+      } else if (canMark && canNote) {
+        lead.textContent =
+          "Mark dates booked, on hold, or closed, and edit the public note. ";
+      } else if (canMark) {
+        lead.textContent = "Mark dates booked, on hold, or closed. ";
+      } else if (canHeading) {
+        lead.textContent = "Change the heading, the year visitors see, and the public note. ";
+      } else {
+        lead.textContent = "Edit the public note on the booking calendar. ";
+      }
+    }
+  }
+
   function render() {
     if (yearLabel) yearLabel.textContent = String(year);
     if (displayYearInput && !displayYearInput.value) {
@@ -37,7 +80,7 @@
     root.innerHTML = window.WeddingCalendar.renderYear({
       year,
       days,
-      interactive: true,
+      interactive: canMark,
       selectedKey,
     });
     if (selectedLabel) {
@@ -145,6 +188,7 @@
 
   dayForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!canMark) return;
     if (!selectedKey) {
       show(dayResult, "Click a date first.", "error");
       return;
@@ -164,6 +208,7 @@
 
   rangeForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!canMark) return;
     const start = document.getElementById("admin-cal-range-start")?.value;
     const end = document.getElementById("admin-cal-range-end")?.value;
     const status = document.getElementById("admin-cal-range-status")?.value;
@@ -188,29 +233,44 @@
 
   settingsForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const displayYear = Number(displayYearInput.value);
-    if (displayYear < 2020 || displayYear > 2100) {
-      show(settingsResult, "Enter a year between 2020 and 2100.", "error");
-      return;
-    }
     try {
-      const { error } = await window.ecrSupabase
-        .from("wedding_calendar_settings")
-        .upsert({
-          id: "default",
-          heading: headingInput.value.trim() || "Booking calendar",
-          note: publicNoteInput.value.trim(),
-          display_year: displayYear,
-          updated_at: new Date().toISOString(),
-        });
-      if (error) throw error;
-      year = displayYear;
+      if (canHeading) {
+        const displayYear = Number(displayYearInput.value);
+        if (displayYear < 2020 || displayYear > 2100) {
+          show(settingsResult, "Enter a year between 2020 and 2100.", "error");
+          return;
+        }
+        const { error } = await window.ecrSupabase
+          .from("wedding_calendar_settings")
+          .upsert({
+            id: "default",
+            heading: headingInput.value.trim() || "Booking calendar",
+            note: publicNoteInput.value.trim(),
+            display_year: displayYear,
+            updated_at: new Date().toISOString(),
+          });
+        if (error) throw error;
+        year = displayYear;
+      } else if (canNote) {
+        const { error } = await window.ecrSupabase
+          .from("wedding_calendar_settings")
+          .update({
+            note: publicNoteInput.value.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", "default");
+        if (error) throw error;
+      } else {
+        return;
+      }
       show(settingsResult, "Public calendar settings saved.", "success");
       render();
     } catch (err) {
       show(settingsResult, err.message || "Could not save settings.", "error");
     }
   });
+
+  applyJobChrome();
 
   try {
     await load();

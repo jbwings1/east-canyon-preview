@@ -81,7 +81,11 @@
               index === alerts.length - 1 ? " disabled" : ""
             }>Down</button>
             <button type="button" class="btn-link alert-save">Save</button>
-            <button type="button" class="btn-link alert-delete">Delete</button>
+            ${
+              Auth.hasAdminTask("site_manager")
+                ? `<button type="button" class="btn-link alert-delete">Delete</button>`
+                : ""
+            }
           </div>
         </article>`;
       })
@@ -284,6 +288,7 @@
 
     try {
       if (btn.classList.contains("alert-delete")) {
+        if (!Auth.hasAdminTask("site_manager")) return;
         if (!confirm("Delete this alert and its photos?")) return;
         const imgs = alertImages(id);
         const { error } = await window.ecrSupabase.from("site_alerts").delete().eq("id", id);

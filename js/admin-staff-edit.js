@@ -21,8 +21,8 @@
     });
     if (note) {
       note.textContent = disabled
-        ? "Level 1 has all tasks."
-        : "Assign at least one task. You cannot remove your own Staff task.";
+        ? "Level 1 has every job."
+        : "Assign at least one job. A site manager cannot remove their own Site manager job.";
     }
   }
 
@@ -61,13 +61,7 @@
   document.getElementById("edit-staff-seat").value = staff.admin_seat || "";
   document.getElementById("edit-staff-status").value = staff.account_status || "active";
 
-  const assigned = new Set(
-    staff.admin_level === 1
-      ? AdminCommon.ASSIGNABLE_TASKS.map((t) => t.id).concat("staff")
-      : Array.isArray(staff.admin_tasks)
-        ? staff.admin_tasks
-        : []
-  );
+  const assigned = new Set(AdminCommon.jobsFromStored(staff.admin_tasks, staff.admin_level));
   taskBoxes().forEach((el) => {
     el.checked = assigned.has(el.value);
   });

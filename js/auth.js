@@ -301,10 +301,53 @@ const Auth = {
     );
   },
 
+  /**
+   * Job check for a stored level and task list.
+   * Level 1 and Site manager include every job.
+   * Older task names still grant the job they were folded into.
+   */
+  impliesAdminTask(task, adminLevel, adminTasks) {
+    if (Number(adminLevel) === 1) return true;
+    const tasks = Array.isArray(adminTasks) ? adminTasks : [];
+    const has = (id) => tasks.includes(id);
+    if (has("site_manager")) return true;
+    const reservationAgent = has("reservation_agent") || has("reservations_manage");
+    const frontDesk = has("front_desk") || reservationAgent || has("reservations_view");
+    const websiteEditor = has("website_editor") || has("website");
+    const specialEvents = has("special_events") || has("website");
+    const accounts = has("accounts_manager") || has("members") || has("passwords");
+    switch (task) {
+      case "front_desk":
+      case "reservations_view":
+        return frontDesk;
+      case "reservation_agent":
+      case "reservations_manage":
+        return reservationAgent;
+      case "special_events":
+        return specialEvents;
+      case "website_editor":
+      case "website":
+        return websiteEditor;
+      case "accounts_manager":
+      case "members":
+      case "passwords":
+      case "reports":
+      case "invoices":
+        return accounts;
+      case "staff":
+        return has("staff");
+      case "account_roles":
+        return has("account_roles");
+      case "site_manager":
+        return false;
+      default:
+        return has(task);
+    }
+  },
+
   hasAdminTask(task, user = this.getCurrentUser()) {
     if (!this.isAdmin(user)) return false;
-    if (user.adminLevel === 1) return true;
-    return Array.isArray(user.adminTasks) && user.adminTasks.includes(task);
+    return this.impliesAdminTask(task, user.adminLevel, user.adminTasks);
   },
 
   async verifyAdmin() {
@@ -553,7 +596,7 @@ const Auth = {
     ruleOverrides = null,
   }) {
     if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+      throw new Error("You are not assigned the Reservation agent job.");
     }
     const admin = this.getCurrentUser();
     if (!admin?.id) throw new Error("Admin sign in required.");
@@ -894,7 +937,7 @@ const Auth = {
 
   async updateBookingStatus(bookingId, status) {
     if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+      throw new Error("You are not assigned the Reservation agent job.");
     }
     if (status !== "confirmed" && status !== "cancelled") {
       throw new Error("Status must be confirmed or cancelled.");
@@ -921,7 +964,7 @@ const Auth = {
     { reservationType, spot, checkIn, checkOut, notes, ruleOverrides = null } = {}
   ) {
     if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+      throw new Error("You are not assigned the Reservation agent job.");
     }
     if (!bookingId) throw new Error("Booking is required.");
     if (!checkIn || !checkOut) throw new Error("Check-in and check-out are required.");
@@ -1415,8 +1458,8 @@ const Auth = {
   },
 
   async createMemberInvoice({ userId, chargeType, description, amount, dueDate }) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+    if (!this.hasAdminTask("accounts_manager")) {
+      throw new Error("You are not assigned the Accounts manager job.");
     }
     const { data, error } = await getClient().rpc("create_member_invoice", {
       p_user_id: userId,
@@ -1731,8 +1774,8 @@ const Auth = {
    * Office check-in at the resort (staff activates the stay).
    */
   async checkInBookingAsAdmin(bookingId, { notes = "" } = {}) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+    if (!this.hasAdminTask("front_desk")) {
+      throw new Error("You are not assigned the Front desk job.");
     }
     const admin = this.getCurrentUser();
     if (!admin?.id) throw new Error("Admin sign in required.");
@@ -1791,8 +1834,8 @@ const Auth = {
 
   /** Update office check-in notes after check-in (does not change who/when). */
   async updateOfficeCheckInNotesAsAdmin(bookingId, notes) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservations manage task.");
+    if (!this.hasAdminTask("front_desk")) {
+      throw new Error("You are not assigned the Front desk job.");
     }
     if (!bookingId) throw new Error("Booking is required.");
     const { data: existing, error: existingError } = await getClient()
