@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reports | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site67">
+  <link rel="stylesheet" href="styles.css?v=site69">
 </head>
 <body class="page-visitor page-admin page-reports">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -203,10 +203,20 @@
           <p class="report-print-range" id="report-override-print-range"></p>
           <p class="admin-help">
             Every rule override and overdue-account override saved on a reservation.
+            All overrides are listed until you pick dates or a past period.
+            Dates use the day the override was cleared.
             Search by the member the stay is for, or by the admin who cleared it.
           </p>
           <div class="admin-toolbar">
             <div class="admin-toolbar-filters">
+              <div class="form-group">
+                <label for="report-override-from">From</label>
+                <input type="date" id="report-override-from" min="2020-01-01" max="2036-12-31">
+              </div>
+              <div class="form-group">
+                <label for="report-override-to">To</label>
+                <input type="date" id="report-override-to" min="2020-01-01" max="2036-12-31">
+              </div>
               <div class="form-group form-group-search member-lookup">
                 <label for="report-override-member-search">Member</label>
                 <input
@@ -238,6 +248,11 @@
                 <input type="hidden" id="report-override-admin" value="">
               </div>
             </div>
+          </div>
+          <div class="report-presets" role="group" aria-label="Override cleared period">
+            <button type="button" class="btn btn-outline" data-report="overrides" data-months="3" aria-pressed="false">Past 3 months</button>
+            <button type="button" class="btn btn-outline" data-report="overrides" data-months="6" aria-pressed="false">Past 6 months</button>
+            <button type="button" class="btn btn-outline" data-report="overrides" data-months="9" aria-pressed="false">Past 9 months</button>
           </div>
           <p id="report-override-summary" class="admin-count"></p>
           <div class="admin-table-wrap">
@@ -272,8 +287,9 @@
   <script src="js/site-header-auth.js?v=4"></script>
   <script src="js/admin-common.js?v=sb17"></script>
   <script src="js/spots-data.js?v=12"></script>
-  <script src="js/stay-date-fields.js?v=3"></script>
-  <script src="js/admin-reports.js?v=8"></script>
+  <script src="js/stay-date-fields.js?v=4"></script>
+  <script src="js/booking-limits.js?v=6"></script>
+  <script src="js/admin-reports.js?v=10"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

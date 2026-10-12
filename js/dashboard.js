@@ -1,4 +1,12 @@
 (async function () {
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   const sessionUser = Auth.requireAuth();
   if (!sessionUser) return;
 
@@ -30,6 +38,7 @@
 
   const spotContent = document.getElementById("spot-content");
   const bookingsContent = document.getElementById("bookings-content");
+  if (typeof BookingLimits !== "undefined") BookingLimits.bindStatusFlagClicks(bookingsContent);
 
   if (user.assignedSpot) {
     const spots = window.CAMPGROUND_SPOTS || window.MAP_UNITS || [];
@@ -84,10 +93,15 @@
             ? window.SpotAvailability.formatDateRange(b.check_in, b.check_out) ||
               `${b.check_in} → ${b.check_out}`
             : `${b.check_in} → ${b.check_out}`;
+        const pill = `<span class="status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+        const statusHtml =
+          typeof BookingLimits !== "undefined"
+            ? BookingLimits.statusWithFlags(pill, b.rule_overrides)
+            : pill;
         return `
       <article class="booking-item">
-        <p><strong>${label}${spot}</strong> · ${dates}</p>
-        <span class="status-pill ${statusClass}">${statusLabel}</span>
+        <p><strong>${escapeHtml(label)}${escapeHtml(spot)}</strong> · ${escapeHtml(dates)}</p>
+        ${statusHtml}
       </article>`;
       })
       .join("");

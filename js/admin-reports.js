@@ -97,6 +97,21 @@
     return stayOverlapsRange(isoDate(booking?.check_in), isoDate(booking?.check_out), start, today);
   }
 
+  function overrideLookback(today, months) {
+    return { from: monthsAgo(today, months), to: today };
+  }
+
+  function overrideMatchesDates(item, from, to) {
+    const start = String(from || "");
+    const end = String(to || "");
+    if (!start && !end) return true;
+    const day = memberSinceIso(item?.at);
+    if (!day) return false;
+    if (start && day < start) return false;
+    if (end && day > end) return false;
+    return true;
+  }
+
   function isCurrentMember(profile) {
     if (!String(profile?.member_id || "").trim()) return false;
     const status = String(profile?.account_status || "active").toLowerCase();
@@ -168,6 +183,8 @@
     rangeError,
     reservationMatches,
     stayInLookback,
+    overrideLookback,
+    overrideMatchesDates,
     isCurrentMember,
     passwordStatus,
     memberSinceIso,
@@ -316,6 +333,7 @@
 
     const message = document.getElementById("admin-message");
     const resBody = document.getElementById("report-res-body");
+    if (typeof BookingLimits !== "undefined") BookingLimits.bindStatusFlagClicks(resBody);
     const resSummary = document.getElementById("report-res-summary");
     const membersBody = document.getElementById("report-members-body");
     const membersSummary = document.getElementById("report-members-summary");
@@ -576,7 +594,14 @@
             <td>${escapeHtml(booking.spot || "—")}</td>
             <td>${escapeHtml(formatStayDate(booking.check_in))}</td>
             <td>${escapeHtml(formatStayDate(booking.check_out))}</td>
-            <td><span class="status-pill ${statusClass(display)}">${escapeHtml(display)}</span></td>
+            <td>${
+              typeof BookingLimits !== "undefined"
+                ? BookingLimits.statusWithFlags(
+                    `<span class="status-pill ${statusClass(display)}">${escapeHtml(display)}</span>`,
+                    booking.rule_overrides
+                  )
+                : `<span class="status-pill ${statusClass(display)}">${escapeHtml(display)}</span>`
+            }</td>
           </tr>`;
         })
         .join("");
@@ -754,6 +779,42 @@
       renderOverrides();
     }
 
+    function overrideDateRange() {
+      return {
+        from: document.getElementById("report-override-from")?.value || "",
+        to: document.getElementById("report-override-to")?.value || "",
+      };
+    }
+
+    function matchingOverrideMonths(from, to) {
+      const today = todayIso();
+      return (
+        [3, 6, 9].find((months) => {
+          const lookback = overrideLookback(today, months);
+          return lookback.from === from && lookback.to === to;
+        }) || 0
+      );
+    }
+
+    function setOverrideMonthsPressed(months) {
+      document.querySelectorAll("[data-report='overrides'][data-months]").forEach((button) => {
+        const selected = Number(button.getAttribute("data-months")) === Number(months);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+    }
+
+    function describeOverridePeriod(from, to) {
+      if (!from && !to) return "All overrides.";
+      const fromLabel = from ? formatStayDate(from) : "";
+      const toLabel = to ? formatStayDate(to) : "";
+      if (fromLabel && fromLabel !== "—" && toLabel && toLabel !== "—") {
+        return `Cleared ${fromLabel} through ${toLabel}.`;
+      }
+      if (fromLabel && fromLabel !== "—") return `Cleared from ${fromLabel}.`;
+      if (toLabel && toLabel !== "—") return `Cleared through ${toLabel}.`;
+      return "All overrides.";
+    }
+
     function renderOverrides() {
       const body = document.getElementById("report-override-body");
       const summary = document.getElementById("report-override-summary");
@@ -761,10 +822,19 @@
       if (!body || !summary) return;
       const memberId = document.getElementById("report-override-member")?.value || "";
       const adminId = selectedAdminId();
+      const { from, to } = overrideDateRange();
+      setOverrideMonthsPressed(matchingOverrideMonths(from, to));
       const memberLabel = memberId ? memberName(profiles, memberId) : "";
       const adminLabel = adminOptions.find((item) => item.id === adminId)?.label || "";
-      const bits = [memberLabel, adminLabel].filter(Boolean);
-      if (printRange) printRange.textContent = bits.length ? bits.join(". ") + "." : "All overrides.";
+      const who = [memberLabel, adminLabel].filter(Boolean);
+      const period = describeOverridePeriod(from, to);
+      if (printRange) printRange.textContent = who.length ? `${who.join(". ")}. ${period}` : period;
+      const error = rangeError(from, to);
+      if (error) {
+        summary.textContent = error;
+        body.innerHTML = `<tr><td colspan="7">${escapeHtml(error)}</td></tr>`;
+        return;
+      }
       const rows = [];
       bookings.forEach((booking) => {
         const list = Array.isArray(booking.rule_overrides) ? booking.rule_overrides : [];
@@ -772,6 +842,7 @@
           if (!item?.rule) return;
           if (memberId && booking.user_id !== memberId) return;
           if (adminId && item.by !== adminId && item.by_name !== adminId) return;
+          if (!overrideMatchesDates(item, from, to)) return;
           rows.push({ booking, item });
         });
       });
@@ -794,6 +865,10 @@
                 return Number.isNaN(date.getTime()) ? item.at : date.toLocaleString();
               })()
             : "—";
+          const conf =
+            typeof root.Auth?.bookingConfirmationId === "function"
+              ? root.Auth.bookingConfirmationId(booking)
+              : booking.id || "—";
           const kind = item.rule === "account_overdue" ? "Overdue" : "Rule";
           const who =
             item.by && item.by !== item.by_name
@@ -806,7 +881,7 @@
           return `<tr>
             <td>${escapeHtml(when)}</td>
             <td>${escapeHtml(memberName(profiles, booking.user_id))}</td>
-            <td><code>${escapeHtml(confirmationId(booking))}</code></td>
+            <td><code>${escapeHtml(conf)}</code></td>
             <td>${escapeHtml(stay)}</td>
             <td>${escapeHtml(kind)}</td>
             <td>${escapeHtml(who)}</td>
@@ -842,6 +917,22 @@
           item.setAttribute("aria-pressed", item === button ? "true" : "false");
         });
         renderMembers();
+      });
+    });
+
+    document.querySelectorAll("[data-report='overrides'][data-months]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const months = Number(button.getAttribute("data-months")) || 0;
+        const already = button.getAttribute("aria-pressed") === "true";
+        if (already) {
+          setDateValue("report-override-from", "");
+          setDateValue("report-override-to", "");
+        } else {
+          const lookback = overrideLookback(todayIso(), months);
+          setDateValue("report-override-from", lookback.from);
+          setDateValue("report-override-to", lookback.to);
+        }
+        renderOverrides();
       });
     });
 
@@ -1049,6 +1140,11 @@
         ranges.types = { mode: "overlap", from: "", to: "" };
         setPressed("types", "");
         renderTypes();
+      });
+    });
+    ["report-override-from", "report-override-to"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("change", () => {
+        renderOverrides();
       });
     });
 

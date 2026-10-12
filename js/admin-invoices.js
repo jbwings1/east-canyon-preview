@@ -16,10 +16,14 @@
   const search = document.getElementById("invoice-member-search");
   const list = document.getElementById("invoice-member-list");
   const hidden = document.getElementById("invoice-member");
+  const ledgerHelp = document.getElementById("invoice-ledger-help");
+  const showAllButton = document.getElementById("invoice-show-all");
+  const showOverdueButton = document.getElementById("invoice-show-overdue");
   let profiles = [];
   let invoices = [];
   let highlight = -1;
   let selectedId = "";
+  let overdueOnly = false;
 
   function choices() {
     return profiles
@@ -135,12 +139,48 @@
     detailCard.hidden = false;
   }
 
+  function visibleInvoices() {
+    if (!overdueOnly) return invoices;
+    const today = Auth.localToday();
+    return invoices.filter((invoice) => Auth.invoiceIsOverdue(invoice, today));
+  }
+
+  function updateLedgerHelp(lines) {
+    if (!ledgerHelp) return;
+    if (!overdueOnly) {
+      ledgerHelp.textContent =
+        "One sheet for every invoice. Total is that member’s balance still owed after the row. Select an invoice number to open that invoice.";
+      return;
+    }
+    const accounts = new Set(
+      lines.map((line) => String(line.invoice.user_id || line.invoice.member_id || line.invoice.id))
+    );
+    const count = accounts.size;
+    ledgerHelp.textContent = count
+      ? `Showing ${count} overdue account${count === 1 ? "" : "s"}. These charges are open and past the due date.`
+      : "No accounts are overdue.";
+  }
+
+  function setLedgerFilter(nextOverdueOnly) {
+    overdueOnly = Boolean(nextOverdueOnly);
+    showAllButton?.setAttribute("aria-pressed", overdueOnly ? "false" : "true");
+    showOverdueButton?.setAttribute("aria-pressed", overdueOnly ? "true" : "false");
+    const shown = visibleInvoices();
+    if (selectedId && !shown.some((invoice) => invoice.id === selectedId)) {
+      selectedId = "";
+    }
+    renderInvoices();
+  }
+
   function renderInvoices() {
     const today = Auth.localToday();
-    const lines = AccountLedger.lines(invoices, { byMember: true });
+    const lines = AccountLedger.lines(visibleInvoices(), { byMember: true });
     const totals = AccountLedger.totals(lines);
+    updateLedgerHelp(lines);
     if (!lines.length) {
-      body.innerHTML = `<tr><td colspan="10">No invoices yet.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10">${
+        overdueOnly ? "No overdue accounts." : "No invoices yet."
+      }</td></tr>`;
       if (foot) foot.innerHTML = "";
       renderDetail();
       return;
@@ -201,6 +241,9 @@
     selectedId = "";
     renderInvoices();
   });
+
+  showAllButton?.addEventListener("click", () => setLedgerFilter(false));
+  showOverdueButton?.addEventListener("click", () => setLedgerFilter(true));
 
   search?.addEventListener("focus", showList);
   search?.addEventListener("input", () => {

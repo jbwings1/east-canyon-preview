@@ -139,6 +139,20 @@
     return true;
   }
 
+  function bookingSortTime(booking) {
+    const raw = booking?.created_at || booking?.createdAt || "";
+    const time = Date.parse(raw);
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  /** Older stay first. A tie uses id so only the later stay is the one that broke the rule. */
+  function isEarlierBooking(a, b) {
+    const at = bookingSortTime(a);
+    const bt = bookingSortTime(b);
+    if (at !== bt) return at < bt;
+    return String(a?.id || "") < String(b?.id || "");
+  }
+
   /**
    * @returns {{ ok: boolean, kinds: string[], violations: Array<{code:string,message:string}>, message: string }}
    */
@@ -163,12 +177,14 @@
     if (!checkIn || !checkOut) {
       kinds.add("dates");
       violations.push({
+        kind: "dates",
         code: "dates-missing",
         message: "Check-in or check-out date is missing.",
       });
     } else if (checkOut <= checkIn) {
       kinds.add("dates");
       violations.push({
+        kind: "dates",
         code: "dates-order",
         message: "Check-out must be after check-in.",
       });
@@ -181,6 +197,7 @@
       if (nights > cap) {
         kinds.add("nights");
         violations.push({
+          kind: "nights",
           code: "max-nights",
           message: `Stay is ${nights} nights (maximum ${cap} consecutive days per reservation).`,
         });
@@ -195,6 +212,7 @@
         if (checkIn > latestAllowed) {
           kinds.add("advance");
           violations.push({
+            kind: "advance",
             code: "advance-window",
             message: `Check-in was more than ${maxAdvanceDays()} days after the booking was made (advance limit).`,
           });
@@ -206,6 +224,7 @@
     if (needsAssignedSite(reservationType) && !spot) {
       kinds.add("site");
       violations.push({
+        kind: "site",
         code: "site-missing",
         message: "No site/unit is assigned.",
       });
@@ -218,12 +237,14 @@
       if (!unit) {
         kinds.add("site");
         violations.push({
+          kind: "site",
           code: "site-unknown",
           message: `Site/unit “${spot}” was not found on the map.`,
         });
       } else if (expected && unit.category !== expected) {
         kinds.add("site");
         violations.push({
+          kind: "site",
           code: "site-type-mismatch",
           message: `Site/unit “${spot}” is a ${unit.category} site, but this booking is ${reservationType || "unknown type"}.`,
         });
@@ -243,37 +264,52 @@
         const oOut = normalizeDate(other.check_out || other.checkOut);
         return datesOverlap(checkIn, checkOut, oIn, oOut);
       });
-      if (overlaps.length) {
+      const causedByThisStay = overlaps.filter((other) => isEarlierBooking(other, booking));
+      if (causedByThisStay.length) {
         kinds.add("overlap");
         violations.push({
+          kind: "overlap",
           code: "site-overlap",
           message: `Overlaps another booking on site/unit ${spot}.`,
         });
       }
     }
 
-    // Max reservations held before office check-in (checked-in / active stays do not count)
-    const upcoming = memberBookings.filter((b) => isUpcomingReservation(b, today)).length;
+    // Only the stay past the first maxActive upcoming reservations breaks the cap.
+    // Two earlier legal stays stay unmarked; a later third stay is the one that needs an override.
     const capActive = maxActive();
-    if (upcoming > capActive && isUpcomingReservation(booking, today)) {
-      kinds.add("limit");
-      violations.push({
-        code: "max-active",
-        message: `Member has ${upcoming} upcoming reservation${upcoming === 1 ? "" : "s"} (maximum ${capActive}).`,
-      });
+    if (isUpcomingReservation(booking, today)) {
+      const upcoming = memberBookings
+        .filter((b) => isUpcomingReservation(b, today))
+        .sort((a, b) => (isEarlierBooking(a, b) ? -1 : isEarlierBooking(b, a) ? 1 : 0));
+      const index = upcoming.findIndex((b) => String(b.id) === String(booking.id));
+      if (index >= capActive) {
+        kinds.add("limit");
+        violations.push({
+          kind: "limit",
+          code: "max-active",
+          message: `This stay is past the maximum of ${capActive} upcoming reservations (member has ${upcoming.length}).`,
+        });
+      }
     }
+
+    // Earlier stays are the context. A later stay must not make an earlier legal stay look broken.
+    const earlierBookings = memberBookings.filter(
+      (b) => String(b.id) !== String(booking.id) && isEarlierBooking(b, booking)
+    );
 
     // Membership class rights
     if (global.MembershipRights?.evaluateExistingBooking) {
       const gate = global.MembershipRights.evaluateExistingBooking(
         booking,
-        memberBookings,
+        earlierBookings,
         memberId
       );
       if (!gate.ok) {
         kinds.add("class");
         (gate.violations || []).forEach((v) => {
           violations.push({
+            kind: "class",
             code: v.code || "class",
             message: v.message || "Breaks membership class rules.",
           });
@@ -286,17 +322,17 @@
       global.BookingLimits?.evaluateConsecutiveOccupancy &&
       global.BookingLimits.isLodgingForStreak?.(reservationType)
     ) {
-      const others = memberBookings.filter((b) => String(b.id) !== String(booking.id));
       const consecutive = global.BookingLimits.evaluateConsecutiveOccupancy({
         checkIn,
         checkOut,
-        existingBookings: others,
+        existingBookings: earlierBookings,
         reservationType,
       });
       if (!consecutive.ok) {
         kinds.add("consecutive");
         (consecutive.violations || []).forEach((v) => {
           violations.push({
+            kind: "consecutive",
             code: v.rule || v.code || "consecutive_14_vacate_7",
             message: v.message || "Breaks 14-day consecutive occupancy / 7-day vacate rule.",
           });

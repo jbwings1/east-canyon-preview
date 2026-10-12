@@ -31,6 +31,7 @@ let memberBookings = [];
 let editingBookingId = null;
 let occupancyRows = [];
 let occupancyFetchToken = 0;
+let memberInvoices = [];
 const reservationMode = document.body?.dataset?.reservationMode || "book";
 const editIdFromUrl = new URLSearchParams(window.location.search).get("id");
 
@@ -197,13 +198,18 @@ function renderMyReservations() {
           : gate.code === "too-late"
             ? `<span class="label-optional" title="${escapeHtml(gate.reason || "")}">Too close to check-in</span>`
             : `<span class="label-optional">Past stay</span>`;
+      const pill = `<span class="status-pill ${
+        status === "confirmed" ? "available" : status === "cancelled" ? "booked" : "partial"
+      }">${escapeHtml(status)}</span>`;
+      const statusHtml =
+        typeof BookingLimits !== "undefined"
+          ? BookingLimits.statusWithFlags(pill, b.rule_overrides)
+          : pill;
       return `<tr>
         <td>${escapeHtml(type)}</td>
         <td>${escapeHtml(formatSpotLabel(b.spot))}</td>
         <td>${escapeHtml(dates)}</td>
-        <td><span class="status-pill ${
-          status === "confirmed" ? "available" : status === "cancelled" ? "booked" : "partial"
-        }">${escapeHtml(status)}</span></td>
+        <td>${statusHtml}</td>
         <td class="admin-actions">${actions}</td>
       </tr>`;
     })
@@ -413,16 +419,34 @@ function bookingLimitsAvailable() {
   return typeof window.BookingLimits !== "undefined";
 }
 
-function evaluateMembershipRights({ reservationType, checkIn: stayIn, checkOut: stayOut } = {}) {
+function spotOccupancyRows() {
+  return (window.SPOT_BOOKINGS || []).map((row) => ({
+    id: row.bookingId || row.id || "",
+    spot: row.spotId || row.spot,
+    check_in: row.checkIn || row.check_in,
+    check_out: row.checkOut || row.check_out,
+    status: row.status || "confirmed",
+  }));
+}
+
+function evaluateMembershipRights({ reservationType, checkIn: stayIn, checkOut: stayOut, spot } = {}) {
+  const chosenSpot =
+    spot !== undefined ? spot : preferredSpotInput?.value ? preferredSpotInput.value : undefined;
+  const editing = editingBookingId
+    ? memberBookings.find((booking) => booking.id === editingBookingId)
+    : null;
   if (bookingLimitsAvailable()) {
     return window.BookingLimits.evaluateProposedStay({
       memberId: bookingMemberIdForRights(),
       reservationType: reservationType || typeSelect.value,
+      spot: chosenSpot,
       checkIn: stayIn || checkIn.value,
       checkOut: stayOut || checkOut.value,
       existingBookings: memberBookings,
+      occupancyBookings: spotOccupancyRows(),
       excludeBookingId: editingBookingId,
       isNewBooking: !editingBookingId,
+      createdAt: editing?.created_at || null,
     });
   }
   if (!membershipRightsAvailable()) {
@@ -494,10 +518,76 @@ function updateMemberClassRulesPanel() {
   });
 }
 
+function memberMapRuleViolations() {
+  const violations = [];
+  if (!editingBookingId && overdueInvoiceRows().length) {
+    violations.push({
+      rule: "account_overdue",
+      message: "Your account is overdue. Pay the open charge before choosing a site.",
+    });
+  }
+  if (!bookingLimitsAvailable()) return violations;
+  const editing = editingBookingId
+    ? memberBookings.find((booking) => booking.id === editingBookingId)
+    : null;
+  const gate = window.BookingLimits.evaluateProposedStay({
+    memberId: bookingMemberIdForRights(),
+    reservationType: typeSelect.value,
+    checkIn: checkIn.value,
+    checkOut: checkOut.value,
+    existingBookings: memberBookings,
+    occupancyBookings: spotOccupancyRows(),
+    excludeBookingId: editingBookingId,
+    isNewBooking: !editingBookingId,
+    createdAt: editing?.created_at || null,
+  });
+  (gate.violations || []).forEach((violation) => {
+    const rule = String(violation.rule || "");
+    if (rule === "site" || rule === "site_overlap") return;
+    if (rule === "dates" && /missing/i.test(violation.message || "")) return;
+    violations.push(violation);
+  });
+  return violations;
+}
+
+function memberMapRuleMessage() {
+  return memberMapRuleViolations()
+    .map((violation) => {
+      const text = String(violation.message || "").trim();
+      if (!text) return "";
+      if (violation.rule === "max_open_reservations") {
+        return (
+          text.replace(/^Member has/, "You have") +
+          " A site cannot be selected for another stay."
+        );
+      }
+      if (violation.rule === "member_overlap") {
+        return text + " A site cannot be selected for another stay.";
+      }
+      return text;
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
+let mapRuleMessage = "";
+
+function applyMapRuleBlock() {
+  const text = memberMapRuleMessage();
+  mapRuleMessage = text;
+  if (text && preferredSpotInput?.value) {
+    clearPreferredSpot();
+  }
+  if (text && mapSummary) {
+    mapSummary.textContent = text;
+  }
+}
+
 function canBookSelectUnit(unit) {
   const type = typeSelect.value;
   if (!type) return false;
-  return unitMatchesReservationType(unit, type);
+  if (!unitMatchesReservationType(unit, type)) return false;
+  return !memberMapRuleMessage();
 }
 
 CampgroundMap.init({
@@ -508,8 +598,14 @@ CampgroundMap.init({
   requireDatesForSpots: false,
   unitFilter: "all",
   canBookSelect: canBookSelectUnit,
+  bookBlockMessage() {
+    return mapRuleMessage;
+  },
   onSpotSelect(unit) {
-    if (!canBookSelectUnit(unit)) return;
+    if (!canBookSelectUnit(unit)) {
+      applyMapRuleBlock();
+      return;
+    }
     preferredSpotInput.value = unit.id;
     selectedSpotLabel.textContent = formatSelectedUnit(unit);
     preferredSpotDisplay.hidden = false;
@@ -686,6 +782,7 @@ function updateMapAvailability() {
     mapSummary.textContent = advanceBookingMessage();
     CampgroundMap.setDates("", "");
     clearPreferredSpot();
+    applyMapRuleBlock();
     return;
   }
 
@@ -710,6 +807,7 @@ function updateMapAvailability() {
       }
     }
     updateStaySummary();
+    applyMapRuleBlock();
     return;
   }
 
@@ -769,7 +867,7 @@ function updateMapAvailability() {
       : "booked";
     const wrongCategory = unit && type && !unitMatchesReservationType(unit, type);
 
-    if (status !== "available" || wrongCategory) {
+    if (status !== "available" || wrongCategory || memberMapRuleMessage()) {
       clearPreferredSpot();
     } else {
       CampgroundMap.selectUnit(preferredSpotInput.value, { force: true });
@@ -777,6 +875,7 @@ function updateMapAvailability() {
   }
 
   updateStaySummary();
+  applyMapRuleBlock();
 }
 
 async function syncAvailabilityFromDates() {
@@ -1062,7 +1161,7 @@ if (cancelEditBtn && cancelEditBtn.tagName === "BUTTON") {
 }
 
 const BOOKING_DRAFT_KEY = "ecrBookingDraft";
-let memberInvoices = [];
+if (typeof BookingLimits !== "undefined") BookingLimits.bindStatusFlagClicks(myReservationsBody);
 
 function overdueInvoiceRows() {
   const today = typeof Auth?.localToday === "function" ? Auth.localToday() : "";
@@ -1253,17 +1352,16 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  await refreshOccupancyForSelectedDates();
   const membershipGate = evaluateMembershipRights({
     reservationType: data.type,
     checkIn: data.checkIn,
     checkOut: data.checkOut,
+    spot: data.preferredSpot || "",
   });
-  const hardViolations = (membershipGate.violations || []).filter(
-    (v) => v.rule !== "max_nights" && v.rule !== "max_open_reservations"
-  );
-  if (hardViolations.length) {
-    const limitText = hardViolations.map((v) => v.message).filter(Boolean).join(" ");
-    message.textContent = limitText;
+  const memberViolations = membershipGate.violations || [];
+  if (memberViolations.length) {
+    message.textContent = memberViolations.map((v) => v.message).filter(Boolean).join(" ");
     message.className = "form-message error";
     updateMembershipRightsNotice();
     membershipRightsNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1494,6 +1592,7 @@ form.addEventListener("submit", async (e) => {
     }
     restoreBookingDraft();
     renderOverdueNotice();
+    applyMapRuleBlock();
     showBookingFormState();
   }
   updateMemberReservationNotice();

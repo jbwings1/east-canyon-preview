@@ -144,10 +144,29 @@
         };
   const editable = gate.allowed;
 
+  function statusMarkup(booking) {
+    const label = bookingStatusLabel(booking);
+    const statusClass =
+      typeof Auth.bookingStatusClass === "function"
+        ? Auth.bookingStatusClass(label)
+        : label === "Past"
+          ? "booked"
+          : label === "Cancelled"
+            ? "cancelled"
+            : label === "Active" || label === "Confirmed" || label === "Edit confirmed"
+              ? "available"
+              : "partial";
+    const pill = `<span class="status-pill ${statusClass}">${escapeHtml(label)}</span>`;
+    if (typeof BookingLimits?.statusWithFlags === "function") {
+      return BookingLimits.statusWithFlags(pill, booking.rule_overrides);
+    }
+    return pill;
+  }
+
   const originalStay = originalStayDisplay(booking);
   const rows = [
     ["Type", Auth.reservationTypeLabel(booking.reservation_type) || "—"],
-    ["Status", bookingStatusLabel(booking)],
+    ["Status", statusMarkup(booking), true],
     ["Booked by", bookedByLabel(booking)],
     ["Booked", formatBookedEditedLineHtml(booking), true],
     ...(originalStay ? [["Original stay", originalStay]] : []),
@@ -168,6 +187,7 @@
       return `<div><dt>${escapeHtml(label)}</dt><dd>${dd}</dd></div>`;
     })
     .join("");
+  if (typeof BookingLimits !== "undefined") BookingLimits.bindStatusFlagClicks(summary);
 
   actions.hidden = false;
   if (editable) {

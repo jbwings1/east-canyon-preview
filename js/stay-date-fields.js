@@ -17,6 +17,8 @@
     "report-res-to",
     "report-type-from",
     "report-type-to",
+    "report-override-from",
+    "report-override-to",
   ];
 
   const MONTHS = [

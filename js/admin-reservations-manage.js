@@ -87,14 +87,54 @@
     });
   }
 
-  function ruleFlagMarkup(flag) {
-    if (flag.ok) return "";
-    const label =
-      typeof BookingRuleFlags !== "undefined"
-        ? BookingRuleFlags.flagLabel(flag.kinds)
-        : "Rule flag";
-    return `<span class="admin-class-flag" title="${AdminCommon.escapeHtml(flag.message)}">${label}</span>
-      <span class="admin-class-flag-detail">${AdminCommon.escapeHtml(flag.message)}</span>`;
+  function violationOverrideIds(violation) {
+    const code = String(violation?.code || "");
+    const kind = String(violation?.kind || "");
+    const ids = new Set([code, kind].filter(Boolean));
+    if (kind === "limit" || code === "max-active") ids.add("max_open_reservations");
+    if (kind === "nights" || code === "max-nights") ids.add("max_nights");
+    if (kind === "consecutive" || code === "consecutive_14_vacate_7") ids.add("consecutive_14_vacate_7");
+    if (kind === "advance" || code === "advance-window") ids.add("advance_window");
+    if (kind === "dates" || code === "dates-missing" || code === "dates-order") ids.add("dates");
+    if (
+      kind === "site" ||
+      code === "site-missing" ||
+      code === "site-unknown" ||
+      code === "site-type-mismatch"
+    ) {
+      ids.add("site");
+    }
+    if (kind === "overlap" || code === "site-overlap") ids.add("site_overlap");
+    return ids;
+  }
+
+  function violationAlreadyOverridden(booking, violation) {
+    const overrides = Array.isArray(booking?.rule_overrides) ? booking.rule_overrides : [];
+    const recorded = new Set(overrides.map((item) => String(item?.rule || "")).filter(Boolean));
+    return [...violationOverrideIds(violation)].some((id) => recorded.has(id));
+  }
+
+  function ruleFlagPennants(flag, booking) {
+    if (!flag || flag.ok) return [];
+    const groups = new Map();
+    (flag.violations || []).forEach((violation) => {
+      if (violationAlreadyOverridden(booking, violation)) return;
+      const kind = violation.kind || (flag.kinds.length === 1 ? flag.kinds[0] : "rule");
+      const message = String(violation.message || "").trim();
+      if (!message) return;
+      if (!groups.has(kind)) groups.set(kind, []);
+      groups.get(kind).push(message);
+    });
+    if (!groups.size && flag.message && !(flag.violations || []).some((violation) => violationAlreadyOverridden(booking, violation))) {
+      const kind = flag.kinds.length === 1 ? flag.kinds[0] : "rule";
+      groups.set(kind, [flag.message]);
+    }
+    return [...groups.entries()].map(([kind, lines]) => ({
+      tone: "rule",
+      label:
+        typeof BookingRuleFlags !== "undefined" ? BookingRuleFlags.flagLabel([kind]) : "Rule flag",
+      lines: [...lines, "Needs an override."],
+    }));
   }
 
   function memberChoiceLabel(member) {
@@ -524,19 +564,17 @@
                   displayStatus === "Edit confirmed"
                 ? "available"
                 : "partial";
+        const pill = `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`;
         return `<tr class="${rowClass.trim()}" data-booking-id="${AdminCommon.escapeHtml(b.id)}">
-          <td><code>${AdminCommon.escapeHtml(confirmationId(b))}</code>${ruleFlagMarkup(flag)}</td>
+          <td><code>${AdminCommon.escapeHtml(confirmationId(b))}</code></td>
           <td>${AdminCommon.escapeHtml(memberLabel(b.user_id))}</td>
           <td>${AdminCommon.escapeHtml(type)}</td>
           <td>${AdminCommon.escapeHtml(b.spot || "—")}</td>
           <td>${AdminCommon.escapeHtml(dates)}</td>
           <td>${
             typeof BookingLimits !== "undefined"
-              ? BookingLimits.statusWithFlags(
-                  `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`,
-                  b.rule_overrides
-                )
-              : `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`
+              ? BookingLimits.statusWithFlags(pill, b.rule_overrides, ruleFlagPennants(flag, b))
+              : pill
           }</td>
           <td class="admin-booking-actions">
             <div class="admin-row-menu">
@@ -682,6 +720,12 @@
     }
     CampgroundMap.setUnitFilter(mapFilterForType(type));
     CampgroundMap.setDates(checkIn, checkOut);
+    if (adminMemberOverlapMessage()) {
+      if (spotInput) spotInput.value = "";
+      if (CampgroundMap._selectedId) CampgroundMap.clearSelection();
+      updateAdminSpotBanner(null);
+      return;
+    }
 
     const unit = typedId ? window.SpotAvailability?.findUnit?.(typedId) || null : null;
     if (!typedId) {
@@ -734,10 +778,14 @@
       canBookSelect(unit) {
         const type = document.getElementById("booking-type")?.value || "";
         if (!unitMatchesType(unit, type)) return false;
+        if (adminMemberOverlapMessage()) return false;
         if (type === "rv" && typeof window.SpotAvailability?.unitFitsRigLength === "function") {
           return window.SpotAvailability.unitFitsRigLength(unit, adminRigLength());
         }
         return true;
+      },
+      bookBlockMessage() {
+        return adminMemberOverlapMessage();
       },
       onSpotSelect(unit) {
         const type = document.getElementById("booking-type")?.value || "";
@@ -784,6 +832,15 @@
     };
   }
 
+  function adminMemberOverlapMessage() {
+    if (typeof BookingLimits === "undefined") return "";
+    const gate = evaluateSelectedMemberRights();
+    const hit = (gate.violations || []).find(
+      (violation) => violation?.rule === BookingLimits.RULE.MEMBER_OVERLAP
+    );
+    return hit?.message || "";
+  }
+
   function evaluateSelectedMemberRights() {
     if (typeof BookingLimits === "undefined") {
       if (typeof MembershipRights === "undefined") return withOverdue({ ok: true, violations: [] }, bookingMember.value);
@@ -806,9 +863,11 @@
       BookingLimits.evaluateProposedStay({
         memberId: profile?.member_id || "",
         reservationType: bookingType.value,
+        spot: document.getElementById("booking-spot").value.trim(),
         checkIn: document.getElementById("booking-check-in").value,
         checkOut: document.getElementById("booking-check-out").value,
         existingBookings: bookings.filter((b) => b.user_id === memberUserId),
+        occupancyBookings: bookings,
         isNewBooking: true,
       }),
       memberUserId
@@ -833,11 +892,14 @@
     return BookingLimits.evaluateProposedStay({
       memberId: profile?.member_id || memberIdForUser(booking.user_id),
       reservationType: document.getElementById("edit-booking-type").value,
+      spot: document.getElementById("edit-booking-spot").value.trim(),
       checkIn: document.getElementById("edit-booking-check-in").value,
       checkOut: document.getElementById("edit-booking-check-out").value,
       existingBookings: bookings.filter((b) => b.user_id === booking.user_id),
+      occupancyBookings: bookings,
       excludeBookingId: booking.id,
       isNewBooking: false,
+      createdAt: booking.created_at,
     });
   }
 
@@ -975,6 +1037,19 @@
     el.textContent = MembershipRights.formatViolations(gate.violations);
   }
 
+  function uncoveredViolations(gate, session, priorOverrides) {
+    const covered = new Set(
+      [...(priorOverrides || []), ...(session?.list() || [])]
+        .map((item) => String(item?.rule || ""))
+        .filter(Boolean)
+    );
+    return (gate.violations || []).filter((violation) => {
+      if (!violation?.rule) return false;
+      if (violation.overridable === false || violation.rule === "member_overlap") return true;
+      return !covered.has(violation.rule);
+    });
+  }
+
   createForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const result = document.getElementById("admin-create-booking-result");
@@ -995,13 +1070,15 @@
     try {
       syncCreateOverrideFingerprint();
       const gate = evaluateSelectedMemberRights();
-      const pending =
-        createOverrideSession?.pendingViolations(gate.violations || []) || gate.violations || [];
+      const pending = uncoveredViolations(gate, createOverrideSession, []);
       if (pending.length) {
         refreshCreateRightsNotice();
+        const locked = pending.filter((violation) => violation.overridable === false);
         AdminCommon.showMessage(
           result,
-          "This booking breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
+          locked.length
+            ? locked.map((violation) => violation.message).filter(Boolean).join(" ")
+            : "This booking breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
           "error"
         );
         document.getElementById("admin-create-rights-notice")?.scrollIntoView({
@@ -1052,13 +1129,32 @@
     try {
       syncEditOverrideFingerprint(booking);
       const gate = evaluateEditRights(booking);
-      const pending =
-        editOverrideSession?.pendingViolations(gate.violations || []) || gate.violations || [];
+      const nextType = document.getElementById("edit-booking-type").value;
+      const nextSpot = document.getElementById("edit-booking-spot").value.trim();
+      const nextIn = document.getElementById("edit-booking-check-in").value;
+      const nextOut = document.getElementById("edit-booking-check-out").value;
+      const currentType =
+        (typeof Auth.toUiReservationType === "function" &&
+          Auth.toUiReservationType(booking.reservation_type)) ||
+        booking.reservation_type;
+      const stayUnchanged =
+        (booking.check_in || "") === nextIn &&
+        (booking.check_out || "") === nextOut &&
+        (booking.spot || "") === nextSpot &&
+        String(currentType || "") === String(nextType || "");
+      const pending = uncoveredViolations(
+        gate,
+        editOverrideSession,
+        stayUnchanged ? booking.rule_overrides : []
+      );
       if (pending.length) {
         refreshEditRightsNotice();
+        const locked = pending.filter((violation) => violation.overridable === false);
         AdminCommon.showMessage(
           editResult,
-          "This edit breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
+          locked.length
+            ? locked.map((violation) => violation.message).filter(Boolean).join(" ")
+            : "This edit breaks one or more rules. Override each rule (with a reason note) or change the stay details.",
           "error"
         );
         document.getElementById("admin-edit-rights-notice")?.scrollIntoView({
@@ -1241,7 +1337,7 @@
     document.getElementById(id)?.addEventListener("change", () => {
       AdminCommon.showMessage(document.getElementById("admin-create-booking-result"), "", "");
       if (id === "booking-type") syncAdminRigField();
-      if (id !== "booking-member") refreshAdminMap();
+      refreshAdminMap();
       refreshCreateRightsNotice();
     });
   });

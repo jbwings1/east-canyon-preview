@@ -44,6 +44,7 @@ window.CampgroundMap = {
     onUnitFocus,
     onAlignChange,
     canBookSelect,
+    bookBlockMessage,
     requireDatesForSpots = false,
     lookupOnly = false,
     unitFilter = "all",
@@ -60,6 +61,7 @@ window.CampgroundMap = {
     this._onUnitFocus = onUnitFocus || null;
     this._onAlignChange = onAlignChange || null;
     this._canBookSelect = canBookSelect || null;
+    this._bookBlockMessage = bookBlockMessage || null;
     this._alignSelectedId = null;
     this._requireDatesForSpots = requireDatesForSpots;
     this._lookupOnly = !!lookupOnly;
@@ -1117,6 +1119,12 @@ window.CampgroundMap = {
     const maxLength = window.SpotAvailability.getUnitMaxLength(unit);
 
     const canBook = status === "available";
+    const blockMessage =
+      !this._lookupOnly &&
+      canBook &&
+      typeof this._bookBlockMessage === "function"
+        ? String(this._bookBlockMessage(unit) || "").trim()
+        : "";
     const statusNote =
       status === "tooShort"
         ? maxLength != null && this._rigLength
@@ -1124,9 +1132,11 @@ window.CampgroundMap = {
           : `This site is too short for your RV and cannot be selected.`
         : hasDates
           ? {
-              available: canBook
-                ? `This ${noun} is open for your entire stay. It has been added to your booking.`
-                : "",
+              available: blockMessage
+                ? blockMessage
+                : canBook
+                  ? `This ${noun} is open for your entire stay. It has been added to your booking.`
+                  : "",
               partial: bookings.length
                 ? `This ${noun} is booked for part of your requested days. See the booked dates above and choose different dates or ${nounAnother}.`
                 : `This ${noun} is partially booked for your selected dates.`,
@@ -1181,9 +1191,13 @@ window.CampgroundMap = {
 
     this._detailPanel.hidden = false;
     // Hub occupancy lookup omits the booking CTA / guidance note; book/edit keep it.
+    const noteText = String(statusNote || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
     const noteHtml = this._lookupOnly
       ? ""
-      : `<p class="detail-note">${statusNote}</p>`;
+      : `<p class="detail-note">${noteText}</p>`;
     const ownBanner = allOwn
       ? `<p class="detail-own-booking">This is your booking.</p>`
       : "";

@@ -1,7 +1,10 @@
 /**
  * Unified booking limit evaluation + admin per-rule override UX.
  * Rule ids: max_nights, max_open_reservations, regular_time, type_disallowed,
- * consecutive_14_vacate_7, account_overdue.
+ * consecutive_14_vacate_7, account_overdue, advance_window, dates, site, site_overlap,
+ * member_overlap.
+ * Members cannot override. Only an admin override lets a breaking stay be saved.
+ * member_overlap cannot be overridden by a member or an admin.
  */
 (function (global) {
   const RULE = {
@@ -11,6 +14,11 @@
     TYPE_DISALLOWED: "type_disallowed",
     CONSECUTIVE_14: "consecutive_14_vacate_7",
     ACCOUNT_OVERDUE: "account_overdue",
+    ADVANCE: "advance_window",
+    DATES: "dates",
+    SITE: "site",
+    SITE_OVERLAP: "site_overlap",
+    MEMBER_OVERLAP: "member_overlap",
   };
 
   const RULE_LABELS = {
@@ -20,6 +28,11 @@
     [RULE.TYPE_DISALLOWED]: "Membership class lodging rights",
     [RULE.CONSECUTIVE_14]: "14 consecutive days then 7 days off",
     [RULE.ACCOUNT_OVERDUE]: "Account overdue",
+    [RULE.ADVANCE]: "60-day advance booking window",
+    [RULE.DATES]: "Check-in and check-out dates",
+    [RULE.SITE]: "Assigned site",
+    [RULE.SITE_OVERLAP]: "Site already booked",
+    [RULE.MEMBER_OVERLAP]: "Two spots in the same time frame",
   };
 
   const STREAK_MAX_DAYS = 14;
@@ -31,6 +44,10 @@
 
   function maxActive() {
     return global.RESERVATION_MAX_ACTIVE || 2;
+  }
+
+  function maxAdvanceDays() {
+    return global.RESERVATION_MAX_ADVANCE_DAYS || 60;
   }
 
   function todayIso() {
@@ -299,24 +316,127 @@
     };
   }
 
+  function uiReservationType(reservationType) {
+    return bookingTypeUi({ reservation_type: reservationType });
+  }
+
+  function needsAssignedSite(reservationType) {
+    const type = uiReservationType(reservationType);
+    const MR = global.MembershipRights;
+    if (MR) {
+      return Boolean(
+        MR.isCondoReservationType?.(type) ||
+          MR.isRvReservationType?.(type) ||
+          MR.isReunionReservationType?.(type)
+      );
+    }
+    return type === "condo" || type === "rv" || type === "family-reunion" || type === "family_reunion";
+  }
+
+  function expectedSiteCategory(reservationType) {
+    const type = uiReservationType(reservationType);
+    const MR = global.MembershipRights;
+    if (MR?.isCondoReservationType?.(type)) return "condo";
+    if (MR?.isReunionReservationType?.(type)) return "reunion";
+    if (MR?.isRvReservationType?.(type)) return "rv";
+    if (type === "condo") return "condo";
+    if (type === "family-reunion" || type === "family_reunion") return "reunion";
+    if (type === "rv" || type === "motorhome" || type === "travel-trailer") return "rv";
+    return null;
+  }
+
+  function occupancySpot(row) {
+    return String(row?.spot || row?.spotId || "").trim();
+  }
+
+  function occupancyIn(row) {
+    return normalizeDate(row?.check_in || row?.checkIn);
+  }
+
+  function occupancyOut(row) {
+    return normalizeDate(row?.check_out || row?.checkOut);
+  }
+
+  function occupancyId(row) {
+    return String(row?.id || row?.bookingId || "");
+  }
+
+  function countsForOverlap(row) {
+    const status = String(row?.status || "").toLowerCase();
+    if (!status) return true;
+    return status === "confirmed" || status === "active";
+  }
+
+  function datesOverlap(aStart, aEnd, bStart, bEnd) {
+    return Boolean(aStart && aEnd && bStart && bEnd && aStart < bEnd && bStart < aEnd);
+  }
+
+  function memberOverlapMessage() {
+    return "These dates overlap another reservation. A member cannot have two spots in the same time frame.";
+  }
+
+  function findMemberDateOverlap(existingBookings, inDate, outDate, excludeBookingId) {
+    return (existingBookings || []).find((booking) => {
+      if (!booking || !countsForOverlap(booking)) return false;
+      if (excludeBookingId && String(booking.id) === String(excludeBookingId)) return false;
+      const otherIn = normalizeDate(booking.check_in || booking.checkIn);
+      const otherOut = normalizeDate(booking.check_out || booking.checkOut);
+      return datesOverlap(inDate, outDate, otherIn, otherOut);
+    });
+  }
+
   /**
    * Full proposed-stay evaluation for create/edit.
+   * Every violation blocks the save unless an admin records an override for that rule.
    */
   function evaluateProposedStay({
     memberId,
     classCode = null,
     reservationType,
+    spot = undefined,
     checkIn,
     checkOut,
     existingBookings = [],
+    occupancyBookings = [],
     excludeBookingId = null,
     isNewBooking = true,
+    createdAt = null,
   } = {}) {
     const violations = [];
     const inDate = normalizeDate(checkIn);
     const outDate = normalizeDate(checkOut);
     const nights = stayNights(inDate, outDate);
     const cap = maxNights();
+    const spotId = String(spot || "").trim();
+
+    if (!inDate || !outDate) {
+      violations.push({
+        rule: RULE.DATES,
+        label: RULE_LABELS[RULE.DATES],
+        code: RULE.DATES,
+        message: "Check-in or check-out date is missing.",
+      });
+    } else if (outDate <= inDate) {
+      violations.push({
+        rule: RULE.DATES,
+        label: RULE_LABELS[RULE.DATES],
+        code: RULE.DATES,
+        message: "Check-out must be after check-in.",
+      });
+    }
+
+    if (inDate) {
+      const createdDay = normalizeDate(createdAt) || todayIso();
+      const latest = addDays(createdDay, maxAdvanceDays());
+      if (inDate > latest) {
+        violations.push({
+          rule: RULE.ADVANCE,
+          label: RULE_LABELS[RULE.ADVANCE],
+          code: RULE.ADVANCE,
+          message: `Check-in is more than ${maxAdvanceDays()} days after the reservation was made (advance limit).`,
+        });
+      }
+    }
 
     if (inDate && outDate && outDate > inDate && nights > cap) {
       violations.push({
@@ -326,6 +446,16 @@
         message: `Stay is ${nights} nights (maximum ${cap} consecutive days per reservation).`,
         nights,
         cap,
+      });
+    }
+
+    if (inDate && outDate && outDate > inDate && findMemberDateOverlap(existingBookings, inDate, outDate, excludeBookingId)) {
+      violations.push({
+        rule: RULE.MEMBER_OVERLAP,
+        label: RULE_LABELS[RULE.MEMBER_OVERLAP],
+        code: RULE.MEMBER_OVERLAP,
+        message: memberOverlapMessage(),
+        overridable: false,
       });
     }
 
@@ -393,6 +523,53 @@
       (streak.violations || []).forEach((v) => violations.push(v));
     }
 
+    if (spot !== undefined && needsAssignedSite(reservationType) && !spotId) {
+      violations.push({
+        rule: RULE.SITE,
+        label: RULE_LABELS[RULE.SITE],
+        code: RULE.SITE,
+        message: "No site/unit is assigned.",
+      });
+    }
+
+    if (spotId && global.SpotAvailability?.findUnit) {
+      const unit = global.SpotAvailability.findUnit(spotId);
+      const expected = expectedSiteCategory(reservationType);
+      if (!unit) {
+        violations.push({
+          rule: RULE.SITE,
+          label: RULE_LABELS[RULE.SITE],
+          code: RULE.SITE,
+          message: `Site/unit “${spotId}” was not found on the map.`,
+        });
+      } else if (expected && unit.category !== expected) {
+        violations.push({
+          rule: RULE.SITE,
+          label: RULE_LABELS[RULE.SITE],
+          code: RULE.SITE,
+          message: `Site/unit “${spotId}” does not match this reservation type.`,
+        });
+      }
+    }
+
+    if (spotId && inDate && outDate && outDate > inDate) {
+      const overlaps = (occupancyBookings || []).filter((other) => {
+        if (!other || !countsForOverlap(other)) return false;
+        const otherId = occupancyId(other);
+        if (excludeBookingId && otherId && otherId === String(excludeBookingId)) return false;
+        if (occupancySpot(other) !== spotId) return false;
+        return datesOverlap(inDate, outDate, occupancyIn(other), occupancyOut(other));
+      });
+      if (overlaps.length) {
+        violations.push({
+          rule: RULE.SITE_OVERLAP,
+          label: RULE_LABELS[RULE.SITE_OVERLAP],
+          code: RULE.SITE_OVERLAP,
+          message: `Overlaps another booking on site/unit ${spotId}.`,
+        });
+      }
+    }
+
     const condoStatus = condoStatusForStay({
       memberId,
       classCode,
@@ -455,12 +632,16 @@
     }
 
     function add(record) {
-      if (!record?.rule) return;
+      if (!record?.rule || record.overridable === false || record.rule === RULE.MEMBER_OVERLAP) return;
       drafts[record.rule] = record;
     }
 
     function pendingViolations(violations) {
-      return (violations || []).filter((v) => v?.rule && !drafts[v.rule]);
+      return (violations || []).filter((violation) => {
+        if (!violation?.rule) return false;
+        if (violation.overridable === false || violation.rule === RULE.MEMBER_OVERLAP) return true;
+        return !drafts[violation.rule];
+      });
     }
 
     function allCovered(violations) {
@@ -510,6 +691,9 @@
    * Per-rule override popup. Resolves override record or null if cancelled.
    */
   function showRuleOverrideDialog(violation, actor = {}) {
+    if (violation?.overridable === false || violation?.rule === RULE.MEMBER_OVERLAP) {
+      return Promise.resolve(null);
+    }
     const root = ensureOverrideDialog();
     const ruleEl = root.querySelector("#booking-rule-override-rule");
     const detailEl = root.querySelector("#booking-rule-override-detail");
@@ -615,7 +799,7 @@
 
     pending.forEach((v) => {
       const btn =
-        adminMode && typeof onOverrideClick === "function"
+        adminMode && v.overridable !== false && v.rule !== RULE.MEMBER_OVERLAP && typeof onOverrideClick === "function"
           ? `<button type="button" class="btn btn-outline btn-small booking-limits-override-btn" data-rule="${escapeHtml(
               v.rule
             )}">Override</button>`
@@ -700,24 +884,67 @@
     return groups;
   }
 
-  function statusWithFlags(pillHtml, overrides) {
+  function statusWithFlags(pillHtml, overrides, extraFlags) {
     const groups = overrideFlagGroups(overrides);
-    if (!groups.length) return pillHtml;
-    const buttons = groups
-      .map((group, index) => {
-        const name = group.tone === "overdue" ? "Overdue account" : "Rule override";
-        return `<button type="button" class="status-flag status-flag--${group.tone}" data-flag-index="${index}" aria-expanded="false" aria-label="${escapeHtml(name)}"></button>`;
+    const extras = (Array.isArray(extraFlags) ? extraFlags : []).filter(
+      (flag) => flag && Array.isArray(flag.lines) && flag.lines.some((line) => String(line || "").trim())
+    );
+    const items = [
+      ...groups.map((group) => ({
+        tone: group.tone,
+        label: group.tone === "overdue" ? "Overdue account" : "Rule override",
+        lines: group.items.map((item) => overrideFlagLine(item)),
+      })),
+      ...extras.map((flag) => ({
+        tone: flag.tone === "rule" || flag.tone === "overdue" ? flag.tone : "violation",
+        label: flag.label || "Rule flag",
+        lines: flag.lines.map((line) => String(line || "").trim()).filter(Boolean),
+      })),
+    ];
+    if (!items.length) return pillHtml;
+    const buttons = items
+      .map((item, index) => {
+        return `<button type="button" class="status-flag status-flag--${escapeHtml(item.tone)}" data-flag-index="${index}" aria-expanded="false" aria-label="${escapeHtml(item.label)}"></button>`;
       })
       .join("");
-    const details = groups
-      .map((group, index) => {
-        const lines = group.items
-          .map((item) => `<span>${escapeHtml(overrideFlagLine(item))}</span>`)
+    const details = items
+      .map((item, index) => {
+        const lines = [`<span>${escapeHtml(item.label)}</span>`]
+          .concat(item.lines.map((line) => `<span>${escapeHtml(line)}</span>`))
           .join("");
         return `<span class="status-flag-detail" data-flag-index="${index}" hidden>${lines}</span>`;
       })
       .join("");
-    return `<span class="status-with-flags">${pillHtml}<span class="status-flag-group">${buttons}</span></span>${details}`;
+    return `<span class="status-flag-host"><span class="status-with-flags">${pillHtml}<span class="status-flag-group">${buttons}</span></span>${details}</span>`;
+  }
+
+  /** Open or close the note for one pennant. Returns true when the click was on a flag. */
+  function toggleStatusFlagFromEvent(event) {
+    const flagBtn = event.target?.closest?.(".status-flag");
+    if (!flagBtn) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    const index = flagBtn.getAttribute("data-flag-index");
+    const host = flagBtn.closest(".status-flag-host");
+    const detail = host?.querySelector(`.status-flag-detail[data-flag-index="${index}"]`);
+    const open = flagBtn.getAttribute("aria-expanded") !== "true";
+    host?.querySelectorAll(".status-flag").forEach((btn) => {
+      if (btn !== flagBtn) btn.setAttribute("aria-expanded", "false");
+    });
+    host?.querySelectorAll(".status-flag-detail").forEach((el) => {
+      if (el !== detail) el.hidden = true;
+    });
+    flagBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (detail) detail.hidden = !open;
+    return true;
+  }
+
+  function bindStatusFlagClicks(root) {
+    if (!root || root.dataset.statusFlagBound === "1") return;
+    root.dataset.statusFlagBound = "1";
+    root.addEventListener("click", (event) => {
+      toggleStatusFlagFromEvent(event);
+    });
   }
 
   function mergeOverrides(existing, draftList) {
@@ -762,6 +989,7 @@
     VACATE_CLEAR_DAYS,
     evaluateProposedStay,
     evaluateConsecutiveOccupancy,
+    memberOverlapMessage,
     buildOccupancyStreaks,
     condoStatusForStay,
     createOverrideSession,
@@ -771,6 +999,8 @@
     mergeOverrides,
     formatOverridesForDisplay,
     statusWithFlags,
+    toggleStatusFlagFromEvent,
+    bindStatusFlagClicks,
     isOverdueOverride,
     isLodgingForStreak,
   };

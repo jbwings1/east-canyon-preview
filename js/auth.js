@@ -252,6 +252,9 @@ function formatClientError(error) {
   if (/already booked for overlapping dates/i.test(msg)) {
     return "That site is already booked for overlapping dates. Choose different dates or another open site.";
   }
+  if (/two spots in the same time frame/i.test(msg)) {
+    return "A member cannot have two spots in the same time frame. Choose dates that do not overlap another reservation for this member.";
+  }
   return msg || "Request failed.";
 }
 
@@ -468,6 +471,78 @@ const Auth = {
     return this.provisionUser({ kind: "delete_staff", user_id: userId });
   },
 
+  async assertBookingRules({
+    memberUserId,
+    memberId = "",
+    reservationType,
+    spot,
+    checkIn,
+    checkOut,
+    excludeBookingId = null,
+    isNewBooking = true,
+    createdAt = null,
+    ruleOverrides = [],
+  } = {}) {
+    const limits = window.BookingLimits;
+    if (!limits?.evaluateProposedStay) return;
+    const userId = memberUserId || this.getCurrentUser()?.id;
+    let existingBookings = [];
+    let occupancy = [];
+    if (this.isAdmin()) {
+      const all = await this.listAllBookings();
+      existingBookings = all.filter((booking) => booking.user_id === userId);
+      occupancy = all;
+    } else {
+      existingBookings = await this.listBookings();
+      if (checkIn && checkOut && checkOut > checkIn) {
+        try {
+          occupancy = await this.getSiteOccupancy(checkIn, checkOut);
+        } catch {
+          occupancy = [];
+        }
+      }
+    }
+    let resolvedMemberId = String(memberId || this.getCurrentUser()?.memberId || "").trim();
+    if (!resolvedMemberId && this.isAdmin() && userId && typeof this.listAllProfiles === "function") {
+      try {
+        const profiles = await this.listAllProfiles();
+        resolvedMemberId = profiles.find((profile) => profile.id === userId)?.member_id || "";
+      } catch {
+        resolvedMemberId = "";
+      }
+    }
+    const gate = limits.evaluateProposedStay({
+      memberId: resolvedMemberId,
+      reservationType,
+      spot: spot || "",
+      checkIn,
+      checkOut,
+      existingBookings,
+      occupancyBookings: occupancy,
+      excludeBookingId,
+      isNewBooking,
+      createdAt,
+    });
+    const covered = new Set(
+      (Array.isArray(ruleOverrides) ? ruleOverrides : [])
+        .map((item) => String(item?.rule || ""))
+        .filter(Boolean)
+    );
+    const pending = (gate.violations || []).filter((violation) => {
+      if (!violation?.rule) return false;
+      if (violation.overridable === false || violation.rule === "member_overlap") return true;
+      return !covered.has(violation.rule);
+    });
+    if (!pending.length) return;
+    const text = pending
+      .map((violation) => violation.message)
+      .filter(Boolean)
+      .join(" ");
+    throw new Error(
+      text || "This reservation breaks a booking rule. An admin override is required."
+    );
+  },
+
   async createBookingForMember({
     memberUserId,
     reservationType,
@@ -490,6 +565,15 @@ const Auth = {
     if (!dbType) throw new Error("Choose Condo, Family reunion, or RV.");
     const now = new Date().toISOString();
     const overrides = Array.isArray(ruleOverrides) ? ruleOverrides : [];
+    await this.assertBookingRules({
+      memberUserId,
+      reservationType,
+      spot,
+      checkIn,
+      checkOut,
+      isNewBooking: true,
+      ruleOverrides: overrides,
+    });
     const { data, error } = await getClient()
       .from("bookings")
       .insert({
@@ -809,7 +893,7 @@ const Auth = {
     const { data: existing, error: existingError } = await getClient()
       .from("bookings")
       .select(
-        "id,user_id,reservation_type,spot,check_in,check_out,status,notes,original_check_in,original_check_out,rule_overrides"
+        "id,user_id,reservation_type,spot,check_in,check_out,status,notes,original_check_in,original_check_out,rule_overrides,created_at"
       )
       .eq("id", bookingId)
       .maybeSingle();
@@ -847,10 +931,24 @@ const Auth = {
     }
 
     const priorOverrides = Array.isArray(existing.rule_overrides) ? existing.rule_overrides : [];
-    const appended =
-      Array.isArray(ruleOverrides) && ruleOverrides.length
-        ? [...priorOverrides, ...ruleOverrides]
-        : priorOverrides;
+    const newOverrides = Array.isArray(ruleOverrides) ? ruleOverrides : [];
+    const appended = newOverrides.length ? [...priorOverrides, ...newOverrides] : priorOverrides;
+    const stayUnchanged =
+      (existing.check_in || "") === checkIn &&
+      (existing.check_out || "") === checkOut &&
+      (existing.spot || "") === (nextSpot || "") &&
+      existing.reservation_type === dbType;
+    await this.assertBookingRules({
+      memberUserId: existing.user_id,
+      reservationType: dbType,
+      spot: nextSpot,
+      checkIn,
+      checkOut,
+      excludeBookingId: bookingId,
+      isNewBooking: false,
+      createdAt: existing.created_at,
+      ruleOverrides: stayUnchanged ? appended : newOverrides,
+    });
 
     const { data, error } = await getClient()
       .from("bookings")
@@ -1319,6 +1417,16 @@ const Auth = {
     }
     const dbType = toDbReservationType(reservationType);
     if (!dbType) throw new Error("Choose Condo, Family reunion, or RV.");
+    await this.assertBookingRules({
+      memberUserId: user.id,
+      memberId: user.memberId,
+      reservationType,
+      spot,
+      checkIn,
+      checkOut,
+      isNewBooking: true,
+      ruleOverrides: [],
+    });
     const now = new Date().toISOString();
     const { data, error } = await getClient()
       .from("bookings")
@@ -1353,7 +1461,7 @@ const Auth = {
     const { data: existing, error: existingError } = await getClient()
       .from("bookings")
       .select(
-        "id,user_id,status,check_in,check_out,original_check_in,original_check_out,reservation_type,spot"
+        "id,user_id,status,check_in,check_out,original_check_in,original_check_out,reservation_type,spot,created_at,rule_overrides"
       )
       .eq("id", bookingId)
       .eq("user_id", user.id)
@@ -1377,6 +1485,23 @@ const Auth = {
     if (!this.stayOverlapsOriginal(checkIn, checkOut, existing)) {
       throw new Error(this.originalStayOverlapMessage(existing));
     }
+
+    const stayUnchanged =
+      (existing.check_in || "") === checkIn &&
+      (existing.check_out || "") === checkOut &&
+      (existing.spot || "") === (spot || "");
+    await this.assertBookingRules({
+      memberUserId: user.id,
+      memberId: user.memberId,
+      reservationType: existing.reservation_type,
+      spot,
+      checkIn,
+      checkOut,
+      excludeBookingId: bookingId,
+      isNewBooking: false,
+      createdAt: existing.created_at,
+      ruleOverrides: stayUnchanged ? existing.rule_overrides : [],
+    });
 
     const { data, error } = await getClient()
       .from("bookings")

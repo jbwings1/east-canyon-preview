@@ -301,7 +301,14 @@
             <div class="reservation-booking-card-main">
               <div class="reservation-booking-card-top">
                 <h3>${escapeHtml(type)}</h3>
-                <span class="status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>
+                ${
+                  typeof BookingLimits !== "undefined"
+                    ? BookingLimits.statusWithFlags(
+                        `<span class="status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>`,
+                        b.rule_overrides
+                      )
+                    : `<span class="status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>`
+                }
               </div>
               <dl class="member-profile-summary reservation-booking-details">
                 <div><dt>Booked by</dt><dd>${escapeHtml(bookedByLabel(b))}</dd></div>
@@ -617,6 +624,7 @@
   }
 
   list?.addEventListener("click", (event) => {
+    if (window.BookingLimits?.toggleStatusFlagFromEvent?.(event)) return;
     const card = event.target.closest(".reservation-booking-card.is-manageable");
     if (!card) return;
     if (event.target.closest("a, button")) return;
@@ -637,6 +645,7 @@
 
   list?.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.target.closest("a, button, .status-flag-detail")) return;
     const card = event.target.closest(".reservation-booking-card.is-manageable");
     if (!card) return;
     event.preventDefault();

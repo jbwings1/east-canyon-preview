@@ -4197,6 +4197,14 @@ img.logo {
 .status-pill.member { background: #2f7dba; }
 .status-pill.maintenance { background: #c45c26; }
 
+.status-flag-host {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
 .status-with-flags {
   display: inline-flex;
   align-items: center;
@@ -4227,6 +4235,14 @@ img.logo {
 
 .status-flag--overdue {
   background: #c0392b;
+}
+
+.status-flag--violation {
+  background: #8b3a2f;
+}
+
+.status-flag-detail[hidden] {
+  display: none !important;
 }
 
 .status-flag-detail {
