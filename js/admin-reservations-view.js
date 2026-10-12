@@ -37,6 +37,36 @@
     return formatStayDate(iso);
   }
 
+  function adminLabel(userId, fallback) {
+    const profile = profiles.find((p) => p.id === userId);
+    if (profile && (profile.staff_code || profile.is_admin || profile.admin_level != null)) {
+      return (
+        Auth.adminPersonLabel({
+          name: profile.full_name || profile.email,
+          code: profile.staff_code,
+          admin_level: profile.admin_level,
+          admin_seat: profile.admin_seat,
+        }) || ""
+      );
+    }
+    return Auth.adminPersonLabel(fallback || {}) || "";
+  }
+
+  function bookedByLabel(booking) {
+    if (booking.booked_by_kind === "admin") {
+      return (
+        adminLabel(booking.booked_by_user_id, {
+          name: booking.booked_by_name,
+          code: booking.booked_by_code,
+        }) || "ECR admin"
+      );
+    }
+    if (booking.booked_by_kind === "member") {
+      return `Member · ${AdminCommon.memberLabel(profiles, booking.booked_by_user_id || booking.user_id)}`;
+    }
+    return booking.booked_by_kind || "—";
+  }
+
   function detailRow(label, value) {
     const text = value == null || value === "" ? "—" : String(value);
     return `<div><dt>${AdminCommon.escapeHtml(label)}</dt><dd>${AdminCommon.escapeHtml(text)}</dd></div>`;
@@ -89,6 +119,8 @@
       detailRow("Check in", formatStayDate(booking.check_in)),
       detailRow("Check out", formatStayDate(booking.check_out)),
       detailRow("Notes", booking.notes || "—"),
+      detailRow("Booked by", bookedByLabel(booking)),
+      detailRow("Checked in by", adminLabel(booking.office_checked_in_by) || "—"),
     ];
     if (!overrides.length) {
       rows.push(detailRow("Rule overrides", "None"));
@@ -203,6 +235,9 @@
       Auth.listAllProfiles(),
       Auth.listAllBookings(),
     ]);
+    if (typeof BookingLimits?.setAdminDirectory === "function") {
+      BookingLimits.setAdminDirectory(profiles);
+    }
     renderBookings();
     const viewId = new URLSearchParams(window.location.search).get("view");
     if (viewId) {

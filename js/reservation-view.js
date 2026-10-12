@@ -27,7 +27,16 @@
   }
 
   function bookedByLabel(booking) {
-    if (booking.booked_by_kind === "admin") return "ECR admin";
+    if (booking.booked_by_kind === "admin") {
+      const label =
+        typeof Auth.adminPersonLabel === "function"
+          ? Auth.adminPersonLabel({
+              name: booking.booked_by_name,
+              code: booking.booked_by_code,
+            })
+          : "";
+      return label || "ECR admin";
+    }
     if (booking.booked_by_kind === "member") return "Member";
     return "Unknown";
   }

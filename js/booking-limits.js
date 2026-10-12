@@ -840,13 +840,71 @@
     }
   }
 
+  let adminDirectory = [];
+
+  function setAdminDirectory(list) {
+    adminDirectory = Array.isArray(list) ? list : [];
+  }
+
+  function adminNumberToken(value) {
+    const text = String(value || "").trim();
+    if (!text || text.includes("@")) return "";
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)) return "";
+    return text;
+  }
+
+  function labelNameAndNumber(name, number) {
+    if (typeof global.Auth?.adminPersonLabel === "function") {
+      return global.Auth.adminPersonLabel({ name, code: number }) || "";
+    }
+    const who = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(name || "").trim())
+      ? ""
+      : String(name || "").trim();
+    const id = adminNumberToken(number);
+    if (who && id && who.toLowerCase() !== id.toLowerCase()) return `${who} (${id})`;
+    return who || id || "";
+  }
+
+  function profileForAdminToken(token) {
+    const key = String(token || "").trim().toLowerCase();
+    if (!key) return null;
+    return (
+      adminDirectory.find((profile) => {
+        const id = String(profile?.id || "").toLowerCase();
+        const code = String(profile?.staff_code || "").trim().toLowerCase();
+        const email = String(profile?.email || "").trim().toLowerCase();
+        return key === id || (code && key === code) || (email && key === email);
+      }) || null
+    );
+  }
+
+  function adminIdentityFromOverride(override) {
+    const profile = profileForAdminToken(override?.by);
+    const name = String(profile?.full_name || override?.by_name || profile?.email || "").trim();
+    const code =
+      String(profile?.staff_code || "").trim() ||
+      adminNumberToken(override?.by) ||
+      (profile?.admin_level != null ? `${profile.admin_level}${profile.admin_seat || ""}` : "");
+    return labelNameAndNumber(name, code);
+  }
+
+  function overrideInvolvesAdmin(item, adminId) {
+    const wanted = String(adminId || "").trim();
+    if (!wanted) return true;
+    const profile = profileForAdminToken(item?.by);
+    return [item?.by, item?.by_name, profile?.staff_code, profile?.id, profile?.email, profile?.full_name]
+      .some((value) => String(value || "").trim() === wanted);
+  }
+
   function actorFromUser(user) {
-    const name = user?.name || user?.fullName || user?.email || "Admin";
-    const id = String(
-      user?.staffCode || user?.adminSeat || user?.profileEmail || user?.email || user?.id || ""
-    ).trim();
+    const name = String(user?.name || user?.fullName || user?.email || "Admin").trim() || "Admin";
+    const code = String(user?.staffCode || "").trim();
+    const seat =
+      user?.adminLevel != null && String(user.adminLevel).trim() !== ""
+        ? `${user.adminLevel}${String(user.adminSeat || "").trim()}`
+        : "";
     return {
-      by: id,
+      by: code || seat,
       by_name: name,
     };
   }
@@ -856,10 +914,7 @@
   }
 
   function clearedByLabel(override) {
-    const name = String(override?.by_name || override?.by || "an admin").trim() || "an admin";
-    const id = String(override?.by || "").trim();
-    if (id && id !== name) return `${name} (${id})`;
-    return name;
+    return adminIdentityFromOverride(override) || "an admin";
   }
 
   function overrideFlagLine(override) {
@@ -975,7 +1030,7 @@
       return {
         rule: o.rule || "—",
         label: o.label || RULE_LABELS[o.rule] || o.rule || "—",
-        who: o.by_name || o.by || "—",
+        who: adminIdentityFromOverride(o) || "—",
         when,
         note: o.note || "—",
       };
@@ -996,6 +1051,9 @@
     showRuleOverrideDialog,
     renderLimitNotice,
     actorFromUser,
+    setAdminDirectory,
+    adminIdentityFromOverride,
+    overrideInvolvesAdmin,
     mergeOverrides,
     formatOverridesForDisplay,
     statusWithFlags,

@@ -333,12 +333,15 @@
   function staffLabel(userId) {
     if (!userId) return "—";
     const profile = profiles.find((p) => p.id === userId);
-    if (!profile) return String(userId).slice(0, 8);
-    const seat =
-      profile.admin_level != null
-        ? ` · ${profile.admin_level}${profile.admin_seat || ""}`
-        : "";
-    return `${profile.full_name || profile.email || "Staff"}${seat}`;
+    if (!profile) return "—";
+    return (
+      Auth.adminPersonLabel({
+        name: profile.full_name || profile.email,
+        code: profile.staff_code,
+        admin_level: profile.admin_level,
+        admin_seat: profile.admin_seat,
+      }) || "—"
+    );
   }
 
   function renderCheckInSection(booking) {
@@ -408,9 +411,15 @@
         ? Auth.bookingDisplayStatus(booking)
         : booking.status || "—";
     const flag = ruleFlagForBooking(booking);
+    const bookedFromProfile = staffLabel(booking.booked_by_user_id);
     const bookedBy =
       booking.booked_by_kind === "admin"
-        ? `Admin · ${staffLabel(booking.booked_by_user_id)}`
+        ? bookedFromProfile !== "—"
+          ? bookedFromProfile
+          : Auth.adminPersonLabel({
+              name: booking.booked_by_name,
+              code: booking.booked_by_code,
+            }) || "ECR admin"
         : booking.booked_by_kind === "member"
           ? `Member · ${memberLabel(booking.booked_by_user_id || booking.user_id)}`
           : booking.booked_by_kind || "—";
@@ -600,6 +609,9 @@
       Auth.listAllBookings(),
       Auth.listInvoices(),
     ]);
+    if (typeof BookingLimits?.setAdminDirectory === "function") {
+      BookingLimits.setAdminDirectory(profiles);
+    }
     renderBookingMemberOptions();
     renderBookings();
     const flagged = bookings.filter((b) => b.status !== "cancelled" && bookingHasOverride(b)).length;

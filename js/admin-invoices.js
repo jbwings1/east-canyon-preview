@@ -105,6 +105,20 @@
     return `<div><dt>${AdminCommon.escapeHtml(label)}</dt><dd>${AdminCommon.escapeHtml(value)}</dd></div>`;
   }
 
+  function addedByLabel(invoice) {
+    const profile = profiles.find((person) => person.id === invoice?.created_by);
+    if (typeof Auth.adminPersonLabel === "function") {
+      const label = Auth.adminPersonLabel({
+        name: profile?.full_name || invoice?.created_by_name,
+        code: profile?.staff_code,
+        admin_level: profile?.admin_level,
+        admin_seat: profile?.admin_seat,
+      });
+      if (label) return label;
+    }
+    return invoice?.created_by_name || "—";
+  }
+
   function selectedInvoice() {
     return invoices.find((invoice) => invoice.id === selectedId) || null;
   }
@@ -126,7 +140,7 @@
     detailList.innerHTML = [
       detailRow("Inv number", invoice.invoice_number || "—"),
       detailRow("Date", AccountLedger.dateLabel(invoice.created_at)),
-      detailRow("Added by", invoice.created_by_name || "—"),
+      detailRow("Added by", addedByLabel(invoice)),
       detailRow("Member", `${invoice.member_name || "—"}${invoice.member_id ? ` · ${invoice.member_id}` : ""}`),
       detailRow("Description", AccountLedger.description(invoice)),
       detailRow("Amount", Auth.formatMoney(invoice.amount)),

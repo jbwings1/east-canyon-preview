@@ -88,7 +88,16 @@
   }
 
   function bookedByLabel(booking) {
-    if (booking.booked_by_kind === "admin") return "ECR admin";
+    if (booking.booked_by_kind === "admin") {
+      const label =
+        typeof Auth.adminPersonLabel === "function"
+          ? Auth.adminPersonLabel({
+              name: booking.booked_by_name,
+              code: booking.booked_by_code,
+            })
+          : "";
+      return label || "ECR admin";
+    }
     if (booking.booked_by_kind === "member") return "Member";
     return "Unknown";
   }
@@ -486,7 +495,7 @@
           ${ownBit}
           ${who ? `<br>${escapeHtml(who)}` : ""}
           ${r.notes ? `<br>Notes: ${escapeHtml(r.notes)}` : ""}
-          ${r.booked_by_kind ? `<br>Booked by: ${escapeHtml(r.booked_by_kind === "admin" ? "ECR admin" : "Member")}` : ""}
+          ${r.booked_by_kind ? `<br>Booked by: ${escapeHtml(bookedByLabel(r))}` : ""}
         </li>`;
       })
       .join("");

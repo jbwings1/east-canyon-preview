@@ -589,6 +589,11 @@ const Auth = {
         confirmed_at: now,
         booked_by_kind: "admin",
         booked_by_user_id: admin.id,
+        booked_by_name: admin.name || admin.email || "Admin",
+        booked_by_code:
+          admin.staffCode ||
+          (admin.adminLevel != null ? `${admin.adminLevel}${admin.adminSeat || ""}` : "") ||
+          null,
         rule_overrides: overrides,
       })
       .select()
@@ -688,6 +693,38 @@ const Auth = {
     });
     throwIfError(error);
     return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * Admin shown on a booking, report, invoice, or note: name and admin number.
+   * The number is the staff code (A-001). Level and seat are used only when
+   * that account has no staff code.
+   */
+  adminPersonLabel(source) {
+    if (!source) return "";
+    const rawName = String(
+      source.name || source.full_name || source.by_name || source.fullName || ""
+    ).trim();
+    const level = source.admin_level ?? source.adminLevel;
+    const seat = String(source.admin_seat ?? source.adminSeat ?? "").trim();
+    const seatLabel =
+      level != null && String(level).trim() !== "" ? `${String(level).trim()}${seat}` : "";
+    const number =
+      [source.code, source.staff_code, source.staffCode, source.booked_by_code]
+        .map((value) => this.adminNumberToken(value))
+        .find(Boolean) || seatLabel;
+    const name = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawName)
+      ? ""
+      : rawName;
+    if (name && number && name.toLowerCase() !== number.toLowerCase()) return `${name} (${number})`;
+    return name || number || "";
+  },
+
+  adminNumberToken(value) {
+    const text = String(value || "").trim();
+    if (!text || text.includes("@")) return "";
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)) return "";
+    return text;
   },
 
   bookingConfirmationId(bookingOrId) {
@@ -1740,7 +1777,9 @@ const Auth = {
         office_checked_in_by: admin.id,
         office_check_in_notes: String(notes || "").trim(),
         edited_at: now,
-        last_edit_summary: `Office check-in by ${admin.name || admin.email || "staff"}`,
+        last_edit_summary: `Office check-in by ${
+          this.adminPersonLabel(admin) || admin.name || admin.email || "staff"
+        }`,
       })
       .eq("id", bookingId)
       .select()

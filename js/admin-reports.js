@@ -701,7 +701,7 @@
       const add = (id, name, code) => {
         const key = String(id || "").trim();
         if (!key || map.has(key)) return;
-        const label = code && code !== name ? `${name} · ${code}` : name || code || key;
+        const label = code && code !== name ? `${name} (${code})` : name || code || key;
         map.set(key, {
           id: key,
           label,
@@ -713,7 +713,14 @@
         const list = Array.isArray(booking.rule_overrides) ? booking.rule_overrides : [];
         list.forEach((item) => {
           if (!item?.rule) return;
-          add(item.by || item.by_name, item.by_name || item.by || "Admin", item.by || "");
+          const who =
+            typeof root.BookingLimits?.adminIdentityFromOverride === "function"
+              ? root.BookingLimits.adminIdentityFromOverride(item)
+              : "";
+          const named = who.match(/^(.*) \((.+)\)$/);
+          const name = named?.[1] || item.by_name || item.by || "Admin";
+          const code = named?.[2] || "";
+          add(code || item.by || item.by_name, name, code);
         });
       });
       profiles.forEach((profile) => {
@@ -858,7 +865,14 @@
         list.forEach((item) => {
           if (!item?.rule) return;
           if (memberId && booking.user_id !== memberId) return;
-          if (adminId && item.by !== adminId && item.by_name !== adminId) return;
+          if (
+            adminId &&
+            !(typeof root.BookingLimits?.overrideInvolvesAdmin === "function"
+              ? root.BookingLimits.overrideInvolvesAdmin(item, adminId)
+              : item.by === adminId || item.by_name === adminId)
+          ) {
+            return;
+          }
           if (!overrideMatchesDates(item, from, to)) return;
           rows.push({ booking, item });
         });
@@ -888,9 +902,15 @@
               : booking.id || "—";
           const kind = item.rule === "account_overdue" ? "Overdue" : "Rule";
           const who =
-            item.by && item.by !== item.by_name
-              ? `${item.by_name || "Admin"} (${item.by})`
-              : item.by_name || item.by || "—";
+            (typeof root.BookingLimits?.adminIdentityFromOverride === "function"
+              ? root.BookingLimits.adminIdentityFromOverride(item)
+              : "") ||
+            (typeof root.Auth?.adminPersonLabel === "function"
+              ? root.Auth.adminPersonLabel({ name: item.by_name, code: item.by })
+              : "") ||
+            item.by_name ||
+            item.by ||
+            "—";
           const stay =
             booking.check_in && booking.check_out
               ? `${formatStayDate(booking.check_in)} – ${formatStayDate(booking.check_out)}`
@@ -1171,6 +1191,9 @@
         root.Auth.listAllProfiles(),
         root.Auth.listAllBookings(),
       ]);
+      if (typeof root.BookingLimits?.setAdminDirectory === "function") {
+        root.BookingLimits.setAdminDirectory(profiles);
+      }
       buildMemberOptions();
       buildAdminOptions();
       applyPreset("reservations", "current-year", "report-res-from", "report-res-to");
