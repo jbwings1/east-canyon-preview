@@ -1,6 +1,6 @@
 (async function () {
   const query = AdminCommon.readProfileQuery();
-  const me = await AdminCommon.requireAdmin("staff");
+  const me = await AdminCommon.requireAdmin(["close_staff", "remove_staff_access"]);
   if (!me) return;
 
   const summary = document.getElementById("delete-summary");
@@ -64,6 +64,9 @@
   }
 
   const hasMembership = AdminCommon.profileHasMembership(staff);
+  const canDelete = hasMembership
+    ? Auth.hasAdminTask("remove_staff_access")
+    : Auth.hasAdminTask("close_staff");
   summary.innerHTML = [
     row("Staff code", staff.staff_code),
     row("Name", staff.full_name),
@@ -82,6 +85,12 @@
     explain.textContent =
       "This is a staff-only account. Delete permanently removes the staff record and Auth login. They will not be kept as a closed leftover.";
     confirmBtn.textContent = "Delete staff";
+  }
+
+  if (!canDelete) {
+    AdminCommon.showMessage(message, "You are not assigned this function.", "error");
+    if (actions) actions.hidden = true;
+    return;
   }
 
   actions.hidden = false;

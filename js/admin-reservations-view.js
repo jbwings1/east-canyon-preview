@@ -2,7 +2,14 @@
  * Admin View Reservations — list all bookings; Edit/Cancel when manage task assigned.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("reservations_view");
+  const me = await AdminCommon.requireAdmin([
+    "view_reservations",
+    "office_check_in",
+    "edit_reservation",
+    "confirm_reservation",
+    "cancel_reservation",
+    "override_rule",
+  ]);
   if (!me) return;
 
   const bookingsBody = document.getElementById("admin-bookings-body");
@@ -11,7 +18,8 @@
   const viewSummary = document.getElementById("admin-view-summary");
   const viewDetails = document.getElementById("admin-view-details");
   const viewEditLink = document.getElementById("admin-view-edit");
-  const canManage = Auth.hasAdminTask("reservations_manage");
+  const canEditBooking = Auth.hasAdminTask("edit_reservation");
+  const canCancelBooking = Auth.hasAdminTask("cancel_reservation");
   const manageHint = document.getElementById("admin-manage-hint");
   let bookings = [];
   let profiles = [];
@@ -19,9 +27,13 @@
 
   if (manageHint) {
     manageHint.hidden = false;
-    manageHint.innerHTML = canManage
-      ? `You can <strong>Edit</strong> or <strong>Cancel</strong> below, or open <a href="admin-reservations-manage.html">Manage reservations</a>.`
-      : `This list is view-only. Check-in is on <a href="admin-reservations-manage.html">Manage reservations</a>. Edit, confirm, and cancel need the Reservation agent job.`;
+    const actions = [
+      canEditBooking ? "Edit" : "",
+      canCancelBooking ? "Cancel" : "",
+    ].filter(Boolean);
+    manageHint.innerHTML = actions.length
+      ? `You can <strong>${actions.join("</strong> and <strong>")}</strong> below, or open <a href="admin-reservations-manage.html">Manage reservations</a>.`
+      : `This list is view-only. Other reservation actions are on <a href="admin-reservations-manage.html">Manage reservations</a> when you are assigned them.`;
   }
 
   function formatStayDate(value) {
@@ -136,7 +148,7 @@
     }
     viewDetails.innerHTML = rows.join("");
     if (viewEditLink) {
-      const showEdit = canManage && booking.status !== "cancelled";
+      const showEdit = canEditBooking && booking.status !== "cancelled";
       viewEditLink.hidden = !showEdit;
       if (showEdit) {
         viewEditLink.href = `admin-reservations-manage.html?edit=${encodeURIComponent(booking.id)}`;
@@ -179,8 +191,8 @@
         const conf = Auth.bookingConfirmationId(b);
         const member = AdminCommon.memberLabel(profiles, b.user_id);
         const past = b.check_out && b.check_out < today;
-        const canCancel = canManage && b.status !== "cancelled";
-        const canEdit = canManage && b.status !== "cancelled";
+        const canCancel = canCancelBooking && b.status !== "cancelled";
+        const canEdit = canEditBooking && b.status !== "cancelled";
         const displayStatus =
           typeof Auth.bookingDisplayStatus === "function"
             ? Auth.bookingDisplayStatus(b)
@@ -195,7 +207,7 @@
               : displayStatus === "Active" || displayStatus === "Confirmed"
                 ? "available"
                 : "partial";
-        const actions = canManage
+        const actions = canEditBooking || canCancelBooking
           ? `<td class="admin-actions admin-booking-actions">
               ${
                 canEdit
@@ -277,7 +289,7 @@
     }
 
     const button = event.target.closest("button[data-action='cancelled']");
-    if (!button || !canManage) return;
+    if (!button || !canCancelBooking) return;
     const id = button.getAttribute("data-booking-id");
     const label = button.getAttribute("data-label") || "this reservation";
     const ok = await AdminCommon.confirmAction({

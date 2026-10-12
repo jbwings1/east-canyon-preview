@@ -2,8 +2,22 @@
  * Admin Website — manage site alerts (header + details + photos).
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("website");
+  const me = await AdminCommon.requireAdmin([
+    "manage_alerts",
+    "alert_photos",
+    "delete_alert",
+  ]);
   if (!me) return;
+
+  const canManageAlerts = Auth.hasAdminTask("manage_alerts");
+  const canAlertPhotos = Auth.hasAdminTask("alert_photos");
+  const canDeleteAlert = Auth.hasAdminTask("delete_alert");
+  if (!canManageAlerts) {
+    document.getElementById("admin-alert-form")?.closest("section")?.setAttribute("hidden", "");
+  }
+  if (!canAlertPhotos) {
+    document.getElementById("alert-photo")?.closest(".form-group")?.setAttribute("hidden", "");
+  }
 
   const result = document.getElementById("admin-alert-result");
   const form = document.getElementById("admin-alert-form");
@@ -49,40 +63,58 @@
           .map(
             (img) => `<figure class="admin-alert-photo" data-image-id="${img.id}">
               <img src="${escapeHtml(resolveUrl(img.url))}" alt="${escapeHtml(img.alt || "Alert photo")}" loading="lazy">
-              <button type="button" class="btn-link alert-photo-delete">Remove photo</button>
+              ${
+                canAlertPhotos
+                  ? `<button type="button" class="btn-link alert-photo-delete">Remove photo</button>`
+                  : ""
+              }
             </figure>`
           )
           .join("");
         return `<article class="admin-alert-item" data-id="${alert.id}">
           <label class="admin-gallery-field">
             <span>Banner header (max 50 characters)</span>
-            <input type="text" class="alert-header-input" value="${header}" maxlength="50" required>
+            <input type="text" class="alert-header-input" value="${header}" maxlength="50" required${
+              canManageAlerts ? "" : " disabled"
+            }>
           </label>
           <label class="admin-gallery-field">
             <span>Details (Alerts page)</span>
-            <textarea class="alert-details-input" rows="4">${details}</textarea>
+            <textarea class="alert-details-input" rows="4"${
+              canManageAlerts ? "" : " disabled"
+            }>${details}</textarea>
           </label>
           <label class="admin-check">
-            <input type="checkbox" class="alert-active-input"${active ? " checked" : ""}>
+            <input type="checkbox" class="alert-active-input"${active ? " checked" : ""}${
+              canManageAlerts ? "" : " disabled"
+            }>
             Show on site banner
           </label>
           <div class="admin-alert-photos">
             ${photos || '<p class="admin-help">No photos yet.</p>'}
           </div>
-          <label class="admin-gallery-field">
+          ${
+            canAlertPhotos
+              ? `<label class="admin-gallery-field">
             <span>Add photo</span>
             <input type="file" class="alert-photo-input" accept="image/jpeg,image/png,image/webp,image/gif">
-          </label>
+          </label>`
+              : ""
+          }
           <div class="admin-actions">
-            <button type="button" class="btn-link alert-move-up"${
-              index === 0 ? " disabled" : ""
-            }>Up</button>
+            ${
+              canManageAlerts
+                ? `<button type="button" class="btn-link alert-move-up"${
+                    index === 0 ? " disabled" : ""
+                  }>Up</button>
             <button type="button" class="btn-link alert-move-down"${
               index === alerts.length - 1 ? " disabled" : ""
             }>Down</button>
-            <button type="button" class="btn-link alert-save">Save</button>
+            <button type="button" class="btn-link alert-save">Save</button>`
+                : ""
+            }
             ${
-              Auth.hasAdminTask("site_manager")
+              canDeleteAlert
                 ? `<button type="button" class="btn-link alert-delete">Delete</button>`
                 : ""
             }
@@ -162,6 +194,7 @@
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (!canManageAlerts) return;
     AdminCommon.showMessage(result, "", "");
     try {
       const header = document.getElementById("alert-header").value.trim();
@@ -191,7 +224,7 @@
       if (error) throw error;
 
       const file = document.getElementById("alert-photo")?.files?.[0];
-      if (file && inserted?.id) {
+      if (canAlertPhotos && file && inserted?.id) {
         const uploaded = await uploadAlertPhoto(file);
         const { error: imgErr } = await window.ecrSupabase.from("site_alert_images").insert({
           alert_id: inserted.id,
@@ -223,7 +256,7 @@
 
   listEl?.addEventListener("change", async (e) => {
     const input = e.target.closest(".alert-photo-input");
-    if (!input || !input.files?.[0]) return;
+    if (!canAlertPhotos || !input || !input.files?.[0]) return;
     const card = input.closest(".admin-alert-item");
     if (!card) return;
     const id = card.dataset.id;
@@ -256,6 +289,7 @@
 
     const photoFig = btn.closest(".admin-alert-photo");
     if (btn.classList.contains("alert-photo-delete") && photoFig) {
+      if (!canAlertPhotos) return;
       const imageId = photoFig.dataset.imageId;
       const card = btn.closest(".admin-alert-item");
       const alertId = card?.dataset.id;
@@ -288,7 +322,7 @@
 
     try {
       if (btn.classList.contains("alert-delete")) {
-        if (!Auth.hasAdminTask("site_manager")) return;
+        if (!canDeleteAlert) return;
         if (!confirm("Delete this alert and its photos?")) return;
         const imgs = alertImages(id);
         const { error } = await window.ecrSupabase.from("site_alerts").delete().eq("id", id);
@@ -302,6 +336,7 @@
       }
 
       if (btn.classList.contains("alert-save")) {
+        if (!canManageAlerts) return;
         const header = card.querySelector(".alert-header-input")?.value.trim() || "";
         if (!header) {
           AdminCommon.showMessage(listStatus, "Header cannot be empty.", "error");
@@ -331,6 +366,7 @@
       }
 
       if (btn.classList.contains("alert-move-up") || btn.classList.contains("alert-move-down")) {
+        if (!canManageAlerts) return;
         const index = alerts.findIndex((a) => a.id === id);
         const swapWith =
           btn.classList.contains("alert-move-up")

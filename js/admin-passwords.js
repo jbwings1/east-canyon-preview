@@ -2,7 +2,7 @@
  * Office temporary passwords. Member picker matches the other admin member lists.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("passwords");
+  const me = await AdminCommon.requireAdmin("member_password");
   if (!me) return;
 
   const form = document.getElementById("admin-reset-password-form");

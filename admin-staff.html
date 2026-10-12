@@ -44,8 +44,8 @@
         </p>
 
         <section class="admin-card">
-          <h2>Create staff admin</h2>
-          <p class="admin-help">
+          <h2 id="staff-create-heading">Create staff admin</h2>
+          <p id="staff-create-help" class="admin-help">
             Create staff-only logins here. To give an existing member staff access, open their
             member record (Site manager). Click a staff row to edit, close, or add membership.
           </p>
@@ -82,6 +82,13 @@
             <fieldset class="admin-task-fieldset">
               <legend>Assigned jobs</legend>
               <div id="staff-task-list"></div>
+              <p id="staff-tasks-note" class="admin-field-note"></p>
+            </fieldset>
+            <button type="button" class="btn btn-outline" id="staff-add-function" aria-expanded="false" aria-controls="staff-function-fieldset">Add a function</button>
+            <fieldset class="admin-task-fieldset" id="staff-function-fieldset" hidden>
+              <legend>Added functions</legend>
+              <p class="admin-help">Check a function to add only that function. It does not add the rest of another job. Functions already included in a selected job are shown checked.</p>
+              <div id="staff-function-list"></div>
             </fieldset>
             <div class="form-group">
               <label for="staff-temp-password">Temporary password</label>
@@ -119,10 +126,10 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb5"></script>
-  <script src="js/auth.js?v=sb40"></script>
+  <script src="js/auth.js?v=sb41"></script>
   <script src="js/site-header-auth.js?v=4"></script>
-  <script src="js/admin-common.js?v=sb20"></script>
-  <script src="js/admin-staff.js?v=sb12"></script>
+  <script src="js/admin-common.js?v=sb21"></script>
+  <script src="js/admin-staff.js?v=sb13"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

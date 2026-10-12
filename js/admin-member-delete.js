@@ -1,6 +1,6 @@
 (async function () {
   const query = AdminCommon.readProfileQuery();
-  const me = await AdminCommon.requireAdmin("members");
+  const me = await AdminCommon.requireAdmin("member_accounts");
   if (!me) return;
 
   const summary = document.getElementById("delete-summary");

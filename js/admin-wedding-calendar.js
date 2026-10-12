@@ -2,12 +2,16 @@
  * Admin wedding calendar — mark days booked / hold / closed, edit the public note.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin(["special_events", "website"]);
+  const me = await AdminCommon.requireAdmin([
+    "mark_calendar",
+    "edit_calendar_note",
+    "edit_calendar_heading",
+  ]);
   if (!me) return;
 
-  const canMark = Auth.hasAdminTask("special_events");
-  const canNote = Auth.hasAdminTask("website");
-  const canHeading = Auth.hasAdminTask("site_manager");
+  const canMark = Auth.hasAdminTask("mark_calendar");
+  const canNote = Auth.hasAdminTask("edit_calendar_note");
+  const canHeading = Auth.hasAdminTask("edit_calendar_heading");
 
   const yearLabel = document.getElementById("admin-cal-year");
   const root = document.getElementById("admin-cal-root");
@@ -65,7 +69,9 @@
       } else if (canMark) {
         lead.textContent = "Mark dates booked, on hold, or closed. ";
       } else if (canHeading) {
-        lead.textContent = "Change the heading, the year visitors see, and the public note. ";
+        lead.textContent = canNote
+          ? "Change the heading, the year visitors see, and the public note. "
+          : "Change the heading and the year visitors see. ";
       } else {
         lead.textContent = "Edit the public note on the booking calendar. ";
       }

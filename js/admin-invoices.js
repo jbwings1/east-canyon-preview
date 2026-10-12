@@ -2,7 +2,7 @@
  * Office invoices for the test member account.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("accounts_manager");
+  const me = await AdminCommon.requireAdmin("member_charges");
   if (!me) return;
 
   const form = document.getElementById("invoice-form");

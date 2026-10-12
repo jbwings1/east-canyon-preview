@@ -2,11 +2,44 @@
  * Admin Manage Reservations — create, edit, confirm, cancel.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("front_desk");
+  const me = await AdminCommon.requireAdmin([
+    "view_reservations",
+    "office_check_in",
+    "make_reservation",
+    "edit_reservation",
+    "confirm_reservation",
+    "cancel_reservation",
+    "override_rule",
+  ]);
   if (!me) return;
 
-  const canBook = Auth.hasAdminTask("reservations_manage");
-  const canCheckIn = Auth.hasAdminTask("front_desk");
+  const canViewList = [
+    "view_reservations",
+    "office_check_in",
+    "edit_reservation",
+    "confirm_reservation",
+    "cancel_reservation",
+    "override_rule",
+  ].some((task) => Auth.hasAdminTask(task));
+  const canMake = Auth.hasAdminTask("make_reservation");
+  const canEditBooking = Auth.hasAdminTask("edit_reservation");
+  const canConfirmStatus = Auth.hasAdminTask("confirm_reservation");
+  const canCancelStatus = Auth.hasAdminTask("cancel_reservation");
+  const canOverride = Auth.hasAdminTask("override_rule");
+  const canCheckIn = Auth.hasAdminTask("office_check_in");
+
+  if (!canViewList) {
+    document.querySelector(".admin-booking-filters")?.setAttribute("hidden", "");
+    document.getElementById("admin-bookings-table")?.closest(".admin-table-wrap")?.setAttribute("hidden", "");
+    document
+      .getElementById("admin-bookings-table")
+      ?.closest("section")
+      ?.querySelector(".admin-help")
+      ?.setAttribute("hidden", "");
+  }
+  if (!canCheckIn) {
+    document.getElementById("admin-checkin-block")?.setAttribute("hidden", "");
+  }
 
   const bookingsBody = document.getElementById("admin-bookings-body");
   const bookingMember = document.getElementById("booking-member");
@@ -350,7 +383,7 @@
 
   function renderCheckInSection(booking) {
     AdminCommon.showMessage(checkinResult, "", "");
-    if (!booking) {
+    if (!canCheckIn || !booking) {
       if (checkinPending) checkinPending.hidden = true;
       if (checkinDone) checkinDone.hidden = true;
       return;
@@ -406,7 +439,7 @@
   }
 
   function openView(booking) {
-    if (!booking) return;
+    if (!booking || !canViewList) return;
     closeEdit();
     viewingId = booking.id;
     const profile = memberProfile(booking.user_id);
@@ -484,7 +517,7 @@
       ].join("");
     }
 
-    if (viewEditBtn) viewEditBtn.hidden = !canBook || booking.status === "cancelled";
+    if (viewEditBtn) viewEditBtn.hidden = !canEditBooking || booking.status === "cancelled";
     if (viewCard) {
       viewCard.hidden = false;
       viewCard.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -509,7 +542,7 @@
   }
 
   function applyEditChrome(mode) {
-    const checkinOnly = mode === "checkin" && !canBook;
+    const checkinOnly = mode === "checkin" && !canEditBooking;
     if (editForm) editForm.hidden = checkinOnly;
     const title = editCard?.querySelector("h2");
     if (title) title.textContent = checkinOnly ? "Office check-in" : "Edit reservation";
@@ -517,10 +550,12 @@
 
   function openEdit(booking, mode = "edit") {
     if (!booking || booking.status === "cancelled") return;
-    if (!canBook && mode !== "checkin") return;
+    if (mode === "checkin") {
+      if (!canCheckIn && !canEditBooking) return;
+    } else if (!canEditBooking) return;
     closeView();
     editingId = booking.id;
-    editMode = canBook ? mode : "checkin";
+    editMode = canEditBooking ? mode : "checkin";
     applyEditChrome(editMode);
     editOverrideSession?.clear();
     document.getElementById("edit-booking-id").value = booking.id;
@@ -547,6 +582,10 @@
   }
 
   function renderBookings() {
+    if (!canViewList) {
+      if (bookingsBody) bookingsBody.innerHTML = "";
+      return;
+    }
     const rows = filteredBookings();
     if (!rows.length) {
       bookingsBody.innerHTML = `<tr><td colspan="8">No bookings match this filter.</td></tr>`;
@@ -595,7 +634,7 @@
               <div class="admin-row-menu-panel" role="menu" hidden>
                 <button type="button" role="menuitem" data-action="view">View</button>
                 ${
-                  canBook && canEdit
+                  canEditBooking && canEdit
                     ? `<button type="button" role="menuitem" data-action="edit">Edit</button>`
                     : ""
                 }
@@ -605,12 +644,12 @@
                     : ""
                 }
                 ${
-                  canBook && canConfirm
+                  canConfirmStatus && canConfirm
                     ? `<button type="button" role="menuitem" data-action="confirmed">Confirm</button>`
                     : ""
                 }
                 ${
-                  canBook && canCancel
+                  canCancelStatus && canCancel
                     ? `<button type="button" role="menuitem" class="is-danger" data-action="cancelled">Cancel</button>`
                     : ""
                 }
@@ -624,7 +663,7 @@
 
   async function load() {
     const invoicePromise =
-      canBook || Auth.hasAdminTask("accounts_manager")
+      canOverride || Auth.hasAdminTask("member_charges")
         ? Auth.listInvoices()
         : Promise.resolve([]);
     [profiles, bookings, invoices] = await Promise.all([
@@ -971,15 +1010,17 @@
       BookingLimits.renderLimitNotice(el, gate, {
         adminMode: true,
         overrideSession: createOverrideSession,
-        onOverrideClick: async (violation) => {
-          const record = await BookingLimits.showRuleOverrideDialog(
-            violation,
-            BookingLimits.actorFromUser(me)
-          );
-          if (!record) return;
-          createOverrideSession.add(record);
-          refreshCreateRightsNotice();
-        },
+        onOverrideClick: canOverride
+          ? async (violation) => {
+              const record = await BookingLimits.showRuleOverrideDialog(
+                violation,
+                BookingLimits.actorFromUser(me)
+              );
+              if (!record) return;
+              createOverrideSession.add(record);
+              refreshCreateRightsNotice();
+            }
+          : null,
       });
       return;
     }
@@ -1020,15 +1061,17 @@
       BookingLimits.renderLimitNotice(el, gate, {
         adminMode: true,
         overrideSession: editOverrideSession,
-        onOverrideClick: async (violation) => {
-          const record = await BookingLimits.showRuleOverrideDialog(
-            violation,
-            BookingLimits.actorFromUser(me)
-          );
-          if (!record) return;
-          editOverrideSession.add(record);
-          refreshEditRightsNotice();
-        },
+        onOverrideClick: canOverride
+          ? async (violation) => {
+              const record = await BookingLimits.showRuleOverrideDialog(
+                violation,
+                BookingLimits.actorFromUser(me)
+              );
+              if (!record) return;
+              editOverrideSession.add(record);
+              refreshEditRightsNotice();
+            }
+          : null,
       });
       return;
     }
@@ -1209,10 +1252,10 @@
 
   const createCard = document.getElementById("admin-create-card");
   const createOpenBtn = document.getElementById("admin-create-open");
-  if (!canBook && createOpenBtn) createOpenBtn.hidden = true;
+  if (!canMake && createOpenBtn) createOpenBtn.hidden = true;
 
   function setCreateFormOpen(open) {
-    if (!canBook || !createCard) return;
+    if (!canMake || !createCard) return;
     createCard.hidden = !open;
     createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
@@ -1298,7 +1341,7 @@
 
   document.getElementById("admin-view-edit")?.addEventListener("click", () => {
     const booking = bookings.find((b) => b.id === viewingId);
-    if (canBook && booking) openEdit(booking, "edit");
+    if (canEditBooking && booking) openEdit(booking, "edit");
   });
 
   document.getElementById("admin-office-check-in-btn")?.addEventListener("click", async () => {
@@ -1326,7 +1369,7 @@
       AdminCommon.showMessage(message, "Office check-in saved.", "success");
       await load();
       const updated = bookings.find((b) => b.id === id);
-      if (updated) openEdit(updated, canBook ? "edit" : "checkin");
+      if (updated) openEdit(updated, canEditBooking ? "edit" : "checkin");
     } catch (err) {
       AdminCommon.showMessage(checkinResult, err.message, "error");
     } finally {
@@ -1347,7 +1390,7 @@
         AdminCommon.showMessage(checkinResult, "Check-in notes saved.", "success");
         await load();
         const updated = bookings.find((b) => b.id === id);
-        if (updated) openEdit(updated, canBook ? "edit" : "checkin");
+        if (updated) openEdit(updated, canEditBooking ? "edit" : "checkin");
       } catch (err) {
         AdminCommon.showMessage(checkinResult, err.message, "error");
       } finally {
@@ -1442,7 +1485,7 @@
     }
 
     if (action === "edit") {
-      if (canBook && booking) openEdit(booking, "edit");
+      if (canEditBooking && booking) openEdit(booking, "edit");
       return;
     }
 
@@ -1457,7 +1500,8 @@
       return;
     }
 
-    if (!canBook) return;
+    if (action === "confirmed" && !canConfirmStatus) return;
+    if (action === "cancelled" && !canCancelStatus) return;
 
     if (action === "cancelled") {
       const label = booking
@@ -1503,10 +1547,13 @@
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
     const viewId = params.get("view");
+    if (canMake && !canViewList) setCreateFormOpen(true);
     if (editId) {
       const booking = bookings.find((b) => b.id === editId);
-      if (booking) openEdit(booking, canBook ? "edit" : "checkin");
-    } else if (viewId) {
+      if (booking && (canEditBooking || canCheckIn)) {
+        openEdit(booking, canEditBooking ? "edit" : "checkin");
+      }
+    } else if (viewId && canViewList) {
       const booking = bookings.find((b) => b.id === viewId);
       if (booking) openView(booking);
     }

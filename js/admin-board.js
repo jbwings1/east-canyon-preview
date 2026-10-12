@@ -3,7 +3,7 @@
  * Requires website admin task.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("website");
+  const me = await AdminCommon.requireAdmin("board_members");
   if (!me) return;
 
   const form = document.getElementById("admin-board-form");

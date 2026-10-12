@@ -3,7 +3,7 @@
  * Requires website admin task (same as Website alert tool).
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("website");
+  const me = await AdminCommon.requireAdmin("gallery");
   if (!me) return;
 
   const uploadForm = document.getElementById("admin-gallery-upload-form");

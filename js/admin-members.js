@@ -1,5 +1,5 @@
 (async function () {
-  const me = await AdminCommon.requireAdmin("members");
+  const me = await AdminCommon.requireAdmin("member_accounts");
   if (!me) return;
 
   const membersBody = document.getElementById("admin-members-body");

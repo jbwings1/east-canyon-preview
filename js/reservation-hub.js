@@ -586,7 +586,7 @@
     return;
   }
 
-  showGuestNames = isAdmin && Auth.hasAdminTask("front_desk");
+  showGuestNames = isAdmin && Auth.hasAdminTask("occupancy_names");
   if (adminNote) adminNote.hidden = !isAdmin;
 
   if (bookLink) bookLink.hidden = false;

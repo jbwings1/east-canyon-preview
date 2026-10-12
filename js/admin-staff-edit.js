@@ -1,30 +1,22 @@
 (async function () {
   const query = AdminCommon.readProfileQuery();
-  const me = await AdminCommon.requireAdmin("staff");
+  const me = await AdminCommon.requireAdmin([
+    "edit_staff",
+    "close_staff",
+    "add_membership",
+    "remove_staff_access",
+    "create_staff",
+  ]);
   if (!me) return;
 
   const form = document.getElementById("admin-edit-staff-form");
   const result = document.getElementById("admin-edit-staff-result");
   const taskList = document.getElementById("edit-staff-task-list");
+  const functionList = document.getElementById("edit-staff-function-list");
   if (taskList) taskList.innerHTML = AdminCommon.taskCheckboxHtml("edit-staff-task");
-
-  const taskBoxes = () =>
-    Array.from(document.querySelectorAll('input[name="edit-staff-task"]'));
-
-  function syncTaskAvailability() {
-    const level = Number(document.getElementById("edit-staff-level").value);
-    const note = document.getElementById("edit-staff-tasks-note");
-    const disabled = level === 1;
-    taskBoxes().forEach((el) => {
-      el.disabled = disabled;
-      if (disabled) el.checked = true;
-    });
-    if (note) {
-      note.textContent = disabled
-        ? "Level 1 has every job."
-        : "Assign at least one job. A site manager cannot remove their own Site manager job.";
-    }
-  }
+  if (functionList) functionList.innerHTML = AdminCommon.functionCheckboxHtml("edit-staff-function");
+  const canEditStaff = Auth.hasAdminTask("edit_staff");
+  const canCloseStaff = Auth.hasAdminTask("close_staff");
 
   if (!query.hasAny) {
     AdminCommon.showMessage(result, "Missing staff.", "error");
@@ -62,11 +54,30 @@
   document.getElementById("edit-staff-status").value = staff.account_status || "active";
 
   const assigned = new Set(AdminCommon.jobsFromStored(staff.admin_tasks, staff.admin_level));
-  taskBoxes().forEach((el) => {
+  document.querySelectorAll('input[name="edit-staff-task"]').forEach((el) => {
     el.checked = assigned.has(el.value);
   });
-  syncTaskAvailability();
-  document.getElementById("edit-staff-level").addEventListener("change", syncTaskAvailability);
+  const readAssignment = AdminCommon.wireFunctionPicker({
+    button: document.getElementById("edit-staff-add-function"),
+    fieldset: document.getElementById("edit-staff-function-fieldset"),
+    jobName: "edit-staff-task",
+    functionName: "edit-staff-function",
+    levelInput: document.getElementById("edit-staff-level"),
+    storedTasks: staff.admin_tasks,
+    note: document.getElementById("edit-staff-tasks-note"),
+  });
+  if (!canEditStaff) {
+    form.querySelectorAll("input, select, button").forEach((el) => {
+      if (el.id === "staff-delete-btn") return;
+      el.disabled = true;
+    });
+    document.getElementById("edit-staff-add-function")?.setAttribute("disabled", "");
+  }
+  if (!canCloseStaff) {
+    ["suspended", "closed"].forEach((status) => {
+      document.querySelector(`#edit-staff-status option[value="${status}"]`)?.remove();
+    });
+  }
   form.hidden = false;
 
   const title = document.getElementById("staff-page-title");
@@ -103,6 +114,9 @@
   const deleteNote = document.getElementById("staff-delete-note");
   const closePanel = document.getElementById("staff-close-panel");
   const closeNote = document.getElementById("staff-close-note");
+  const canDelete = hasMembership
+    ? Auth.hasAdminTask("remove_staff_access")
+    : Auth.hasAdminTask("close_staff");
   const deleteBlockedReason = isSelf
     ? "You cannot delete your own signed-in account."
     : lastLevel1
@@ -110,22 +124,31 @@
       : "";
 
   if (deleteNote) {
-    deleteNote.textContent = deleteBlockedReason
-      ? deleteBlockedReason
-      : hasMembership
-        ? "Closed or suspended on this form can also block member sign-in. Delete removes only staff access (staff code, admin level, and tasks). Membership, member login, and reservations stay."
-        : "Closed or suspended blocks staff sign-in. Delete permanently removes this staff record and Auth login. It is not kept as a closed leftover.";
-  }
-
-  if (deleteBtn) {
-    deleteBtn.disabled = Boolean(deleteBlockedReason);
-    if (deleteBlockedReason) {
-      deleteBtn.setAttribute("aria-disabled", "true");
-      deleteBtn.title = deleteBlockedReason;
+    if (!canDelete) {
+      deleteNote.textContent = canCloseStaff
+        ? "Closed or suspended blocks staff sign-in."
+        : "";
+    } else {
+      deleteNote.textContent = deleteBlockedReason
+        ? deleteBlockedReason
+        : hasMembership
+          ? "Closed or suspended on this form can also block member sign-in. Delete removes only staff access (staff code, admin level, and tasks). Membership, member login, and reservations stay."
+          : "Closed or suspended blocks staff sign-in. Delete permanently removes this staff record and Auth login. It is not kept as a closed leftover.";
     }
   }
 
-  if (deleteBlockedReason) {
+  if (deleteBtn) {
+    deleteBtn.hidden = !canDelete;
+    if (canDelete) {
+      deleteBtn.disabled = Boolean(deleteBlockedReason);
+      if (deleteBlockedReason) {
+        deleteBtn.setAttribute("aria-disabled", "true");
+        deleteBtn.title = deleteBlockedReason;
+      }
+    }
+  }
+
+  if (canDelete && deleteBlockedReason) {
     AdminCommon.showMessage(result, deleteBlockedReason, "error");
     if (closePanel) {
       closePanel.hidden = false;
@@ -136,7 +159,7 @@
   }
 
   async function deleteStaffAccount() {
-    if (deleteBlockedReason) {
+    if (!canDelete || deleteBlockedReason) {
       AdminCommon.showMessage(result, deleteBlockedReason, "error");
       return;
     }
@@ -173,7 +196,7 @@
 
   const membershipPanel = document.getElementById("staff-membership-panel");
   const existingMembership = document.getElementById("staff-existing-membership");
-  const canAttachRoles = Auth.hasAdminTask("account_roles");
+  const canAttachRoles = Auth.hasAdminTask("add_membership");
   if (AdminCommon.profileHasMembership(staff)) {
     if (existingMembership) {
       existingMembership.hidden = false;
@@ -199,10 +222,11 @@
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
+      if (!canEditStaff) {
+        throw new Error("You are not assigned this function.");
+      }
       const level = Number(document.getElementById("edit-staff-level").value);
-      const tasks = taskBoxes()
-        .filter((el) => el.checked || level === 1)
-        .map((el) => el.value);
+      const tasks = readAssignment();
       await Auth.updateStaff({
         user_id: userId,
         staff_code: document.getElementById("edit-staff-code").value.trim(),

@@ -1,5 +1,5 @@
 (async function () {
-  const me = await AdminCommon.requireAdmin("members");
+  const me = await AdminCommon.requireAdmin("member_accounts");
   if (!me) return;
 
   document.getElementById("admin-create-member-form")?.addEventListener("submit", async (e) => {

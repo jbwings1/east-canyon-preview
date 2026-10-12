@@ -222,7 +222,15 @@
   function reservationHref(booking) {
     const id = encodeURIComponent(booking?.id || "");
     if (!booking?.id) return "";
-    if (typeof root.Auth?.hasAdminTask === "function" && root.Auth.hasAdminTask("front_desk")) {
+    const canOpen = [
+      "view_reservations",
+      "office_check_in",
+      "edit_reservation",
+      "confirm_reservation",
+      "cancel_reservation",
+      "override_rule",
+    ].some((task) => root.Auth.hasAdminTask(task));
+    if (typeof root.Auth?.hasAdminTask === "function" && canOpen) {
       return `admin-reservations-manage.html?view=${id}`;
     }
     return "";
@@ -344,7 +352,7 @@
     });
     showReport(String(window.location.hash || "").replace(/^#/, ""));
 
-    const me = await root.AdminCommon.requireAdmin("reports");
+    const me = await root.AdminCommon.requireAdmin("run_reports");
     if (!me) return;
 
     const message = document.getElementById("admin-message");

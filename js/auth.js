@@ -302,8 +302,9 @@ const Auth = {
   },
 
   /**
-   * Job check for a stored level and task list.
-   * Level 1 and Site manager include every job.
+   * Job and extra-function check for a stored level and task list.
+   * Level 1 and Site manager include every job and every function.
+   * A job includes its functions. One extra function does not include the rest of a job.
    * Older task names still grant the job they were folded into.
    */
   impliesAdminTask(task, adminLevel, adminTasks) {
@@ -316,6 +317,16 @@ const Auth = {
     const websiteEditor = has("website_editor") || has("website");
     const specialEvents = has("special_events") || has("website");
     const accounts = has("accounts_manager") || has("members") || has("passwords");
+    const legacyStaff = has("staff");
+    const legacyRoles = has("account_roles");
+    const staffFunctions =
+      legacyStaff ||
+      has("create_staff") ||
+      has("edit_staff") ||
+      has("close_staff") ||
+      has("add_staff_access") ||
+      has("add_membership") ||
+      has("remove_staff_access");
     switch (task) {
       case "front_desk":
       case "reservations_view":
@@ -335,11 +346,46 @@ const Auth = {
       case "invoices":
         return accounts;
       case "staff":
-        return has("staff");
+        return staffFunctions;
       case "account_roles":
-        return has("account_roles");
+        return legacyRoles || has("add_staff_access") || has("add_membership") || has("remove_staff_access");
       case "site_manager":
         return false;
+      case "view_reservations":
+      case "office_check_in":
+      case "occupancy_names":
+        return frontDesk || has(task);
+      case "make_reservation":
+      case "edit_reservation":
+      case "confirm_reservation":
+      case "cancel_reservation":
+      case "override_rule":
+        return reservationAgent || has(task);
+      case "mark_calendar":
+        return specialEvents || has(task);
+      case "manage_alerts":
+      case "alert_photos":
+      case "resort_calendar":
+      case "gallery":
+      case "board_members":
+      case "edit_calendar_note":
+        return websiteEditor || has(task);
+      case "delete_alert":
+      case "edit_calendar_heading":
+        return has(task);
+      case "member_accounts":
+      case "member_password":
+      case "member_charges":
+      case "run_reports":
+        return accounts || has(task);
+      case "create_staff":
+      case "edit_staff":
+      case "close_staff":
+        return legacyStaff || has(task);
+      case "add_staff_access":
+      case "add_membership":
+      case "remove_staff_access":
+        return legacyRoles || has(task);
       default:
         return has(task);
     }
@@ -404,8 +450,8 @@ const Auth = {
     adminSeat,
     adminTasks,
   }) {
-    if (!this.hasAdminTask("account_roles")) {
-      throw new Error("You are not assigned the Account roles task.");
+    if (!this.hasAdminTask("add_staff_access")) {
+      throw new Error("You are not assigned this function.");
     }
     const { data, error } = await getClient().rpc("attach_staff_access", {
       p_user_id: userId,
@@ -429,8 +475,8 @@ const Auth = {
     state,
     zip,
   }) {
-    if (!this.hasAdminTask("account_roles")) {
-      throw new Error("You are not assigned the Account roles task.");
+    if (!this.hasAdminTask("add_membership")) {
+      throw new Error("You are not assigned this function.");
     }
     const { data, error } = await getClient().rpc("attach_membership", {
       p_user_id: userId,
@@ -595,8 +641,8 @@ const Auth = {
     notes,
     ruleOverrides = null,
   }) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservation agent job.");
+    if (!this.hasAdminTask("make_reservation")) {
+      throw new Error("You are not assigned this function.");
     }
     const admin = this.getCurrentUser();
     if (!admin?.id) throw new Error("Admin sign in required.");
@@ -936,8 +982,11 @@ const Auth = {
   },
 
   async updateBookingStatus(bookingId, status) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservation agent job.");
+    const allowed =
+      (status === "confirmed" && this.hasAdminTask("confirm_reservation")) ||
+      (status === "cancelled" && this.hasAdminTask("cancel_reservation"));
+    if (!allowed) {
+      throw new Error("You are not assigned this function.");
     }
     if (status !== "confirmed" && status !== "cancelled") {
       throw new Error("Status must be confirmed or cancelled.");
@@ -963,8 +1012,8 @@ const Auth = {
     bookingId,
     { reservationType, spot, checkIn, checkOut, notes, ruleOverrides = null } = {}
   ) {
-    if (!this.hasAdminTask("reservations_manage")) {
-      throw new Error("You are not assigned the Reservation agent job.");
+    if (!this.hasAdminTask("edit_reservation")) {
+      throw new Error("You are not assigned this function.");
     }
     if (!bookingId) throw new Error("Booking is required.");
     if (!checkIn || !checkOut) throw new Error("Check-in and check-out are required.");
@@ -1458,8 +1507,8 @@ const Auth = {
   },
 
   async createMemberInvoice({ userId, chargeType, description, amount, dueDate }) {
-    if (!this.hasAdminTask("accounts_manager")) {
-      throw new Error("You are not assigned the Accounts manager job.");
+    if (!this.hasAdminTask("member_charges")) {
+      throw new Error("You are not assigned this function.");
     }
     const { data, error } = await getClient().rpc("create_member_invoice", {
       p_user_id: userId,
@@ -1774,8 +1823,8 @@ const Auth = {
    * Office check-in at the resort (staff activates the stay).
    */
   async checkInBookingAsAdmin(bookingId, { notes = "" } = {}) {
-    if (!this.hasAdminTask("front_desk")) {
-      throw new Error("You are not assigned the Front desk job.");
+    if (!this.hasAdminTask("office_check_in")) {
+      throw new Error("You are not assigned this function.");
     }
     const admin = this.getCurrentUser();
     if (!admin?.id) throw new Error("Admin sign in required.");
@@ -1834,8 +1883,8 @@ const Auth = {
 
   /** Update office check-in notes after check-in (does not change who/when). */
   async updateOfficeCheckInNotesAsAdmin(bookingId, notes) {
-    if (!this.hasAdminTask("front_desk")) {
-      throw new Error("You are not assigned the Front desk job.");
+    if (!this.hasAdminTask("office_check_in")) {
+      throw new Error("You are not assigned this function.");
     }
     if (!bookingId) throw new Error("Booking is required.");
     const { data: existing, error: existingError } = await getClient()

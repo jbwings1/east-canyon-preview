@@ -88,6 +88,12 @@
               <div id="edit-staff-task-list"></div>
               <p id="edit-staff-tasks-note" class="admin-field-note"></p>
             </fieldset>
+            <button type="button" class="btn btn-outline" id="edit-staff-add-function" aria-expanded="false" aria-controls="edit-staff-function-fieldset">Add a function</button>
+            <fieldset class="admin-task-fieldset" id="edit-staff-function-fieldset" hidden>
+              <legend>Added functions</legend>
+              <p class="admin-help">Check a function to add only that function. It does not add the rest of another job. Functions already included in a selected job are shown checked.</p>
+              <div id="edit-staff-function-list"></div>
+            </fieldset>
             <div class="form-group">
               <label for="edit-staff-status">Account status</label>
               <div class="admin-status-actions">
@@ -182,10 +188,10 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb5"></script>
-  <script src="js/auth.js?v=sb40"></script>
+  <script src="js/auth.js?v=sb41"></script>
   <script src="js/site-header-auth.js?v=4"></script>
-  <script src="js/admin-common.js?v=sb20"></script>
-  <script src="js/admin-staff-edit.js?v=sb7"></script>
+  <script src="js/admin-common.js?v=sb21"></script>
+  <script src="js/admin-staff-edit.js?v=sb8"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

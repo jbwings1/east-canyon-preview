@@ -1,6 +1,6 @@
 (async function () {
   const query = AdminCommon.readProfileQuery();
-  const me = await AdminCommon.requireAdmin("members");
+  const me = await AdminCommon.requireAdmin("member_accounts");
   if (!me) return;
 
   const form = document.getElementById("admin-edit-member-form");
@@ -63,7 +63,20 @@
   const staffPanel = document.getElementById("member-staff-panel");
   const existingStaff = document.getElementById("member-existing-staff");
   const addStaffTasks = document.getElementById("add-staff-task-list");
+  const addStaffFunctions = document.getElementById("add-staff-function-list");
   if (addStaffTasks) addStaffTasks.innerHTML = AdminCommon.taskCheckboxHtml("add-staff-task");
+  if (addStaffFunctions) {
+    addStaffFunctions.innerHTML = AdminCommon.functionCheckboxHtml("add-staff-function");
+  }
+  const readAddAssignment = AdminCommon.wireFunctionPicker({
+    button: document.getElementById("add-staff-add-function"),
+    fieldset: document.getElementById("add-staff-function-fieldset"),
+    jobName: "add-staff-task",
+    functionName: "add-staff-function",
+    levelInput: document.getElementById("add-staff-level"),
+    storedTasks: [],
+    note: document.getElementById("add-staff-tasks-note"),
+  });
   if (AdminCommon.profileHasStaffAccess(member)) {
     if (existingStaff) {
       existingStaff.hidden = false;
@@ -73,7 +86,7 @@
         )}</strong>. ` +
         `<a href="${AdminCommon.escapeHtml(AdminCommon.profileEditHref("admin-staff-edit.html", member))}">Open staff record</a>.`;
     }
-  } else if (Auth.hasAdminTask("account_roles") && staffPanel) {
+  } else if (Auth.hasAdminTask("add_staff_access") && staffPanel) {
     staffPanel.hidden = false;
   }
 
@@ -130,15 +143,12 @@
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
-      const tasks = Array.from(
-        document.querySelectorAll('input[name="add-staff-task"]:checked')
-      ).map((el) => el.value);
       await Auth.attachStaffAccess({
         userId,
         staffCode: document.getElementById("add-staff-code").value.trim(),
         adminLevel: Number(document.getElementById("add-staff-level").value),
         adminSeat: document.getElementById("add-staff-seat").value.trim().toLowerCase(),
-        adminTasks: tasks,
+        adminTasks: readAddAssignment(),
       });
       window.location.replace("admin-members.html?ok=staff");
     } catch (err) {

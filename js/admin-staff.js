@@ -1,5 +1,12 @@
 (async function () {
-  const me = await AdminCommon.requireAdmin("staff");
+  const me = await AdminCommon.requireAdmin([
+    "create_staff",
+    "edit_staff",
+    "close_staff",
+    "add_staff_access",
+    "add_membership",
+    "remove_staff_access",
+  ]);
   if (!me) return;
 
   const staffBody = document.getElementById("admin-staff-body");
@@ -15,8 +22,7 @@
       .map((p) => {
         const levelSeat =
           p.admin_level != null ? `${p.admin_level}${p.admin_seat || ""}` : "—";
-        const jobs = AdminCommon.jobLabels(p.admin_tasks, p.admin_level);
-        const tasks = p.admin_level === 1 ? "All jobs" : jobs.join(", ");
+        const tasks = AdminCommon.assignmentSummary(p.admin_tasks, p.admin_level);
         const href = AdminCommon.profileEditHref("admin-staff-edit.html", p);
         const safeHref = AdminCommon.escapeHtml(href);
         const rowKey = AdminCommon.profileRowKey(p);
@@ -63,7 +69,25 @@
   });
 
   const taskList = document.getElementById("staff-task-list");
+  const functionList = document.getElementById("staff-function-list");
   if (taskList) taskList.innerHTML = AdminCommon.taskCheckboxHtml("staff-task");
+  if (functionList) functionList.innerHTML = AdminCommon.functionCheckboxHtml("staff-function");
+  const readAssignment = AdminCommon.wireFunctionPicker({
+    button: document.getElementById("staff-add-function"),
+    fieldset: document.getElementById("staff-function-fieldset"),
+    jobName: "staff-task",
+    functionName: "staff-function",
+    levelInput: document.getElementById("staff-level"),
+    storedTasks: [],
+    note: document.getElementById("staff-tasks-note"),
+  });
+  const canCreate = Auth.hasAdminTask("create_staff");
+  if (!canCreate) {
+    document.getElementById("staff-create-heading")?.setAttribute("hidden", "");
+    document.getElementById("staff-create-help")?.setAttribute("hidden", "");
+    document.getElementById("admin-create-staff-form")?.setAttribute("hidden", "");
+    document.getElementById("staff-add-function")?.setAttribute("hidden", "");
+  }
 
   document.getElementById("admin-create-staff-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -72,9 +96,7 @@
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     try {
-      const tasks = Array.from(
-        document.querySelectorAll('input[name="staff-task"]:checked')
-      ).map((el) => el.value);
+      const tasks = readAssignment();
       const created = await Auth.provisionUser({
         kind: "admin",
         full_name: document.getElementById("staff-name").value.trim(),

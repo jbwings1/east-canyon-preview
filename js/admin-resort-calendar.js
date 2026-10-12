@@ -2,7 +2,7 @@
  * Admin ECR resort event calendar — add, edit, and remove planned events.
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin("website");
+  const me = await AdminCommon.requireAdmin("resort_calendar");
   if (!me) return;
 
   const monthLabel = document.getElementById("admin-resort-month");
