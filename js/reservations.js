@@ -682,13 +682,21 @@ function activeReservationLines(active) {
       typeof Auth !== "undefined" && typeof Auth.bookingConfirmationId === "function"
         ? Auth.bookingConfirmationId(r.id || r)
         : "";
-    return conf ? `Confirmation #${conf} · ${range}` : range;
+    return {
+      id: r.id || "",
+      text: conf ? `Confirmation #${conf} · ${range}` : range,
+    };
   });
 }
 
 function formatActiveReservationRanges(active) {
   return activeReservationLines(active)
-    .map((line) => escapeHtml(line))
+    .map((line) => {
+      const text = escapeHtml(line.text);
+      if (!line.id) return text;
+      const href = `reservation-view.html?id=${encodeURIComponent(line.id)}`;
+      return `<a class="reservation-id-link" href="${href}">${text}</a>`;
+    })
     .join("<br>");
 }
 
@@ -1345,7 +1353,7 @@ form.addEventListener("submit", async (e) => {
   if (!editingBookingId && active.length >= maxActive) {
     message.textContent =
       `You have ${active.length} upcoming reservations (maximum ${maxActive}): ` +
-      `${activeReservationLines(active).join("; ")}. Once the office checks you in, or after deleting one, you can book again.`;
+      `${activeReservationLines(active).map((line) => line.text).join("; ")}. Once the office checks you in, or after deleting one, you can book again.`;
     message.className = "form-message error";
     updateMemberReservationNotice();
     memberReservationNotice?.scrollIntoView({ behavior: "smooth", block: "nearest" });

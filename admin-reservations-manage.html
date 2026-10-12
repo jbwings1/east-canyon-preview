@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site69">
+  <link rel="stylesheet" href="styles.css?v=site70">
 </head>
 <body class="page-visitor page-admin">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -254,7 +254,7 @@
             <h2>All bookings</h2>
             <button type="button" class="btn btn-outline" id="admin-create-open" aria-expanded="false" aria-controls="admin-create-card">Make a reservation</button>
           </div>
-          <p class="admin-help">Use <strong>Actions</strong> on each row for View, Edit, Check in, Confirm, or Cancel. Open Edit to perform <strong>Office check-in</strong> when the member arrives (on or after check-in day). The confirmation column shows only the confirmation number. A yellow pennant on the status pill is a rule flag on the stay that broke the rule. Earlier stays that still follow the rules are not flagged. Click it to read the broken rule. It needs an override; after the office overrides it, the same yellow pennant names who cleared it. A red pennant means an overdue account was overridden. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
+          <p class="admin-help">Use <strong>Actions</strong> on each row for View, Edit, Check in, Confirm, or Cancel. Open Edit to perform <strong>Office check-in</strong> when the member arrives (on or after check-in day). The confirmation column shows only the confirmation number. A yellow pennant shows only on the reservation where an override was used. Other reservations that break a rule are not flagged. Click the pennant to read who cleared it. A red pennant means an overdue account was overridden. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
           <div class="admin-form-row admin-booking-filters">
             <div class="form-group">
               <label for="booking-filter-status">Show</label>
@@ -275,6 +275,7 @@
               <thead>
                 <tr>
                   <th>Confirmation</th>
+                  <th>Date booked</th>
                   <th>Member</th>
                   <th>Type</th>
                   <th>Spot</th>
@@ -284,7 +285,7 @@
                 </tr>
               </thead>
               <tbody id="admin-bookings-body">
-                <tr><td colspan="7">Loading…</td></tr>
+                <tr><td colspan="8">Loading…</td></tr>
               </tbody>
             </table>
           </div>
@@ -309,7 +310,7 @@
   <script src="js/booking-rule-flags.js?v=10"></script>
   <script src="js/admin-common.js?v=sb13"></script>
   <script src="js/stay-date-fields.js?v=2"></script>
-  <script src="js/admin-reservations-manage.js?v=sb36"></script>
+  <script src="js/admin-reservations-manage.js?v=sb38"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

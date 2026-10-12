@@ -7,8 +7,15 @@
 
   const bookingsBody = document.getElementById("admin-bookings-body");
   const message = document.getElementById("admin-message");
+  const viewCard = document.getElementById("admin-view-card");
+  const viewSummary = document.getElementById("admin-view-summary");
+  const viewDetails = document.getElementById("admin-view-details");
+  const viewEditLink = document.getElementById("admin-view-edit");
   const canManage = Auth.hasAdminTask("reservations_manage");
   const manageHint = document.getElementById("admin-manage-hint");
+  let bookings = [];
+  let profiles = [];
+  let viewingId = null;
 
   if (manageHint) {
     manageHint.hidden = false;
@@ -17,13 +24,107 @@
       : `This list is view-only. Cancel and edit are on <a href="admin-reservations-manage.html">Manage reservations</a> (requires the Manage reservations task).`;
   }
 
-  try {
-    const [profiles, bookings] = await Promise.all([
-      Auth.listAllProfiles(),
-      Auth.listAllBookings(),
-    ]);
+  function formatStayDate(value) {
+    if (!value) return "—";
+    return window.SpotAvailability?.formatStayDate?.(value) || String(value);
+  }
+
+  function formatBookedDate(value) {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    const iso = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+    return formatStayDate(iso);
+  }
+
+  function detailRow(label, value) {
+    const text = value == null || value === "" ? "—" : String(value);
+    return `<div><dt>${AdminCommon.escapeHtml(label)}</dt><dd>${AdminCommon.escapeHtml(text)}</dd></div>`;
+  }
+
+  function syncBookingQuery() {
+    const url = new URL(window.location.href);
+    if (viewingId) url.searchParams.set("view", viewingId);
+    else url.searchParams.delete("view");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next !== current) history.replaceState(null, "", next);
+  }
+
+  function closeView() {
+    viewingId = null;
+    if (viewCard) viewCard.hidden = true;
+    if (viewDetails) viewDetails.innerHTML = "";
+    if (viewSummary) viewSummary.textContent = "";
+    if (viewEditLink) viewEditLink.hidden = true;
+    syncBookingQuery();
+  }
+
+  function openView(booking) {
+    if (!booking || !viewCard || !viewDetails) return;
+    viewingId = booking.id;
+    const profile = profiles.find((p) => p.id === booking.user_id) || null;
+    const member = AdminCommon.memberLabel(profiles, booking.user_id);
+    const displayStatus =
+      typeof Auth.bookingDisplayStatus === "function"
+        ? Auth.bookingDisplayStatus(booking)
+        : booking.status || "—";
+    const overrides =
+      typeof BookingLimits !== "undefined"
+        ? BookingLimits.formatOverridesForDisplay(booking.rule_overrides)
+        : [];
+    if (viewSummary) {
+      viewSummary.textContent = `${Auth.bookingConfirmationId(booking)} · ${member} · ${displayStatus}`;
+    }
+    const rows = [
+      detailRow("Confirmation", Auth.bookingConfirmationId(booking)),
+      detailRow("Date booked", formatBookedDate(booking.created_at)),
+      detailRow("Status", displayStatus),
+      detailRow("Member", profile?.full_name || member),
+      detailRow("Member ID", profile?.member_id || "—"),
+      detailRow("Email", profile?.email || "—"),
+      detailRow("Phone", profile?.phone || "—"),
+      detailRow("Type", Auth.reservationTypeLabel(booking.reservation_type) || booking.reservation_type || "—"),
+      detailRow("Spot / unit", booking.spot || "—"),
+      detailRow("Check in", formatStayDate(booking.check_in)),
+      detailRow("Check out", formatStayDate(booking.check_out)),
+      detailRow("Notes", booking.notes || "—"),
+    ];
+    if (!overrides.length) {
+      rows.push(detailRow("Rule overrides", "None"));
+    } else {
+      overrides.forEach((item, index) => {
+        rows.push(
+          detailRow(
+            index === 0 ? "Rule overrides" : " ",
+            `${item.label || item.rule} · ${item.who} · ${item.when} · ${item.note}`
+          )
+        );
+      });
+    }
+    viewDetails.innerHTML = rows.join("");
+    if (viewEditLink) {
+      const showEdit = canManage && booking.status !== "cancelled";
+      viewEditLink.hidden = !showEdit;
+      if (showEdit) {
+        viewEditLink.href = `admin-reservations-manage.html?edit=${encodeURIComponent(booking.id)}`;
+      }
+    }
+    viewCard.hidden = false;
+    viewCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    syncBookingQuery();
+  }
+
+  function reservationIdLink(booking) {
+    const id = AdminCommon.escapeHtml(booking.id);
+    const conf = AdminCommon.escapeHtml(Auth.bookingConfirmationId(booking));
+    const href = `admin-reservations-view.html?view=${encodeURIComponent(booking.id)}`;
+    return `<a class="reservation-id-link" href="${href}" data-open-booking="${id}"><code>${conf}</code></a>`;
+  }
+
+  function renderBookings() {
     if (!bookings.length) {
-      bookingsBody.innerHTML = `<tr><td colspan="7">No bookings yet.</td></tr>`;
+      bookingsBody.innerHTML = `<tr><td colspan="8">No bookings yet.</td></tr>`;
       return;
     }
 
@@ -77,7 +178,8 @@
             </td>`
           : `<td><span class="admin-help">View only</span></td>`;
         return `<tr class="${past && b.status !== "cancelled" ? "admin-booking-past" : ""}">
-          <td><code>${AdminCommon.escapeHtml(conf)}</code></td>
+          <td>${reservationIdLink(b)}</td>
+          <td>${AdminCommon.escapeHtml(formatBookedDate(b.created_at))}</td>
           <td>${AdminCommon.escapeHtml(member)}</td>
           <td>${AdminCommon.escapeHtml(type)}</td>
           <td>${AdminCommon.escapeHtml(b.spot || "—")}</td>
@@ -94,10 +196,27 @@
         </tr>`;
       })
       .join("");
+  }
+
+  try {
+    [profiles, bookings] = await Promise.all([
+      Auth.listAllProfiles(),
+      Auth.listAllBookings(),
+    ]);
+    renderBookings();
+    const viewId = new URLSearchParams(window.location.search).get("view");
+    if (viewId) {
+      const booking = bookings.find((b) => b.id === viewId);
+      if (booking) openView(booking);
+    }
   } catch (err) {
     AdminCommon.showMessage(message, err.message, "error");
-    bookingsBody.innerHTML = `<tr><td colspan="7">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
+    bookingsBody.innerHTML = `<tr><td colspan="8">${AdminCommon.escapeHtml(err.message)}</td></tr>`;
   }
+
+  document.getElementById("admin-view-close")?.addEventListener("click", () => {
+    closeView();
+  });
 
   bookingsBody?.addEventListener("click", async (event) => {
     const flagBtn = event.target.closest(".status-flag");
@@ -110,6 +229,15 @@
       const open = flagBtn.getAttribute("aria-expanded") !== "true";
       flagBtn.setAttribute("aria-expanded", open ? "true" : "false");
       if (detail) detail.hidden = !open;
+      return;
+    }
+
+    const openLink = event.target.closest("a[data-open-booking]");
+    if (openLink && bookingsBody.contains(openLink)) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      event.preventDefault();
+      const booking = bookings.find((b) => b.id === openLink.getAttribute("data-open-booking"));
+      if (booking) openView(booking);
       return;
     }
 

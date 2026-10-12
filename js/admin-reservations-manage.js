@@ -77,6 +77,13 @@
     return profiles.find((p) => p.id === userId)?.member_id || "";
   }
 
+  function bookingHasOverride(booking) {
+    return (
+      Array.isArray(booking?.rule_overrides) &&
+      booking.rule_overrides.some((item) => item && item.rule)
+    );
+  }
+
   function ruleFlagForBooking(booking) {
     if (typeof BookingRuleFlags === "undefined") {
       return { ok: true, message: "", kinds: [] };
@@ -85,56 +92,6 @@
       allBookings: bookings,
       memberId: memberIdForUser(booking?.user_id),
     });
-  }
-
-  function violationOverrideIds(violation) {
-    const code = String(violation?.code || "");
-    const kind = String(violation?.kind || "");
-    const ids = new Set([code, kind].filter(Boolean));
-    if (kind === "limit" || code === "max-active") ids.add("max_open_reservations");
-    if (kind === "nights" || code === "max-nights") ids.add("max_nights");
-    if (kind === "consecutive" || code === "consecutive_14_vacate_7") ids.add("consecutive_14_vacate_7");
-    if (kind === "advance" || code === "advance-window") ids.add("advance_window");
-    if (kind === "dates" || code === "dates-missing" || code === "dates-order") ids.add("dates");
-    if (
-      kind === "site" ||
-      code === "site-missing" ||
-      code === "site-unknown" ||
-      code === "site-type-mismatch"
-    ) {
-      ids.add("site");
-    }
-    if (kind === "overlap" || code === "site-overlap") ids.add("site_overlap");
-    return ids;
-  }
-
-  function violationAlreadyOverridden(booking, violation) {
-    const overrides = Array.isArray(booking?.rule_overrides) ? booking.rule_overrides : [];
-    const recorded = new Set(overrides.map((item) => String(item?.rule || "")).filter(Boolean));
-    return [...violationOverrideIds(violation)].some((id) => recorded.has(id));
-  }
-
-  function ruleFlagPennants(flag, booking) {
-    if (!flag || flag.ok) return [];
-    const groups = new Map();
-    (flag.violations || []).forEach((violation) => {
-      if (violationAlreadyOverridden(booking, violation)) return;
-      const kind = violation.kind || (flag.kinds.length === 1 ? flag.kinds[0] : "rule");
-      const message = String(violation.message || "").trim();
-      if (!message) return;
-      if (!groups.has(kind)) groups.set(kind, []);
-      groups.get(kind).push(message);
-    });
-    if (!groups.size && flag.message && !(flag.violations || []).some((violation) => violationAlreadyOverridden(booking, violation))) {
-      const kind = flag.kinds.length === 1 ? flag.kinds[0] : "rule";
-      groups.set(kind, [flag.message]);
-    }
-    return [...groups.entries()].map(([kind, lines]) => ({
-      tone: "rule",
-      label:
-        typeof BookingRuleFlags !== "undefined" ? BookingRuleFlags.flagLabel([kind]) : "Rule flag",
-      lines: [...lines, "Needs an override."],
-    }));
   }
 
   function memberChoiceLabel(member) {
@@ -292,7 +249,7 @@
         if (statusFilter === "cancelled") return b.status === "cancelled";
         if (statusFilter === "flagged") {
           if (b.status === "cancelled") return false;
-          return !ruleFlagForBooking(b).ok;
+          return bookingHasOverride(b);
         }
         if (statusFilter === "active") {
           if (b.status === "cancelled") return false;
@@ -319,6 +276,32 @@
   function formatStayDate(value) {
     if (!value) return "—";
     return window.SpotAvailability?.formatStayDate?.(value) || String(value);
+  }
+
+  function formatBookedDate(value) {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    const iso = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+    return formatStayDate(iso);
+  }
+
+  function reservationIdLink(booking) {
+    const id = AdminCommon.escapeHtml(booking.id);
+    const conf = AdminCommon.escapeHtml(confirmationId(booking));
+    const href = `admin-reservations-manage.html?view=${encodeURIComponent(booking.id)}`;
+    return `<a class="reservation-id-link" href="${href}" data-open-booking="${id}"><code>${conf}</code></a>`;
+  }
+
+  function syncBookingQuery() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("view");
+    url.searchParams.delete("edit");
+    if (editingId) url.searchParams.set("edit", editingId);
+    else if (viewingId) url.searchParams.set("view", viewingId);
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next !== current) history.replaceState(null, "", next);
   }
 
   function formatStayRange(checkIn, checkOut) {
@@ -412,6 +395,7 @@
     if (viewDetails) viewDetails.innerHTML = "";
     if (viewSummary) viewSummary.textContent = "";
     if (viewEditBtn) viewEditBtn.hidden = true;
+    syncBookingQuery();
   }
 
   function openView(booking) {
@@ -450,7 +434,7 @@
         detailRow("Original check in", formatStayDate(booking.original_check_in)),
         detailRow("Original check out", formatStayDate(booking.original_check_out)),
         detailRow("Booked by", bookedBy),
-        detailRow("Created", formatDateTime(booking.created_at)),
+        detailRow("Date booked", formatDateTime(booking.created_at)),
         detailRow("Confirmed", formatDateTime(booking.confirmed_at)),
         detailRow("Last edited", formatDateTime(booking.edited_at)),
         detailRow("Last edit summary", formatEditSummary(booking.last_edit_summary), { span: true }),
@@ -460,7 +444,9 @@
         detailRow("Office check-in notes", booking.office_check_in_notes || "—", { span: true }),
         detailRow(
           "Rule flags",
-          flag.ok ? "None" : flag.message || "Flagged",
+          bookingHasOverride(booking)
+            ? flag.message || "Override on this reservation."
+            : "None",
           { span: true }
         ),
         ...(function overridesRows() {
@@ -490,6 +476,7 @@
       viewCard.hidden = false;
       viewCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    syncBookingQuery();
   }
 
   function closeEdit() {
@@ -504,6 +491,7 @@
       ok: true,
       violations: [],
     });
+    syncBookingQuery();
   }
 
   function openEdit(booking) {
@@ -531,12 +519,13 @@
       editCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     AdminCommon.showMessage(editResult, "", "");
+    syncBookingQuery();
   }
 
   function renderBookings() {
     const rows = filteredBookings();
     if (!rows.length) {
-      bookingsBody.innerHTML = `<tr><td colspan="7">No bookings match this filter.</td></tr>`;
+      bookingsBody.innerHTML = `<tr><td colspan="8">No bookings match this filter.</td></tr>`;
       return;
     }
     bookingsBody.innerHTML = rows
@@ -546,8 +535,7 @@
         const canConfirm = b.status !== "confirmed" && b.status !== "cancelled" && b.status !== "active";
         const canCancel = b.status !== "cancelled";
         const canEdit = b.status !== "cancelled";
-        const flag = ruleFlagForBooking(b);
-        const rowClass = flag.ok ? "" : " admin-row-class-flag";
+        const rowClass = bookingHasOverride(b) ? "admin-row-class-flag" : "";
         const displayStatus =
           typeof Auth.bookingDisplayStatus === "function"
             ? Auth.bookingDisplayStatus(b)
@@ -566,14 +554,15 @@
                 : "partial";
         const pill = `<span class="status-pill ${pillClass}">${AdminCommon.escapeHtml(displayStatus)}</span>`;
         return `<tr class="${rowClass.trim()}" data-booking-id="${AdminCommon.escapeHtml(b.id)}">
-          <td><code>${AdminCommon.escapeHtml(confirmationId(b))}</code></td>
+          <td>${reservationIdLink(b)}</td>
+          <td>${AdminCommon.escapeHtml(formatBookedDate(b.created_at))}</td>
           <td>${AdminCommon.escapeHtml(memberLabel(b.user_id))}</td>
           <td>${AdminCommon.escapeHtml(type)}</td>
           <td>${AdminCommon.escapeHtml(b.spot || "—")}</td>
           <td>${AdminCommon.escapeHtml(dates)}</td>
           <td>${
             typeof BookingLimits !== "undefined"
-              ? BookingLimits.statusWithFlags(pill, b.rule_overrides, ruleFlagPennants(flag, b))
+              ? BookingLimits.statusWithFlags(pill, b.rule_overrides)
               : pill
           }</td>
           <td class="admin-booking-actions">
@@ -613,12 +602,12 @@
     ]);
     renderBookingMemberOptions();
     renderBookings();
-    const flagged = bookings.filter((b) => !ruleFlagForBooking(b).ok).length;
+    const flagged = bookings.filter((b) => b.status !== "cancelled" && bookingHasOverride(b)).length;
     if (flagged) {
       AdminCommon.showMessage(
         message,
-        `${flagged} booking${flagged === 1 ? "" : "s"} flagged for broken reservation rules. Filter: Rule flags.`,
-        "error"
+        `${flagged} booking${flagged === 1 ? "" : "s"} with an override. Filter: Rule flags.`,
+        ""
       );
     }
     if (editingId) {
@@ -1393,6 +1382,15 @@
       return;
     }
 
+    const openLink = event.target.closest("a[data-open-booking]");
+    if (openLink && bookingsBody.contains(openLink)) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      event.preventDefault();
+      const booking = bookings.find((b) => b.id === openLink.getAttribute("data-open-booking"));
+      if (booking) openView(booking);
+      return;
+    }
+
     const button = event.target.closest("button[data-action]");
     if (!button || !bookingsBody.contains(button)) return;
     const row = button.closest("tr[data-booking-id]");
@@ -1466,9 +1464,13 @@
     await load();
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
+    const viewId = params.get("view");
     if (editId) {
       const booking = bookings.find((b) => b.id === editId);
       if (booking) openEdit(booking);
+    } else if (viewId) {
+      const booking = bookings.find((b) => b.id === viewId);
+      if (booking) openView(booking);
     }
   } catch (err) {
     AdminCommon.showMessage(message, err.message, "error");

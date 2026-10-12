@@ -88,6 +88,18 @@
                   ? "available"
                   : "partial";
         const spot = b.spot ? ` · ${b.spot}` : "";
+        const conf =
+          typeof Auth.bookingConfirmationId === "function" ? Auth.bookingConfirmationId(b) : "";
+        const bookedOn = (() => {
+          if (!b.created_at) return "—";
+          const parsed = new Date(b.created_at);
+          if (Number.isNaN(parsed.getTime())) return "—";
+          return parsed.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
+        })();
         const dates =
           b.check_in && b.check_out && window.SpotAvailability?.formatDateRange
             ? window.SpotAvailability.formatDateRange(b.check_in, b.check_out) ||
@@ -98,9 +110,16 @@
           typeof BookingLimits !== "undefined"
             ? BookingLimits.statusWithFlags(pill, b.rule_overrides)
             : pill;
+        const confLink = conf
+          ? `<a class="reservation-id-link" href="reservation-view.html?id=${encodeURIComponent(b.id)}">${escapeHtml(conf)}</a> · `
+          : "";
         return `
       <article class="booking-item">
-        <p><strong>${escapeHtml(label)}${escapeHtml(spot)}</strong> · ${escapeHtml(dates)}</p>
+        <div>
+          <p>${confLink}<strong>${escapeHtml(label)}${escapeHtml(spot)}</strong></p>
+          <p>${escapeHtml(dates)}</p>
+          <p>Date booked ${escapeHtml(bookedOn)}</p>
+        </div>
         ${statusHtml}
       </article>`;
       })

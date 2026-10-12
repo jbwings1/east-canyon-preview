@@ -170,7 +170,7 @@
         ? window.SpotAvailability.formatDateRange(booking.check_in, booking.check_out)
         : "—",
     ],
-    ["Booked", formatBookedEditedLineHtml(booking), true],
+    ["Date booked", formatBookedEditedLineHtml(booking), true],
     ...(originalStay ? [["Original stay", originalStay]] : []),
     ["Status", statusMarkup(booking), true],
     ["Notes", booking.notes || ""],

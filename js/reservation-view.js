@@ -168,7 +168,7 @@
     ["Type", Auth.reservationTypeLabel(booking.reservation_type) || "—"],
     ["Status", statusMarkup(booking), true],
     ["Booked by", bookedByLabel(booking)],
-    ["Booked", formatBookedEditedLineHtml(booking), true],
+    ["Date booked", formatBookedEditedLineHtml(booking), true],
     ...(originalStay ? [["Original stay", originalStay]] : []),
     ["Confirmation #", Auth.bookingConfirmationId(booking)],
     [

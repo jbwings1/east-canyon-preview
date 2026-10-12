@@ -3565,6 +3565,24 @@ a:hover {
   color: var(--color-text);
 }
 
+.reservation-id-link,
+.reservation-id-link code {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.reservation-id-link:hover,
+.reservation-id-link:focus-visible {
+  color: var(--color-canyon-dark);
+}
+
+.admin-table .reservation-id-link,
+.admin-table .reservation-id-link code {
+  white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .reservation-map-layout {
     grid-template-columns: 1fr;

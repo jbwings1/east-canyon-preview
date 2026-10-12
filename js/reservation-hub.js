@@ -204,7 +204,8 @@
     const bookingLines = active
       .map((b) => {
         const range = window.SpotAvailability.formatDateRange(b.check_in, b.check_out);
-        return escapeHtml(`Confirmation #${confirmationId(b)} · ${range}`);
+        const href = `reservation-view.html?id=${encodeURIComponent(b.id)}`;
+        return `<a class="reservation-id-link" href="${href}">Confirmation #${escapeHtml(confirmationId(b))}</a> · ${escapeHtml(range)}`;
       })
       .join("<br>");
     notice.hidden = false;
@@ -312,13 +313,13 @@
               </div>
               <dl class="member-profile-summary reservation-booking-details">
                 <div><dt>Booked by</dt><dd>${escapeHtml(bookedByLabel(b))}</dd></div>
-                <div><dt>Booked</dt><dd>${formatBookedEditedLineHtml(b)}</dd></div>
+                <div><dt>Date booked</dt><dd>${formatBookedEditedLineHtml(b)}</dd></div>
                 ${
                   originalStayDisplay(b)
                     ? `<div><dt>Original stay</dt><dd>${escapeHtml(originalStayDisplay(b))}</dd></div>`
                     : ""
                 }
-                <div><dt>Confirmation #</dt><dd>${escapeHtml(confirmationId(b))}</dd></div>
+                <div><dt>Confirmation #</dt><dd><a class="reservation-id-link" href="reservation-view.html?id=${encodeURIComponent(b.id)}">${escapeHtml(confirmationId(b))}</a></dd></div>
                 <div><dt>Stay dates</dt><dd>${escapeHtml(dates)}</dd></div>
                 <div><dt>Site</dt><dd>${escapeHtml(formatSiteDetails(b.spot))}</dd></div>
                 ${

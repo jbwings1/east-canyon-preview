@@ -219,6 +219,22 @@
     return iso ? formatStayDate(iso) : "—";
   }
 
+  function reservationHref(booking) {
+    const id = encodeURIComponent(booking?.id || "");
+    if (!booking?.id) return "";
+    if (typeof root.Auth?.hasAdminTask === "function" && root.Auth.hasAdminTask("reservations_manage")) {
+      return `admin-reservations-manage.html?view=${id}`;
+    }
+    return `admin-reservations-view.html?view=${id}`;
+  }
+
+  function confirmationCell(booking, conf) {
+    const label = escapeHtml(conf || "—");
+    const href = reservationHref(booking);
+    if (!href) return `<td><code>${label}</code></td>`;
+    return `<td><a class="reservation-id-link" href="${href}"><code>${label}</code></a></td>`;
+  }
+
   function typeLabel(value) {
     if (typeof root.Auth?.reservationTypeLabel === "function") {
       const label = root.Auth.reservationTypeLabel(value);
@@ -555,7 +571,7 @@
       const error = range.mode === "overlap" ? rangeError(range.from, range.to) : "";
       if (error) {
         resSummary.textContent = error;
-        resBody.innerHTML = `<tr><td colspan="7">${escapeHtml(error)}</td></tr>`;
+        resBody.innerHTML = `<tr><td colspan="8">${escapeHtml(error)}</td></tr>`;
         return;
       }
       const rows = bookings
@@ -574,7 +590,7 @@
           ? `No reservations for ${who}.`
           : "No reservations in this range.";
         resSummary.textContent = empty;
-        resBody.innerHTML = `<tr><td colspan="7">${escapeHtml(empty)}</td></tr>`;
+        resBody.innerHTML = `<tr><td colspan="8">${escapeHtml(empty)}</td></tr>`;
         return;
       }
       const cancelNote = cancelled ? ` (${cancelled} cancelled)` : "";
@@ -588,7 +604,8 @@
               ? root.Auth.bookingConfirmationId(booking)
               : booking.id || "—";
           return `<tr>
-            <td><code>${escapeHtml(conf)}</code></td>
+            ${confirmationCell(booking, conf)}
+            <td>${escapeHtml(formatMemberSince(booking.created_at))}</td>
             <td>${escapeHtml(memberName(profiles, booking.user_id))}</td>
             <td>${escapeHtml(typeLabel(booking.reservation_type))}</td>
             <td>${escapeHtml(booking.spot || "—")}</td>
@@ -832,7 +849,7 @@
       const error = rangeError(from, to);
       if (error) {
         summary.textContent = error;
-        body.innerHTML = `<tr><td colspan="7">${escapeHtml(error)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8">${escapeHtml(error)}</td></tr>`;
         return;
       }
       const rows = [];
@@ -854,7 +871,7 @@
           }.`
         : "No overrides match.";
       if (!rows.length) {
-        body.innerHTML = `<tr><td colspan="7">No overrides match.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8">No overrides match.</td></tr>`;
         return;
       }
       body.innerHTML = rows
@@ -881,7 +898,8 @@
           return `<tr>
             <td>${escapeHtml(when)}</td>
             <td>${escapeHtml(memberName(profiles, booking.user_id))}</td>
-            <td><code>${escapeHtml(conf)}</code></td>
+            ${confirmationCell(booking, conf)}
+            <td>${escapeHtml(formatMemberSince(booking.created_at))}</td>
             <td>${escapeHtml(stay)}</td>
             <td>${escapeHtml(kind)}</td>
             <td>${escapeHtml(who)}</td>
@@ -1161,7 +1179,7 @@
     } catch (err) {
       root.AdminCommon.showMessage(message, err.message, "error");
       const text = escapeHtml(err.message || "Could not load reports.");
-      resBody.innerHTML = `<tr><td colspan="7">${text}</td></tr>`;
+      resBody.innerHTML = `<tr><td colspan="8">${text}</td></tr>`;
       membersBody.innerHTML = `<tr><td colspan="5">${text}</td></tr>`;
       typeBody.innerHTML = `<tr><td colspan="2">${text}</td></tr>`;
     }
