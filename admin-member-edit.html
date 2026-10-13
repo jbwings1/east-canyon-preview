@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Member | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site70">
+  <link rel="stylesheet" href="styles.css?v=site71">
   <script>window.__ecrPageSearch=window.__ecrPageSearch||window.location.search||"";</script>
 </head>
 <body class="page-visitor page-admin">
@@ -105,9 +105,14 @@
                 <option value="suspended">Suspended</option>
                 <option value="closed">Closed</option>
               </select>
+              <fieldset class="admin-task-fieldset" id="edit-member-status-scope" hidden>
+                <legend>Apply closed or suspended to</legend>
+                <label><input type="radio" name="member-status-scope" value="member" checked> Member</label>
+                <label><input type="radio" name="member-status-scope" value="staff"> Staff</label>
+                <label><input type="radio" name="member-status-scope" value="both"> Both</label>
+              </fieldset>
               <p class="admin-field-note">
-                Closed or suspended blocks member sign-in. Use Close or delete below to confirm
-                a full close or unused-account delete.
+                Closed or suspended blocks that side's sign-in. On a dual account, choose Staff, Member, or Both. Setting a side back to Active opens only that side.
               </p>
             </div>
             <div class="reservation-hub-actions">
@@ -123,22 +128,9 @@
               use Admin Sign In with email or staff code.
             </p>
             <form id="admin-add-staff-form" class="auth-form admin-form">
-              <div class="admin-form-row">
-                <div class="form-group">
-                  <label for="add-staff-level">Level</label>
-                  <select id="add-staff-level" required>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="add-staff-seat">Seat letter</label>
-                  <input type="text" id="add-staff-seat" placeholder="a" maxlength="2" required>
-                </div>
-                <div class="form-group">
-                  <label for="add-staff-code">Staff code</label>
-                  <input type="text" id="add-staff-code" placeholder="A-002" required>
-                </div>
+              <div class="form-group">
+                <span>Staff code</span>
+                <p class="admin-readonly">Assigned automatically when you save.</p>
               </div>
               <fieldset class="admin-task-fieldset">
                 <legend>Assigned jobs</legend>
@@ -176,10 +168,10 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb5"></script>
-  <script src="js/auth.js?v=sb41"></script>
+  <script src="js/auth.js?v=sb44"></script>
   <script src="js/site-header-auth.js?v=4"></script>
-  <script src="js/admin-common.js?v=sb21"></script>
-  <script src="js/admin-member-edit.js?v=sb15"></script>
+  <script src="js/admin-common.js?v=sb26"></script>
+  <script src="js/admin-member-edit.js?v=sb17"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

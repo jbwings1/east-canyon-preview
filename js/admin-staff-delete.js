@@ -71,15 +71,14 @@
     row("Staff code", staff.staff_code),
     row("Name", staff.full_name),
     row("Email", staff.email),
-    row("Level / seat", staff.admin_level != null ? `${staff.admin_level}${staff.admin_seat || ""}` : "—"),
     row("Member ID", staff.member_id || "—"),
-    row("Status", AdminCommon.statusLabel(staff.account_status)),
+    row("Status", AdminCommon.statusLabel(AdminCommon.staffSideStatus(staff))),
     row("Reservations on file", String(bookingCount)),
   ].join("");
 
   if (hasMembership) {
     explain.textContent =
-      "This person is both a member and staff. Delete removes only staff access (staff code, admin level, and tasks). Membership, member login, and reservations stay. The Auth account is not deleted.";
+      "This person is both a member and staff. Delete removes only staff access. Membership, member login, and reservations stay. The Auth account is not deleted.";
     confirmBtn.textContent = "Delete staff access";
   } else {
     explain.textContent =

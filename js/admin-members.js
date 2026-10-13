@@ -91,7 +91,7 @@
           <td>${AdminCommon.escapeHtml(p.username || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.email || "—")}</td>
           <td>${AdminCommon.escapeHtml(p.phone || "—")}</td>
-          <td>${AdminCommon.escapeHtml(AdminCommon.statusLabel(status))}</td>
+          <td>${AdminCommon.statusPill(status)}</td>
           <td>${AdminCommon.escapeHtml(password)}</td>
           <td class="admin-actions">
             <a class="btn btn-outline btn-small" href="${AdminCommon.escapeHtml(href)}">Open</a>

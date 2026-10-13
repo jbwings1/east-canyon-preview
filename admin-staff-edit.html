@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Staff | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site70">
+  <link rel="stylesheet" href="styles.css?v=site71">
   <script>window.__ecrPageSearch=window.__ecrPageSearch||window.location.search||"";</script>
 </head>
 <body class="page-visitor page-admin">
@@ -51,7 +51,8 @@
           <form id="admin-edit-staff-form" class="auth-form admin-form" hidden>
             <div class="form-group">
               <label for="edit-staff-code">Staff code</label>
-              <input type="text" id="edit-staff-code" required>
+              <input type="text" id="edit-staff-code" readonly>
+              <p class="admin-field-note">The staff code is assigned when the account is created and does not change when jobs change.</p>
             </div>
             <div class="form-group">
               <label for="edit-staff-name">Full name</label>
@@ -69,20 +70,6 @@
               <label for="edit-staff-phone">Phone</label>
               <input type="tel" id="edit-staff-phone">
             </div>
-            <div class="admin-form-row">
-              <div class="form-group">
-                <label for="edit-staff-level">Level</label>
-                <select id="edit-staff-level" required>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="edit-staff-seat">Seat letter</label>
-                <input type="text" id="edit-staff-seat" maxlength="2" required>
-              </div>
-            </div>
             <fieldset class="admin-task-fieldset">
               <legend>Assigned jobs</legend>
               <div id="edit-staff-task-list"></div>
@@ -98,7 +85,7 @@
               <label for="edit-staff-status">Account status</label>
               <div class="admin-status-actions">
                 <select id="edit-staff-status" required>
-                  <option value="pending_activation">Pending activation</option>
+                  <option value="pending_activation">Pending</option>
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
                   <option value="closed">Closed</option>
@@ -107,11 +94,22 @@
                   Delete
                 </button>
               </div>
+              <fieldset class="admin-task-fieldset" id="edit-staff-status-scope" hidden>
+                <legend>Apply closed or suspended to</legend>
+                <label><input type="radio" name="staff-status-scope" value="staff" checked> Staff</label>
+                <label><input type="radio" name="staff-status-scope" value="member"> Member</label>
+                <label><input type="radio" name="staff-status-scope" value="both"> Both</label>
+              </fieldset>
               <p class="admin-field-note" id="staff-delete-note">
                 Closed or suspended blocks sign-in. Delete is separate from Closed:
                 staff-only accounts are removed (including Auth). Dual-role accounts
                 lose staff access only; membership stays.
               </p>
+            </div>
+            <div class="form-group">
+              <label for="edit-staff-temp-password">Temporary password</label>
+              <input type="text" id="edit-staff-temp-password" minlength="8" autocomplete="new-password">
+              <p class="admin-field-note">Leave blank to keep the current password. A password typed here is temporary. They must change it at the next admin sign-in.</p>
             </div>
             <div class="reservation-hub-actions">
               <button type="submit" class="btn btn-primary">Save changes</button>
@@ -188,10 +186,10 @@
   <script src="js/supabase-config.js?v=sb2"></script>
   <script src="js/supabase.js?v=sb2"></script>
   <script src="js/supabase-client.js?v=sb5"></script>
-  <script src="js/auth.js?v=sb41"></script>
+  <script src="js/auth.js?v=sb44"></script>
   <script src="js/site-header-auth.js?v=4"></script>
-  <script src="js/admin-common.js?v=sb21"></script>
-  <script src="js/admin-staff-edit.js?v=sb8"></script>
+  <script src="js/admin-common.js?v=sb26"></script>
+  <script src="js/admin-staff-edit.js?v=sb11"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">

@@ -13,8 +13,8 @@
   const result = document.getElementById("admin-edit-staff-result");
   const taskList = document.getElementById("edit-staff-task-list");
   const functionList = document.getElementById("edit-staff-function-list");
-  if (taskList) taskList.innerHTML = AdminCommon.taskCheckboxHtml("edit-staff-task");
-  if (functionList) functionList.innerHTML = AdminCommon.functionCheckboxHtml("edit-staff-function");
+  const canAssignAdmin = Auth.isTopAdmin(me);
+  const canAssignSiteManager = Auth.isAdminCoded(me);
   const canEditStaff = Auth.hasAdminTask("edit_staff");
   const canCloseStaff = Auth.hasAdminTask("close_staff");
 
@@ -49,22 +49,45 @@
   document.getElementById("edit-staff-name").value = staff.full_name || "";
   document.getElementById("edit-staff-email").value = staff.email || "";
   document.getElementById("edit-staff-phone").value = staff.phone || "";
-  document.getElementById("edit-staff-level").value = String(staff.admin_level || 2);
-  document.getElementById("edit-staff-seat").value = staff.admin_seat || "";
-  document.getElementById("edit-staff-status").value = staff.account_status || "active";
+  document.getElementById("edit-staff-status").value = AdminCommon.staffSideStatus(staff) || "active";
 
-  const assigned = new Set(AdminCommon.jobsFromStored(staff.admin_tasks, staff.admin_level));
+  const targetIsTop = Auth.isTopAdmin(staff);
+  const targetIsAdmin = Auth.isAdminCoded(staff);
+  const targetIsSiteManager = AdminCommon.jobsFromStored(
+    staff.admin_tasks,
+    staff.admin_level,
+    staff.staff_code
+  ).includes("site_manager") || (Array.isArray(staff.admin_tasks) && staff.admin_tasks.includes("site_manager"));
+  const callerIsSiteManager = Array.isArray(me.adminTasks) && me.adminTasks.includes("site_manager");
+  const isSelf = Boolean(userId && (userId === me.id || staff.id === me.id));
+  const lockJobs = targetIsTop;
+  if (taskList) {
+    taskList.innerHTML = AdminCommon.taskCheckboxHtml("edit-staff-task", {
+      includeSiteManager: canAssignSiteManager || targetIsSiteManager || lockJobs,
+      includeAdmin: canAssignAdmin || targetIsAdmin,
+    });
+  }
+  if (functionList) functionList.innerHTML = AdminCommon.functionCheckboxHtml("edit-staff-function");
+
+  const assigned = new Set(AdminCommon.jobsFromStored(staff.admin_tasks, staff.admin_level, staff.staff_code));
+  if (targetIsAdmin) assigned.add("admin");
   document.querySelectorAll('input[name="edit-staff-task"]').forEach((el) => {
     el.checked = assigned.has(el.value);
+    if (el.value === "admin" && targetIsAdmin) {
+      el.checked = true;
+      el.disabled = true;
+    }
   });
   const readAssignment = AdminCommon.wireFunctionPicker({
     button: document.getElementById("edit-staff-add-function"),
     fieldset: document.getElementById("edit-staff-function-fieldset"),
     jobName: "edit-staff-task",
     functionName: "edit-staff-function",
-    levelInput: document.getElementById("edit-staff-level"),
     storedTasks: staff.admin_tasks,
     note: document.getElementById("edit-staff-tasks-note"),
+    lockJobs,
+    selfSiteManager: isSelf && callerIsSiteManager,
+    lockAdmin: targetIsAdmin,
   });
   if (!canEditStaff) {
     form.querySelectorAll("input, select, button").forEach((el) => {
@@ -80,6 +103,38 @@
   }
   form.hidden = false;
 
+  const scopeBox = document.getElementById("edit-staff-status-scope");
+  const statusSelect = document.getElementById("edit-staff-status");
+  const syncScope = () => {
+    const blocked = statusSelect?.value === "closed" || statusSelect?.value === "suspended";
+    const show = AdminCommon.isDualProfile(staff) && blocked;
+    if (scopeBox) scopeBox.hidden = !show;
+  };
+  statusSelect?.addEventListener("change", syncScope);
+  syncScope();
+  if (scopeBox && !Auth.hasAdminTask("member_accounts")) {
+    scopeBox.querySelectorAll('input[value="member"], input[value="both"]').forEach((el) => {
+      el.disabled = true;
+      const label = el.closest("label");
+      if (label) label.hidden = true;
+    });
+  }
+
+  const editDenial = (() => {
+    if (Auth.isTopAdmin(me)) return "";
+    if (targetIsAdmin) return "You cannot change an admin record.";
+    if (Auth.isAdminCoded(me)) return "";
+    if (targetIsSiteManager && !isSelf) return "You cannot change a site manager or an admin.";
+    return "";
+  })();
+  if (editDenial) {
+    AdminCommon.showMessage(result, editDenial, "error");
+    form.querySelectorAll("input, select, button").forEach((el) => {
+      el.disabled = true;
+    });
+    document.getElementById("edit-staff-add-function")?.setAttribute("disabled", "");
+  }
+
   const title = document.getElementById("staff-page-title");
   const summary = document.getElementById("staff-page-summary");
   const displayName = staff.full_name || staff.staff_code || staff.email || "Staff";
@@ -88,11 +143,8 @@
   if (summary) {
     const bits = [
       staff.staff_code ? `Staff code ${staff.staff_code}` : null,
-      staff.admin_level != null
-        ? `Level ${staff.admin_level}${staff.admin_seat || ""}`
-        : null,
       staff.member_id ? `Member ID ${staff.member_id}` : null,
-      AdminCommon.statusLabel(staff.account_status),
+      AdminCommon.statusLabel(AdminCommon.staffSideStatus(staff)),
     ].filter(Boolean);
     summary.textContent =
       bits.join(" · ") +
@@ -100,15 +152,7 @@
   }
 
   const hasMembership = AdminCommon.profileHasMembership(staff);
-  const isSelf = Boolean(userId && (userId === me.id || staff.id === me.id));
-  const lastLevel1 =
-    listedProfiles.length > 0 &&
-    Number(staff.admin_level) === 1 &&
-    !listedProfiles.some((p) => {
-      if (Number(p.admin_level) !== 1) return false;
-      if ((p.account_status || "active") !== "active") return false;
-      return AdminCommon.profileUserId(p) !== userId;
-    });
+  const protectedAdmin = targetIsTop;
 
   const deleteBtn = document.getElementById("staff-delete-btn");
   const deleteNote = document.getElementById("staff-delete-note");
@@ -119,8 +163,8 @@
     : Auth.hasAdminTask("close_staff");
   const deleteBlockedReason = isSelf
     ? "You cannot delete your own signed-in account."
-    : lastLevel1
-      ? "There must be at least one active level 1 staff account."
+    : protectedAdmin
+      ? "Nobody can delete or close admin 001."
       : "";
 
   if (deleteNote) {
@@ -132,7 +176,7 @@
       deleteNote.textContent = deleteBlockedReason
         ? deleteBlockedReason
         : hasMembership
-          ? "Closed or suspended on this form can also block member sign-in. Delete removes only staff access (staff code, admin level, and tasks). Membership, member login, and reservations stay."
+          ? "Closed or suspended can apply to staff, member, or both. Setting a side back to Active opens only that side. Delete removes only staff access. Membership and member sign-in stay."
           : "Closed or suspended blocks staff sign-in. Delete permanently removes this staff record and Auth login. It is not kept as a closed leftover.";
     }
   }
@@ -168,7 +212,7 @@
     const ok = await AdminCommon.confirmAction({
       title: hasMembership ? "Delete staff access" : "Delete staff",
       message: hasMembership
-        ? `Delete staff access for ${label}${codeBit}?\n\nThis removes only the staff part (staff code, admin level, tasks, and admin sign-in). Membership ${staff.member_id || ""}, the member login, and reservations stay. The Auth account is not deleted.`
+        ? `Delete staff access for ${label}${codeBit}?\n\nThis removes only the staff part. Membership ${staff.member_id || ""}, the member login, and reservations stay. The Auth account is not deleted.`
         : `Permanently delete ${label}${codeBit}?\n\nThis removes the staff record and their Auth login. They will not be kept as a closed leftover. This cannot be undone.`,
       confirmLabel: hasMembership ? "Delete staff access" : "Delete staff",
     });
@@ -225,18 +269,22 @@
       if (!canEditStaff) {
         throw new Error("You are not assigned this function.");
       }
-      const level = Number(document.getElementById("edit-staff-level").value);
       const tasks = readAssignment();
+      const status = document.getElementById("edit-staff-status").value;
+      const dual = AdminCommon.isDualProfile(staff);
+      const scopeEl = document.querySelector('input[name="staff-status-scope"]:checked');
+      const temporaryPassword = document.getElementById("edit-staff-temp-password").value;
       await Auth.updateStaff({
         user_id: userId,
-        staff_code: document.getElementById("edit-staff-code").value.trim(),
         full_name: document.getElementById("edit-staff-name").value.trim(),
         email: document.getElementById("edit-staff-email").value.trim(),
         phone: document.getElementById("edit-staff-phone").value.trim(),
-        admin_level: level,
-        admin_seat: document.getElementById("edit-staff-seat").value.trim().toLowerCase(),
         admin_tasks: tasks,
-        account_status: document.getElementById("edit-staff-status").value,
+        account_status: status,
+        status_scope: dual && (status === "closed" || status === "suspended")
+          ? scopeEl?.value || "staff"
+          : "staff",
+        temporary_password: temporaryPassword,
       });
       window.location.replace("admin-staff.html?ok=updated");
     } catch (err) {

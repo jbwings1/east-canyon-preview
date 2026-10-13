@@ -884,7 +884,7 @@
     const code =
       String(profile?.staff_code || "").trim() ||
       adminNumberToken(override?.by) ||
-      (profile?.admin_level != null ? `${profile.admin_level}${profile.admin_seat || ""}` : "");
+      "";
     return labelNameAndNumber(name, code);
   }
 
@@ -901,7 +901,7 @@
     const code = String(user?.staffCode || "").trim();
     const seat =
       user?.adminLevel != null && String(user.adminLevel).trim() !== ""
-        ? `${user.adminLevel}${String(user.adminSeat || "").trim()}`
+        ? String(user.adminLevel).trim()
         : "";
     return {
       by: code || seat,

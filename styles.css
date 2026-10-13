@@ -4196,6 +4196,226 @@ img.logo {
   margin-top: 0.25rem;
 }
 
+.account-status-pill {
+  display: inline-block;
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  color: #f6f1e8;
+  background: #1c3a32;
+}
+
+.account-status-pill.active { background: #2f6b4f; }
+.account-status-pill.suspended { background: #c4922a; color: #1c1916; }
+.account-status-pill.closed { background: #14110e; }
+.account-status-pill.pending_activation { background: #8a8175; }
+
+.staff-print-banner {
+  display: none;
+}
+
+.staff-directory-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin: 0 0 0.85rem;
+}
+
+.staff-status-filters.admin-task-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 1rem;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0.45rem 0.9rem 0.55rem;
+}
+
+.staff-status-filters.admin-task-fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.15rem 0;
+  cursor: pointer;
+}
+
+.page-staff .staff-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.page-staff .staff-title-row h1 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.page-staff .staff-create-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: "Source Sans 3", var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.38rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f3eee4;
+  color: #1c3a32;
+  cursor: pointer;
+}
+
+.page-staff .staff-create-pill[hidden] {
+  display: none !important;
+}
+
+.page-staff .staff-create-pill:hover {
+  background: #e7dfd2;
+}
+
+.page-staff .staff-create-pill.is-selected,
+.page-staff .staff-create-pill[aria-expanded="true"] {
+  background: #1c3a32;
+  color: #f6f1e8;
+}
+
+.page-staff .staff-create-pill:focus-visible,
+.page-staff .staff-create-close:focus-visible {
+  outline: 2px solid #1c3a32;
+  outline-offset: 2px;
+}
+
+.page-staff .staff-create-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.35rem;
+}
+
+.page-staff .staff-create-panel-head h2 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.page-staff .staff-create-close {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.1rem 0.35rem;
+  border: 0;
+  background: transparent;
+  color: #5c574f;
+  font-family: "Source Sans 3", var(--font-sans);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page-staff .staff-create-close:hover {
+  color: #1c3a32;
+}
+
+.page-staff .staff-create-panel {
+  margin: 0 0 1.35rem;
+}
+
+@media print {
+  .page-staff {
+    background: #fff !important;
+  }
+
+  .page-staff .home-alert-banner,
+  .page-staff .site-header,
+  .page-staff .home-footer,
+  .page-staff .admin-back,
+  .page-staff .admin-intro,
+  .page-staff .staff-create-pill,
+  .page-staff #staff-create-panel,
+  .page-staff #staff-create-heading,
+  .page-staff #staff-create-help,
+  .page-staff #admin-create-staff-form,
+  .page-staff .staff-create-close,
+  .page-staff #admin-create-staff-result,
+  .page-staff .staff-directory-toolbar,
+  .page-staff .admin-subhead,
+  .page-staff #admin-message,
+  .page-staff #admin-denied,
+  .page-staff .staff-col-member {
+    display: none !important;
+  }
+
+  .page-staff .staff-print-banner {
+    display: block;
+    margin: 0 0 0.2rem;
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 12pt;
+    font-weight: 600;
+    color: #1c1916;
+  }
+
+  .page-staff main {
+    padding: 0;
+  }
+
+  .page-staff .page-content {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+  }
+
+  .page-staff .admin-card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+
+  .page-staff .admin-table-wrap {
+    overflow: visible;
+  }
+
+  .page-staff .admin-table {
+    font-size: 11pt;
+  }
+
+  .page-staff .account-status-pill {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .page-staff .staff-title-row {
+    display: block;
+    margin: 0 0 0.75rem;
+  }
+
+  .page-staff h1 {
+    margin: 0 0 0.75rem;
+    font-size: 18pt;
+  }
+}
+
+.admin-readonly {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #e4d8c8;
+  border-radius: 0.6rem;
+  background: #f6f1e8;
+  color: #1c1916;
+}
+
 .status-pill {
   display: inline-block;
   font-size: 0.78rem;

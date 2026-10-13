@@ -87,7 +87,9 @@ async function ensureAdminSession() {
 
   const isAdmin = await Auth.verifyAdmin();
   if (isAdmin) {
-    window.location.replace(safeAdminNext());
+    window.location.replace(
+      Auth.needsPasswordChange() ? "admin-change-password.html" : safeAdminNext()
+    );
     return;
   }
 
@@ -113,7 +115,9 @@ if (form && typeof Auth !== "undefined") {
     try {
       await Auth.signInAsAdmin(email, password);
       showMessage("Signed in. Opening admin…", "success");
-      window.location.replace(safeAdminNext());
+      window.location.replace(
+        Auth.needsPasswordChange() ? "admin-change-password.html" : safeAdminNext()
+      );
     } catch (err) {
       showSignInForm();
       showMessage(err.message, "error");

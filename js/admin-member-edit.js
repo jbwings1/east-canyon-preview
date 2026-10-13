@@ -41,8 +41,23 @@
   document.getElementById("edit-city").value = member.city || "";
   document.getElementById("edit-state").value = member.state || "";
   document.getElementById("edit-zip").value = member.zip || "";
-  document.getElementById("edit-status").value = member.account_status || "active";
+  document.getElementById("edit-status").value = AdminCommon.memberSideStatus(member) || "active";
   form.hidden = false;
+  const memberScope = document.getElementById("edit-member-status-scope");
+  const memberStatus = document.getElementById("edit-status");
+  const syncMemberScope = () => {
+    const blocked = memberStatus?.value === "closed" || memberStatus?.value === "suspended";
+    if (memberScope) memberScope.hidden = !(AdminCommon.isDualProfile(member) && blocked);
+  };
+  memberStatus?.addEventListener("change", syncMemberScope);
+  syncMemberScope();
+  if (memberScope && !Auth.hasAdminTask("close_staff")) {
+    memberScope.querySelectorAll('input[value="staff"], input[value="both"]').forEach((el) => {
+      el.disabled = true;
+      const label = el.closest("label");
+      if (label) label.hidden = true;
+    });
+  }
 
   const title = document.getElementById("member-page-title");
   const summary = document.getElementById("member-page-summary");
@@ -53,7 +68,7 @@
     const bits = [
       member.member_id ? `Member ID ${member.member_id}` : null,
       member.staff_code ? `Staff ${member.staff_code}` : null,
-      AdminCommon.statusLabel(member.account_status),
+      AdminCommon.statusLabel(AdminCommon.memberSideStatus(member)),
     ].filter(Boolean);
     summary.textContent =
       bits.join(" · ") +
@@ -64,7 +79,12 @@
   const existingStaff = document.getElementById("member-existing-staff");
   const addStaffTasks = document.getElementById("add-staff-task-list");
   const addStaffFunctions = document.getElementById("add-staff-function-list");
-  if (addStaffTasks) addStaffTasks.innerHTML = AdminCommon.taskCheckboxHtml("add-staff-task");
+  if (addStaffTasks) {
+    addStaffTasks.innerHTML = AdminCommon.taskCheckboxHtml("add-staff-task", {
+      includeSiteManager: Auth.isAdminCoded(me),
+      includeAdmin: Auth.isTopAdmin(me),
+    });
+  }
   if (addStaffFunctions) {
     addStaffFunctions.innerHTML = AdminCommon.functionCheckboxHtml("add-staff-function");
   }
@@ -73,7 +93,6 @@
     fieldset: document.getElementById("add-staff-function-fieldset"),
     jobName: "add-staff-task",
     functionName: "add-staff-function",
-    levelInput: document.getElementById("add-staff-level"),
     storedTasks: [],
     note: document.getElementById("add-staff-tasks-note"),
   });
@@ -128,6 +147,11 @@
         state: document.getElementById("edit-state").value.trim(),
         zip: document.getElementById("edit-zip").value.trim(),
         account_status: document.getElementById("edit-status").value,
+        status_scope:
+          AdminCommon.isDualProfile(member) &&
+          ["closed", "suspended"].includes(document.getElementById("edit-status").value)
+            ? document.querySelector('input[name="member-status-scope"]:checked')?.value || "member"
+            : "member",
       });
       window.location.replace("admin-members.html?ok=updated");
     } catch (err) {
@@ -145,9 +169,9 @@
     try {
       await Auth.attachStaffAccess({
         userId,
-        staffCode: document.getElementById("add-staff-code").value.trim(),
-        adminLevel: Number(document.getElementById("add-staff-level").value),
-        adminSeat: document.getElementById("add-staff-seat").value.trim().toLowerCase(),
+        staffCode: null,
+        adminLevel: null,
+        adminSeat: null,
         adminTasks: readAddAssignment(),
       });
       window.location.replace("admin-members.html?ok=staff");

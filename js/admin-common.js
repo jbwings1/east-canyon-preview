@@ -150,26 +150,68 @@ window.AdminCommon = {
     return (Array.isArray(adminTasks) ? adminTasks : []).filter((id) => ids.has(id));
   },
 
-  assignmentSummary(adminTasks, adminLevel) {
-    if (Number(adminLevel) === 1) return "All jobs";
+  assignmentSummary(adminTasks, adminLevel, staffCode) {
     const stored = Array.isArray(adminTasks) ? adminTasks : [];
     const jobIds = stored.filter((id) => this.ASSIGNABLE_TASKS.some((job) => job.id === id));
-    const jobs = this.jobLabels(stored, adminLevel);
+    const jobs = this.jobLabels(stored, adminLevel, staffCode);
+    const code = String(staffCode || "").trim();
+    if (/^admin \d{3}$/i.test(code) || stored.includes("admin") || Number(adminLevel) === 1) {
+      if (!jobs.includes("Admin")) jobs.push("Admin");
+    }
     const extraLabels = this.EXTRA_FUNCTIONS.filter(
-      (item) => stored.includes(item.id) && !Auth.impliesAdminTask(item.id, null, jobIds)
+      (item) => stored.includes(item.id) && !Auth.impliesAdminTask(item.id, null, jobIds, staffCode)
     ).map((item) => item.label);
     return [...jobs, ...extraLabels].join(", ");
   },
 
-  jobsFromStored(adminTasks, adminLevel) {
+  jobsFromStored(adminTasks, adminLevel, staffCode) {
     return this.ASSIGNABLE_TASKS.map((task) => task.id).filter((id) =>
-      Auth.impliesAdminTask(id, adminLevel, adminTasks)
+      Auth.impliesAdminTask(id, adminLevel, adminTasks, staffCode)
     );
   },
 
-  jobLabels(adminTasks, adminLevel) {
-    const ids = this.jobsFromStored(adminTasks, adminLevel);
+  jobLabels(adminTasks, adminLevel, staffCode) {
+    const ids = this.jobsFromStored(adminTasks, adminLevel, staffCode);
     return this.ASSIGNABLE_TASKS.filter((task) => ids.includes(task.id)).map((task) => task.label);
+  },
+
+  staffSideStatus(profile) {
+    if (!this.isStaffProfile(profile)) return "";
+    return profile?.staff_status || profile?.account_status || "active";
+  },
+
+  // Directory, filters, and print. Stored staff_status stays on the edit form.
+  // A temporary password still outstanding shows Pending unless that side is
+  // Closed or Suspended. pending_activation stays Pending either way.
+  displayedStaffStatus(profile) {
+    const side = String(this.staffSideStatus(profile) || "").trim().toLowerCase();
+    if (!side) return "";
+    if (side === "closed" || side === "suspended") return side;
+    if (profile?.must_change_password === true || side === "pending_activation") {
+      return "pending_activation";
+    }
+    return side;
+  },
+
+  memberSideStatus(profile) {
+    if (!this.profileHasMembership(profile)) return "";
+    return profile?.account_status || "active";
+  },
+
+  isDualProfile(profile) {
+    return this.isStaffProfile(profile) && this.profileHasMembership(profile);
+  },
+
+  statusPill(status) {
+    const key = status || "active";
+    const labels = {
+      active: "Active",
+      suspended: "Suspended",
+      closed: "Closed",
+      pending_activation: "Pending",
+    };
+    const cls = Object.prototype.hasOwnProperty.call(labels, key) ? key : "active";
+    return `<span class="account-status-pill ${cls}">${this.escapeHtml(labels[cls])}</span>`;
   },
 
   profileHasStaffAccess(profile) {
@@ -383,13 +425,24 @@ window.AdminCommon = {
     return query ? `${path}?${query}` : path;
   },
 
-  taskCheckboxHtml(name = "staff-task") {
-    return this.ASSIGNABLE_TASKS.map(
-      (task) =>
-        `<label><input type="checkbox" name="${name}" value="${this.escapeHtml(
-          task.id
-        )}"> ${this.escapeHtml(task.label)}</label>`
-    ).join("");
+  taskCheckboxHtml(name = "staff-task", options = {}) {
+    const includeSiteManager = options.includeSiteManager !== false;
+    const includeAdmin = options.includeAdmin === true;
+    const jobs = this.ASSIGNABLE_TASKS.filter(
+      (task) => includeSiteManager || task.id !== "site_manager"
+    );
+    let html = jobs
+      .map(
+        (task) =>
+          `<label><input type="checkbox" name="${name}" value="${this.escapeHtml(
+            task.id
+          )}"> ${this.escapeHtml(task.label)}</label>`
+      )
+      .join("");
+    if (includeAdmin) {
+      html += `<label><input type="checkbox" name="${name}" value="admin"> Admin</label>`;
+    }
+    return html;
   },
 
   functionCheckboxHtml(name = "staff-function") {
@@ -412,9 +465,11 @@ window.AdminCommon = {
     fieldset,
     jobName,
     functionName,
-    levelInput,
     storedTasks,
     note,
+    lockJobs = false,
+    selfSiteManager = false,
+    lockAdmin = false,
   }) {
     const jobBoxes = () => Array.from(document.querySelectorAll(`input[name="${jobName}"]`));
     const functionBoxes = () =>
@@ -423,18 +478,32 @@ window.AdminCommon = {
     const chosenExtras = new Set(storedExtras);
 
     const sync = () => {
-      const level = Number(levelInput?.value);
-      const level1 = level === 1;
       const selectedJobs = jobBoxes()
-        .filter((el) => level1 || el.checked)
-        .map((el) => el.value);
+        .filter((el) => lockJobs || el.checked)
+        .map((el) => el.value)
+        .filter((id) => id !== "admin");
       jobBoxes().forEach((el) => {
-        el.disabled = level1;
-        if (level1) el.checked = true;
+        if (lockJobs) {
+          el.checked = true;
+          el.disabled = true;
+          return;
+        }
+        if (el.value === "site_manager" && selfSiteManager) {
+          el.checked = true;
+          el.disabled = true;
+          return;
+        }
+        if (el.value === "admin") {
+          if (lockJobs || lockAdmin) {
+            el.checked = true;
+            el.disabled = true;
+          }
+          return;
+        }
+        el.disabled = false;
       });
       functionBoxes().forEach((el) => {
-        const included =
-          level1 || Auth.impliesAdminTask(el.value, null, selectedJobs);
+        const included = lockJobs || Auth.impliesAdminTask(el.value, null, selectedJobs);
         if (included) {
           el.checked = true;
           el.disabled = true;
@@ -444,9 +513,8 @@ window.AdminCommon = {
         }
       });
       if (note) {
-        note.textContent = level1
-          ? "Level 1 has every job and every function."
-          : "Assign at least one job or function. Add a function gives only that function. A site manager cannot remove their own Site manager job.";
+        note.textContent =
+          "Assign at least one job or function. Add a function gives only that function. The staff code comes from the job farthest down the list and does not change later. A site manager cannot remove their own Site manager job.";
       }
     };
 
@@ -458,7 +526,6 @@ window.AdminCommon = {
       });
     });
     jobBoxes().forEach((el) => el.addEventListener("change", sync));
-    levelInput?.addEventListener("change", sync);
     if (button && fieldset) {
       const open = storedExtras.size > 0;
       fieldset.hidden = !open;
@@ -471,8 +538,6 @@ window.AdminCommon = {
     sync();
 
     return () => {
-      const level = Number(levelInput?.value);
-      if (level === 1) return this.ASSIGNABLE_TASKS.map((task) => task.id);
       const jobs = jobBoxes()
         .filter((el) => el.checked)
         .map((el) => el.value);
@@ -534,8 +599,29 @@ window.AdminCommon = {
 
     const isAdmin = await Auth.verifyAdmin();
     const me = Auth.getCurrentUser() || sessionUser;
-    if (!isAdmin) {
+    const pageFile = String(window.location.pathname.split("/").pop() || "");
+    const passwordPage = pageFile === "admin-change-password.html";
+    const mustChange = Auth.needsPasswordChange(me);
+    const staffSession = me?.sessionRole === "admin" && me?.hasStaffAccess === true;
+    const passwordException = passwordPage && mustChange && staffSession;
+
+    if (mustChange && staffSession && !passwordPage) {
+      window.location.replace("admin-change-password.html");
+      return null;
+    }
+
+    if (!isAdmin && !passwordException) {
       if (denied) denied.hidden = false;
+      if (app) app.hidden = true;
+      return null;
+    }
+
+    if (!Auth.staffCanUseJobs(me) && !passwordException) {
+      if (denied) {
+        denied.hidden = false;
+        denied.textContent =
+          "Your staff account is not active, so assigned jobs are unavailable.";
+      }
       if (app) app.hidden = true;
       return null;
     }
@@ -561,12 +647,7 @@ window.AdminCommon = {
 
     const who = document.getElementById("admin-whoami");
     if (who) {
-      const seat = me.adminSeat
-        ? `${me.adminLevel}${me.adminSeat}`
-        : `Level ${me.adminLevel || 1}`;
-      who.textContent = `${me.name || me.email} · ${seat}${
-        me.staffCode ? ` · ${me.staffCode}` : ""
-      }. `;
+      who.textContent = `${me.name || me.email}${me.staffCode ? ` · ${me.staffCode}` : ""}. `;
     }
 
     if (typeof SiteHeaderAuth?.mount === "function") {
