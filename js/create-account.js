@@ -2,7 +2,9 @@ const form = document.getElementById("signup-form");
 const message = document.getElementById("signup-message");
 
 function showMessage(text, type) {
-  message.textContent = text;
+  const raw = String(text || "");
+  const safe = /\bbanned\b/i.test(raw) ? "This account cannot sign in." : raw;
+  message.textContent = safe;
   message.className = type ? `form-message ${type}` : "form-message";
 }
 

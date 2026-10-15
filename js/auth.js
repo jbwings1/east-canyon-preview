@@ -298,9 +298,35 @@ function cacheSession(session) {
   });
 }
 
+function isAuthBannedError(error) {
+  const code = String(error?.code || error?.error_code || "").toLowerCase();
+  const msg = String(error?.message || error?.msg || "");
+  return code === "user_banned" || /\bbanned\b/i.test(code) || /\bbanned\b/i.test(msg);
+}
+
+/**
+ * Plain sign-in sentence for a door and a status word.
+ * door is "member", "staff", or "" when the side is unknown.
+ * status is "suspended", "closed", or anything else (including a failed lookup).
+ */
+function signInBlockMessage(door, status) {
+  const normalized = String(status || "").trim().toLowerCase();
+  const side = door === "staff" ? "staff" : door === "member" ? "member" : "";
+  if (normalized === "suspended") {
+    return side ? `This ${side} account is suspended.` : "This account is suspended.";
+  }
+  if (normalized === "closed") {
+    return side ? `This ${side} account is closed.` : "This account is closed.";
+  }
+  return "This account cannot sign in.";
+}
+
 function formatClientError(error) {
   const code = error?.code || error?.error_code || "";
   const msg = error?.message || error?.msg || "";
+  if (isAuthBannedError(error)) {
+    return "This account cannot sign in.";
+  }
   if (code === "email_not_confirmed" || /email not confirmed/i.test(msg)) {
     return "Confirm your email before signing in. Check your inbox for the East Canyon link.";
   }
@@ -823,11 +849,47 @@ const Auth = {
     return String(data).trim().toLowerCase();
   },
 
+  async lookupDoorBlockStatus(door, identifier) {
+    try {
+      const { data, error } = await getClient().rpc("sign_in_block_status", {
+        identifier: String(identifier || "").trim(),
+        door,
+      });
+      if (error) return "";
+      const status = String(data || "").trim().toLowerCase();
+      if (status === "suspended" || status === "closed" || status === "none") return status;
+      return "";
+    } catch {
+      return "";
+    }
+  },
+
+  messageForBannedSignIn(error, door, status) {
+    if (!isAuthBannedError(error)) return formatClientError(error);
+    return signInBlockMessage(door, status);
+  },
+
+  visibleClientError(error) {
+    const raw = String(error?.message || error?.msg || error || "");
+    if (isAuthBannedError(error) || /\bbanned\b/i.test(raw)) {
+      return "This account cannot sign in.";
+    }
+    return raw || "Request failed.";
+  },
+
   async activateMemberAccount({ email, memberId, temporaryPassword }) {
-    const user = await this.signIn(email, temporaryPassword);
+    const user = await this.signIn(email, temporaryPassword, {
+      door: "member",
+      identifier: email,
+    });
     if (!user?.hasMembership) {
       await this.signOutQuiet();
       throw new Error("This is not a member account. Use Admin Sign In for staff.");
+    }
+    const memberStatus = String(user.accountStatus || "").trim().toLowerCase();
+    if (memberStatus === "suspended" || memberStatus === "closed") {
+      await this.signOutQuiet();
+      throw new Error(signInBlockMessage("member", memberStatus));
     }
     try {
       await this.setSessionRole("member");
@@ -838,10 +900,6 @@ const Auth = {
     if (String(user.memberId || "").trim() !== String(memberId || "").trim()) {
       await this.signOutQuiet();
       throw new Error("Member ID does not match this email.");
-    }
-    if (user.accountStatus === "suspended" || user.accountStatus === "closed") {
-      await this.signOutQuiet();
-      throw new Error("This member account is not active. Contact the office.");
     }
     return user;
   },
@@ -1345,8 +1403,14 @@ const Auth = {
     sessionStorage.removeItem(PENDING_PROFILE_KEY);
   },
 
-  async signIn(email, password) {
+  async signIn(email, password, blockContext) {
     const { data, error } = await getClient().auth.signInWithPassword({ email, password });
+    if (error && isAuthBannedError(error)) {
+      const door = blockContext?.door || "";
+      const identifier = blockContext?.identifier || email;
+      const status = door ? await this.lookupDoorBlockStatus(door, identifier) : "";
+      throw new Error(signInBlockMessage(door, status));
+    }
     throwIfError(error);
     cacheSession(data.session);
     try {
@@ -1358,15 +1422,25 @@ const Auth = {
   },
 
   async signInAsMember(loginId, password) {
-    const email = await this.resolveMemberLoginEmail(loginId);
-    const user = await this.signIn(email, password);
+    let email;
+    try {
+      email = await this.resolveMemberLoginEmail(loginId);
+    } catch (err) {
+      const status = await this.lookupDoorBlockStatus("member", loginId);
+      if (status === "suspended" || status === "closed" || isAuthBannedError(err)) {
+        throw new Error(signInBlockMessage("member", status));
+      }
+      throw err;
+    }
+    const user = await this.signIn(email, password, { door: "member", identifier: loginId });
     if (!user?.hasMembership) {
       await this.signOutQuiet();
       throw new Error("Use Admin Sign In for staff accounts. Member Sign In is for members only.");
     }
-    if (user.accountStatus === "suspended" || user.accountStatus === "closed") {
+    const memberStatus = String(user.accountStatus || "").trim().toLowerCase();
+    if (memberStatus === "suspended" || memberStatus === "closed") {
       await this.signOutQuiet();
-      throw new Error("This member account is closed or suspended. Contact the office.");
+      throw new Error(signInBlockMessage("member", memberStatus));
     }
     try {
       await this.setSessionRole("member");
@@ -1383,15 +1457,38 @@ const Auth = {
   },
 
   async signInAsAdmin(identifier, password) {
-    const email = await this.resolveAdminLoginEmail(identifier);
-    const user = await this.signIn(email, password);
+    let email;
+    try {
+      email = await this.resolveAdminLoginEmail(identifier);
+    } catch (err) {
+      const status = await this.lookupDoorBlockStatus("staff", identifier);
+      if (status === "suspended" || status === "closed" || isAuthBannedError(err)) {
+        throw new Error(signInBlockMessage("staff", status));
+      }
+      throw err;
+    }
+    const user = await this.signIn(email, password, { door: "staff", identifier });
     if (!user?.hasStaffAccess) {
       await this.signOutQuiet();
       throw new Error("This account does not have administrator access.");
     }
-    if (user.staffStatus === "suspended" || user.staffStatus === "closed") {
+    const staffState = staffGateStatus({
+      hasStaffAccess: user.hasStaffAccess,
+      is_admin: user.hasStaffAccess,
+      staff_code: user.staffCode,
+      staffCode: user.staffCode,
+      account_kind: user.accountKind,
+      member_id: user.memberId,
+      memberId: user.memberId,
+      hasMembership: user.hasMembership,
+      account_status: user.accountStatus,
+      accountStatus: user.accountStatus,
+      staff_status: user.staffStatusRaw,
+      staffStatusRaw: user.staffStatusRaw,
+    });
+    if (staffState === "suspended" || staffState === "closed") {
       await this.signOutQuiet();
-      throw new Error("This staff account is closed or suspended. Contact the office.");
+      throw new Error(signInBlockMessage("staff", staffState));
     }
     try {
       await this.setSessionRole("admin");
