@@ -19,6 +19,13 @@ window.AdminCommon = {
       gate: "member_accounts",
     },
     {
+      id: "invoices",
+      label: "Member accounts",
+      href: "admin-invoices.html",
+      blurb: "Create a charge and view member accounts, including overdue accounts.",
+      gate: "member_charges",
+    },
+    {
       id: "reservations_manage",
       label: "Manage reservations",
       href: "admin-reservations-manage.html",
@@ -74,13 +81,6 @@ window.AdminCommon = {
       href: "admin-passwords.html",
       blurb: "Set a temporary password so a member can sign in and choose a new one.",
       gate: "member_password",
-    },
-    {
-      id: "invoices",
-      label: "Member accounts",
-      href: "admin-invoices.html",
-      blurb: "Create a charge and view member accounts, including overdue accounts.",
-      gate: "member_charges",
     },
     {
       id: "reports",
