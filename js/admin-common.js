@@ -10,20 +10,7 @@ window.AdminCommon = {
       blurb:
         "Check Sites taken for any dates, then book a stay for a member.",
       gate: "make_reservation",
-    },
-    {
-      id: "members",
-      label: "Members",
-      href: "admin-members.html",
-      blurb: "Search, create, edit, close, or delete member accounts.",
-      gate: "member_accounts",
-    },
-    {
-      id: "invoices",
-      label: "Member accounts",
-      href: "admin-invoices.html",
-      blurb: "Create a charge and view member accounts, including overdue accounts.",
-      gate: "member_charges",
+      column: "left",
     },
     {
       id: "reservations_manage",
@@ -39,48 +26,7 @@ window.AdminCommon = {
         "cancel_reservation",
         "override_rule",
       ],
-    },
-    {
-      id: "wedding_calendar",
-      label: "Booking calendar",
-      href: "admin-wedding-calendar.html",
-      blurb: "Mark dates booked, on hold, or closed, or edit the public note.",
-      gateAny: ["mark_calendar", "edit_calendar_note", "edit_calendar_heading"],
-    },
-    {
-      id: "website",
-      label: "Website",
-      href: "admin-website.html",
-      blurb: "Add, edit, or turn site alerts on or off, and add or remove alert photos.",
-      gateAny: ["manage_alerts", "alert_photos", "delete_alert"],
-    },
-    {
-      id: "pictures",
-      label: "Pictures",
-      href: "admin-pictures.html",
-      blurb: "Upload, reorder, or remove gallery pictures, and edit gallery sections.",
-      gate: "gallery",
-    },
-    {
-      id: "resort_calendar",
-      label: "Resort Calendar",
-      href: "admin-resort-calendar.html",
-      blurb: "Add, edit, or remove events on the public resort calendar.",
-      gate: "resort_calendar",
-    },
-    {
-      id: "board",
-      label: "Board Members",
-      href: "admin-board.html",
-      blurb: "Add, edit, reorder, or remove board member names, photos, and committees.",
-      gate: "board_members",
-    },
-    {
-      id: "passwords",
-      label: "Passwords",
-      href: "admin-passwords.html",
-      blurb: "Set a temporary password so a member can sign in and choose a new one.",
-      gate: "member_password",
+      column: "left",
     },
     {
       id: "reports",
@@ -88,6 +34,15 @@ window.AdminCommon = {
       href: "admin-reports.html",
       blurb: "Reservations, current members, stay counts, and booking overrides.",
       gate: "run_reports",
+      column: "left",
+    },
+    {
+      id: "board",
+      label: "Board Members",
+      href: "admin-board.html",
+      blurb: "Add, edit, reorder, or remove board member names, photos, and committees.",
+      gate: "board_members",
+      column: "left",
     },
     {
       id: "staff",
@@ -102,6 +57,63 @@ window.AdminCommon = {
         "add_membership",
         "remove_staff_access",
       ],
+      column: "left",
+    },
+    {
+      id: "website",
+      label: "Website",
+      href: "admin-website.html",
+      blurb: "Add, edit, or turn site alerts on or off, and add or remove alert photos.",
+      gateAny: ["manage_alerts", "alert_photos", "delete_alert"],
+      column: "left",
+    },
+    {
+      id: "members",
+      label: "Members",
+      href: "admin-members.html",
+      blurb: "Search, create, edit, close, or delete member accounts.",
+      gate: "member_accounts",
+      column: "right",
+    },
+    {
+      id: "invoices",
+      label: "Member accounts",
+      href: "admin-invoices.html",
+      blurb: "Create a charge and view member accounts, including overdue accounts.",
+      gate: "member_charges",
+      column: "right",
+    },
+    {
+      id: "passwords",
+      label: "Passwords",
+      href: "admin-passwords.html",
+      blurb: "Set a temporary password so a member can sign in and choose a new one.",
+      gate: "member_password",
+      column: "right",
+    },
+    {
+      id: "resort_calendar",
+      label: "Resort Calendar",
+      href: "admin-resort-calendar.html",
+      blurb: "Add, edit, or remove events on the public resort calendar.",
+      gate: "resort_calendar",
+      column: "right",
+    },
+    {
+      id: "wedding_calendar",
+      label: "Booking calendar",
+      href: "admin-wedding-calendar.html",
+      blurb: "Mark dates booked, on hold, or closed, or edit the public note.",
+      gateAny: ["mark_calendar", "edit_calendar_note", "edit_calendar_heading"],
+      column: "right",
+    },
+    {
+      id: "pictures",
+      label: "Pictures",
+      href: "admin-pictures.html",
+      blurb: "Upload, reorder, or remove gallery pictures, and edit gallery sections.",
+      gate: "gallery",
+      column: "right",
     },
   ],
 
@@ -730,7 +742,7 @@ window.AdminCommon = {
 
   renderHubButtons(container) {
     if (!container) return;
-    container.innerHTML = this.TASKS.map((task) => {
+    const buttonHtml = (task) => {
       if (task.hub === false) return "";
       const needed = task.gateAny || [task.gate || task.id];
       if (!needed.some((id) => Auth.hasAdminTask(id))) return "";
@@ -738,6 +750,19 @@ window.AdminCommon = {
         <span class="admin-task-btn-label">${this.escapeHtml(task.label)}</span>
         <span class="admin-task-btn-blurb">${this.escapeHtml(task.blurb)}</span>
       </a>`;
-    }).join("");
+    };
+    const left = this.TASKS.filter((task) => task.column !== "right")
+      .map(buttonHtml)
+      .join("");
+    const right = this.TASKS.filter((task) => task.column === "right")
+      .map(buttonHtml)
+      .join("");
+    container.innerHTML = `
+      <div class="admin-task-col" aria-label="Operations">
+        ${left}
+      </div>
+      <div class="admin-task-col" aria-label="Members and calendars">
+        ${right}
+      </div>`;
   },
 };
