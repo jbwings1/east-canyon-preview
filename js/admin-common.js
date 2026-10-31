@@ -12,6 +12,13 @@ window.AdminCommon = {
       gate: "make_reservation",
     },
     {
+      id: "members",
+      label: "Members",
+      href: "admin-members.html",
+      blurb: "Search, create, edit, close, or delete member accounts.",
+      gate: "member_accounts",
+    },
+    {
       id: "reservations_manage",
       label: "Manage reservations",
       href: "admin-reservations-manage.html",
@@ -60,13 +67,6 @@ window.AdminCommon = {
       href: "admin-board.html",
       blurb: "Add, edit, reorder, or remove board member names, photos, and committees.",
       gate: "board_members",
-    },
-    {
-      id: "members",
-      label: "Members",
-      href: "admin-members.html",
-      blurb: "Search, create, edit, close, or delete member accounts.",
-      gate: "member_accounts",
     },
     {
       id: "passwords",
