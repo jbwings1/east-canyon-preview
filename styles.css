@@ -2182,6 +2182,17 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 
+/* Sites taken sits inside Make a reservation without a second outer card box. */
+.admin-card .admin-sites-taken--in-create {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid rgba(28, 26, 23, 0.12);
+  border-radius: 0;
+  padding: 1.35rem 0 0;
+  margin: 1.35rem 0 0;
+}
+
+
 .admin-card h2 {
   margin-top: 0;
 }

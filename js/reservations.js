@@ -32,8 +32,24 @@ let editingBookingId = null;
 let occupancyRows = [];
 let occupancyFetchToken = 0;
 let memberInvoices = [];
+let bookingMapReady = false;
+let bookingZoomReady = false;
+let sitesTakenRows = [];
+let sitesTakenMapReady = false;
+let sitesTakenZoomReady = false;
+let sitesTakenShowGuestNames = false;
 const reservationMode = document.body?.dataset?.reservationMode || "book";
 const editIdFromUrl = new URLSearchParams(window.location.search).get("id");
+
+const occFrom = document.getElementById("occupancy-from");
+const occTo = document.getElementById("occupancy-to");
+const occRig = document.getElementById("occupancy-rig");
+const occBtn = document.getElementById("occupancy-check-btn");
+const occMsg = document.getElementById("occupancy-message");
+const occWrap = document.getElementById("occupancy-map-wrap");
+const occDetail = document.getElementById("occupancy-unit-detail");
+const occAdminNote = document.getElementById("hub-occupancy-admin-note");
+const hasSitesTakenLookup = Boolean(occBtn && occFrom && occTo);
 
 function goToReservationHub(ok) {
   const q = ok ? `?ok=${encodeURIComponent(ok)}` : "";
@@ -590,36 +606,337 @@ function canBookSelectUnit(unit) {
   return !memberMapRuleMessage();
 }
 
-CampgroundMap.init({
-  layerId: "spots-layer",
-  detailId: "map-unit-detail",
-  svgId: "campground-map",
-  photoId: "campground-map-photo",
-  requireDatesForSpots: false,
-  unitFilter: "all",
-  canBookSelect: canBookSelectUnit,
-  bookBlockMessage() {
-    return mapRuleMessage;
-  },
-  onSpotSelect(unit) {
-    if (!canBookSelectUnit(unit)) {
-      applyMapRuleBlock();
-      return;
-    }
-    preferredSpotInput.value = unit.id;
-    selectedSpotLabel.textContent = formatSelectedUnit(unit);
-    preferredSpotDisplay.hidden = false;
-    updateStaySummary();
-  },
-});
+function bookingMapIsBound() {
+  return bookingMapReady && CampgroundMap._layer?.id === "spots-layer";
+}
 
-MapZoom.init({
-  viewport: document.getElementById("map-viewport"),
-  stage: document.getElementById("map-zoom-stage"),
-  zoomInBtn: document.getElementById("map-zoom-in"),
-  zoomOutBtn: document.getElementById("map-zoom-out"),
-  resetBtn: document.getElementById("map-zoom-reset"),
-});
+function sitesTakenMapIsBound() {
+  return sitesTakenMapReady && CampgroundMap._layer?.id === "occupancy-spots-layer";
+}
+
+function ensureBookingMap() {
+  if (typeof CampgroundMap === "undefined") return;
+  if (!document.getElementById("spots-layer") || !document.getElementById("campground-map")) {
+    return;
+  }
+  if (bookingMapIsBound()) return;
+
+  rebuildSpotBookingsFromMembers();
+  CampgroundMap.init({
+    layerId: "spots-layer",
+    detailId: "map-unit-detail",
+    svgId: "campground-map",
+    photoId: "campground-map-photo",
+    legendId: "map-legend",
+    requireDatesForSpots: false,
+    lookupOnly: false,
+    unitFilter: "all",
+    canBookSelect: canBookSelectUnit,
+    bookBlockMessage() {
+      return mapRuleMessage;
+    },
+    onSpotSelect(unit) {
+      if (!canBookSelectUnit(unit)) {
+        applyMapRuleBlock();
+        return;
+      }
+      preferredSpotInput.value = unit.id;
+      selectedSpotLabel.textContent = formatSelectedUnit(unit);
+      preferredSpotDisplay.hidden = false;
+      updateStaySummary();
+    },
+  });
+  if (typeof CampgroundMap.setOwnBookings === "function") {
+    CampgroundMap.setOwnBookings(memberBookings, { render: false });
+  }
+  if (!bookingZoomReady && typeof MapZoom !== "undefined") {
+    MapZoom.init({
+      viewport: document.getElementById("map-viewport"),
+      stage: document.getElementById("map-zoom-stage"),
+      zoomInBtn: document.getElementById("map-zoom-in"),
+      zoomOutBtn: document.getElementById("map-zoom-out"),
+      resetBtn: document.getElementById("map-zoom-reset"),
+    });
+    bookingZoomReady = true;
+  }
+  bookingMapReady = true;
+  sitesTakenMapReady = false;
+}
+
+function showOccMsg(text, type) {
+  if (!occMsg) return;
+  occMsg.textContent = text || "";
+  occMsg.className = type ? `form-message ${type}` : "form-message";
+}
+
+function occupancyPlaceholderHtml() {
+  return `<p class="spot-detail-placeholder">Click a site or condo on the map to see booked dates in your range. Blue means it is your reservation.</p>`;
+}
+
+function openOccupancyDetailOverlay() {
+  if (typeof CampgroundMap?.openDetailOverlay === "function") {
+    CampgroundMap.openDetailOverlay();
+    return;
+  }
+  if (occDetail) occDetail.hidden = false;
+}
+
+function closeOccupancyDetailOverlay() {
+  if (typeof CampgroundMap?.closeDetailOverlay === "function") {
+    CampgroundMap.closeDetailOverlay({ clearSelection: true });
+    return;
+  }
+  if (occDetail) {
+    occDetail.hidden = false;
+    occDetail.innerHTML = occupancyPlaceholderHtml();
+  }
+}
+
+function occupancyCloseHtml() {
+  if (typeof CampgroundMap?._overlayCloseHtml === "function") {
+    return CampgroundMap._overlayCloseHtml();
+  }
+  return `<div class="map-site-panel-head">
+    <button type="button" class="map-site-panel-close" data-map-detail-close>Clear</button>
+  </div>`;
+}
+
+function selectedOccupancyRigLength() {
+  const raw = occRig?.value;
+  if (raw === "" || raw == null) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function applyOccupancyRigLength({ render = true } = {}) {
+  if (typeof CampgroundMap?.setRigLength !== "function") return;
+  CampgroundMap.setRigLength(selectedOccupancyRigLength(), {
+    render: Boolean(render && sitesTakenMapIsBound()),
+  });
+}
+
+function bookedByLabel(booking) {
+  if (booking.booked_by_kind === "admin") {
+    const label =
+      typeof Auth.adminPersonLabel === "function"
+        ? Auth.adminPersonLabel({
+            name: booking.booked_by_name,
+            code: booking.booked_by_code,
+          })
+        : "";
+    return label || "ECR admin";
+  }
+  if (booking.booked_by_kind === "member") return "Member";
+  return "Unknown";
+}
+
+/** Confirmed bookings only, unique by id (or spot+dates if id missing). */
+function normalizeSitesTakenRows(rows, from, to) {
+  const byKey = new Map();
+  (Array.isArray(rows) ? rows : []).forEach((r) => {
+    if (!r || !r.spot || !r.check_in || !r.check_out) return;
+    if (r.status && r.status !== "confirmed" && r.status !== "active") return;
+    if (!window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)) return;
+    const key =
+      r.id != null && r.id !== ""
+        ? `id:${r.id}`
+        : `stay:${r.spot}|${r.check_in}|${r.check_out}`;
+    if (!byKey.has(key)) byKey.set(key, r);
+  });
+  return Array.from(byKey.values());
+}
+
+function ensureSitesTakenMap() {
+  if (typeof CampgroundMap === "undefined") return;
+  if (!document.getElementById("occupancy-spots-layer")) return;
+  if (sitesTakenMapIsBound()) return;
+
+  CampgroundMap.init({
+    layerId: "occupancy-spots-layer",
+    detailId: "occupancy-unit-detail",
+    svgId: "occupancy-campground-map",
+    photoId: "occupancy-map-photo",
+    legendId: "occupancy-map-legend",
+    requireDatesForSpots: true,
+    lookupOnly: true,
+    unitFilter: "all",
+    canBookSelect: () => true,
+    onSpotSelect(unit, status) {
+      showOccupancyDetail(unit, status);
+    },
+  });
+  applyOccupancyRigLength({ render: false });
+  if (!sitesTakenZoomReady && typeof MapZoom !== "undefined") {
+    MapZoom.init({
+      viewport: document.getElementById("occupancy-map-viewport"),
+      stage: document.getElementById("occupancy-zoom-stage"),
+      zoomInBtn: document.getElementById("occupancy-zoom-in"),
+      zoomOutBtn: document.getElementById("occupancy-zoom-out"),
+      resetBtn: document.getElementById("occupancy-zoom-reset"),
+    });
+    sitesTakenZoomReady = true;
+  }
+  sitesTakenMapReady = true;
+  bookingMapReady = false;
+}
+
+function showOccupancyDetail(unit, status) {
+  if (!occDetail || !unit) return;
+  const from = occFrom?.value || "";
+  const to = occTo?.value || "";
+  const mapStatus =
+    status ||
+    (typeof CampgroundMap?.getUnitStatus === "function"
+      ? CampgroundMap.getUnitStatus(unit)
+      : null);
+  const lengthBit = window.SpotAvailability?.formatUnitLengthBit?.(unit);
+  const title =
+    unit.category === "condo"
+      ? `Condo ${unit.label}`
+      : unit.category === "reunion"
+        ? unit.name || `Family site ${unit.label}`
+        : `Site ${unit.label}`;
+  const titleWithLength = lengthBit ? `${title} · ${lengthBit}` : title;
+  const closeHtml = occupancyCloseHtml();
+
+  if (mapStatus === "tooShort") {
+    const max = window.SpotAvailability?.getUnitMaxLength?.(unit);
+    const rig = selectedOccupancyRigLength();
+    const note =
+      max != null && rig != null
+        ? `This site allows up to ${max}'. Your RV is ${rig}', so it is too short.`
+        : "This site is too short for the selected RV length.";
+    occDetail.innerHTML = `
+      ${closeHtml}
+      <p><strong>${escapeHtml(titleWithLength)}</strong>
+        <span class="status-pill tooShort">Too short for your RV</span></p>
+      <p>${escapeHtml(note)}</p>`;
+    openOccupancyDetailOverlay();
+    return;
+  }
+
+  const rows = sitesTakenRows.filter(
+    (r) =>
+      String(r.spot) === String(unit.id) &&
+      window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)
+  );
+  const ownFlags = rows.map((r) =>
+    Boolean(window.SpotAvailability?.isOwnBookingRow?.(r, memberBookings))
+  );
+  const allOwn = ownFlags.length > 0 && ownFlags.every(Boolean);
+  const statusClass =
+    mapStatus === "member" || allOwn
+      ? "member"
+      : rows.length
+        ? "booked"
+        : "available";
+  const statusLabel =
+    statusClass === "member"
+      ? "Your reservation"
+      : statusClass === "booked"
+        ? "Booked"
+        : "Available";
+
+  if (!rows.length) {
+    occDetail.innerHTML = `
+      ${closeHtml}
+      <p><strong>${escapeHtml(titleWithLength)}</strong></p>
+      <p><span class="status-pill ${statusClass}">${statusLabel}</span> for ${escapeHtml(
+        window.SpotAvailability.formatDateRange(from, to)
+      )}.</p>`;
+    openOccupancyDetailOverlay();
+    return;
+  }
+  const items = rows
+    .map((r, i) => {
+      const range = window.SpotAvailability.formatDateRange(r.check_in, r.check_out);
+      const ownBit =
+        ownFlags[i] && !allOwn
+          ? ` <span class="own-booking-note">This is your booking</span>`
+          : "";
+      if (!sitesTakenShowGuestNames) {
+        return `<li>${escapeHtml(range)}${ownBit}</li>`;
+      }
+      const who = [r.full_name, r.member_id ? `ID ${r.member_id}` : "", r.email]
+        .filter(Boolean)
+        .join(" · ");
+      const conf = r.id ? Auth.bookingConfirmationId(r.id) : "";
+      return `<li>
+        <strong>${escapeHtml(range)}</strong>
+        ${conf ? ` · ${escapeHtml(conf)}` : ""}
+        ${ownBit}
+        ${who ? `<br>${escapeHtml(who)}` : ""}
+        ${r.notes ? `<br>Notes: ${escapeHtml(r.notes)}` : ""}
+        ${r.booked_by_kind ? `<br>Booked by: ${escapeHtml(bookedByLabel(r))}` : ""}
+      </li>`;
+    })
+    .join("");
+
+  const ownBanner = allOwn
+    ? `<p class="detail-own-booking">This is your booking.</p>`
+    : "";
+  occDetail.innerHTML = `
+    ${closeHtml}
+    <p><strong>${escapeHtml(titleWithLength)}</strong>
+      <span class="status-pill ${statusClass}">${statusLabel}</span></p>
+    ${ownBanner}
+    <p>Booked dates in your range:</p>
+    <ul class="occupancy-date-list">${items}</ul>`;
+  openOccupancyDetailOverlay();
+}
+
+async function runSitesTakenCheck() {
+  showOccMsg("", "");
+  const from = occFrom?.value || "";
+  const to = occTo?.value || "";
+  if (!from || !to || to <= from) {
+    showOccMsg("Choose valid from and to dates.", "error");
+    return;
+  }
+  if (occBtn) occBtn.disabled = true;
+  try {
+    const rawRows = await Auth.getSiteOccupancy(from, to);
+    sitesTakenRows = normalizeSitesTakenRows(rawRows, from, to);
+    if (!window.BASE_SPOT_BOOKINGS) {
+      window.BASE_SPOT_BOOKINGS = Array.isArray(window.SPOT_BOOKINGS)
+        ? window.SPOT_BOOKINGS.slice()
+        : [];
+    }
+    window.SPOT_BOOKINGS = sitesTakenRows.map((r) => ({
+      bookingId: r.id || null,
+      spotId: r.spot,
+      checkIn: r.check_in,
+      checkOut: r.check_out,
+    }));
+    ensureSitesTakenMap();
+    if (typeof CampgroundMap?.setOwnBookings === "function") {
+      CampgroundMap.setOwnBookings(memberBookings, { render: false });
+    }
+    applyOccupancyRigLength({ render: false });
+    CampgroundMap.setUnitFilter("all");
+    CampgroundMap.setDates(from, to);
+    CampgroundMap.render?.();
+    if (occWrap) occWrap.hidden = false;
+    closeOccupancyDetailOverlay();
+    const n = sitesTakenRows.length;
+    showOccMsg(`${n} booking${n === 1 ? "" : "s"} in that range.`, "success");
+  } catch (err) {
+    showOccMsg(err.message, "error");
+  } finally {
+    if (occBtn) occBtn.disabled = false;
+  }
+}
+
+function initSitesTakenDefaults() {
+  if (!hasSitesTakenLookup || !window.SpotAvailability?.getToday) return;
+  const today = window.SpotAvailability.getToday();
+  occFrom.min = today;
+  occTo.min = today;
+  occFrom.removeAttribute("max");
+  occTo.removeAttribute("max");
+  if (!occFrom.value) occFrom.value = today;
+  if (!occTo.value) occTo.value = window.SpotAvailability.addDays(today, 14);
+}
 
 function syncCheckoutMin() {
   if (!checkIn.value) return;
@@ -637,7 +954,11 @@ function clearPreferredSpot() {
   preferredSpotInput.value = "";
   preferredSpotDisplay.hidden = true;
   selectedSpotLabel.textContent = "";
-  CampgroundMap.clearSelection();
+  if (sitesTakenMapIsBound()) {
+    ensureBookingMap();
+  } else if (typeof CampgroundMap?.clearSelection === "function") {
+    CampgroundMap.clearSelection();
+  }
   updateStaySummary();
 }
 
@@ -759,6 +1080,9 @@ function updateMemberReservationNotice() {
 }
 
 function updateMapAvailability() {
+  ensureBookingMap();
+  if (!bookingMapIsBound()) return;
+
   const inDate = checkIn.value;
   const outDate = checkOut.value;
   const type = typeSelect.value;
@@ -1122,7 +1446,7 @@ async function refreshOccupancyForSelectedDates() {
     !Auth.getCurrentUser()
   ) {
     occupancyRows = [];
-    rebuildSpotBookingsFromMembers();
+    if (!sitesTakenMapIsBound()) rebuildSpotBookingsFromMembers();
     return;
   }
 
@@ -1135,6 +1459,8 @@ async function refreshOccupancyForSelectedDates() {
     // Keep prior rows if a refresh fails mid-typing; fall back to member/demo merge.
     occupancyRows = occupancyRows || [];
   }
+  // Sites taken lookup owns SPOT_BOOKINGS until the booking map remounts.
+  if (sitesTakenMapIsBound()) return;
   rebuildSpotBookingsFromMembers();
 }
 
@@ -1604,4 +1930,24 @@ form.addEventListener("submit", async (e) => {
     showBookingFormState();
   }
   updateMemberReservationNotice();
+
+  if (hasSitesTakenLookup) {
+    initSitesTakenDefaults();
+    let isAdmin = false;
+    try {
+      isAdmin = await Auth.verifyAdmin();
+    } catch {
+      isAdmin = Auth.isAdmin(user);
+    }
+    sitesTakenShowGuestNames = isAdmin && Auth.hasAdminTask("occupancy_names");
+    if (occAdminNote) occAdminNote.hidden = !isAdmin;
+    occBtn?.addEventListener("click", runSitesTakenCheck);
+    occRig?.addEventListener("change", () => {
+      if (!sitesTakenMapIsBound() || occWrap?.hidden) {
+        applyOccupancyRigLength({ render: false });
+        return;
+      }
+      applyOccupancyRigLength({ render: true });
+    });
+  }
 })();

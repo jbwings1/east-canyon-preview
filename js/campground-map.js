@@ -87,22 +87,25 @@ window.CampgroundMap = {
   },
 
   _bindDetailChrome() {
-    if (this._detailChromeBound || !this._detailPanel) return;
-    this._detailChromeBound = true;
+    if (!this._detailPanel) return;
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      if (!this._selectedId && !this._focusedId) return;
-      e.preventDefault();
-      this.clearSelection();
-    });
-
-    this._detailPanel.addEventListener("click", (e) => {
-      if (e.target.closest("[data-map-detail-close]")) {
+    // Document-level once so re-init can point at a different detail panel
+    // (e.g. admin create map vs Sites taken lookup on the same page).
+    if (!this._detailChromeDocBound) {
+      this._detailChromeDocBound = true;
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (!this._selectedId && !this._focusedId) return;
         e.preventDefault();
         this.clearSelection();
-      }
-    });
+      });
+      document.addEventListener("click", (e) => {
+        const closeBtn = e.target.closest("[data-map-detail-close]");
+        if (!closeBtn || !this._detailPanel?.contains(closeBtn)) return;
+        e.preventDefault();
+        this.clearSelection();
+      });
+    }
   },
 
   openDetailOverlay() {
@@ -674,8 +677,11 @@ window.CampgroundMap = {
   },
 
   _setupMapClickFallback() {
-    if (!this._svg || this._clickFallbackReady) return;
-    this._clickFallbackReady = true;
+    if (!this._svg) return;
+
+    if (this._clickFallbackHandler && this._clickFallbackSvg) {
+      this._clickFallbackSvg.removeEventListener("click", this._clickFallbackHandler);
+    }
 
     const activateAtEvent = (event) => {
       if (this._isEditMode()) return;
@@ -685,10 +691,12 @@ window.CampgroundMap = {
       if (unit) this.focusUnit(unit.id);
     };
 
-    this._svg.addEventListener("click", (event) => {
+    this._clickFallbackHandler = (event) => {
       if (event.target.closest(".map-spot")) return;
       activateAtEvent(event);
-    });
+    };
+    this._svg.addEventListener("click", this._clickFallbackHandler);
+    this._clickFallbackSvg = this._svg;
   },
 
   setDates(checkIn, checkOut) {

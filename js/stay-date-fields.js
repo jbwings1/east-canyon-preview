@@ -9,6 +9,8 @@
     "res-checkout",
     "occupancy-from",
     "occupancy-to",
+    "admin-occupancy-from",
+    "admin-occupancy-to",
     "booking-check-in",
     "booking-check-out",
     "edit-booking-check-in",

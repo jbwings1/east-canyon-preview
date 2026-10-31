@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a Reservation | East Canyon Resort</title>
+  <link rel="stylesheet" href="styles.css?v=site73">
+</head>
+<body class="page-visitor page-admin" data-admin-reservations="make">
+  <aside class="home-alert-banner" role="status" aria-label="Current alert">
+    <p>
+      <strong>Alert</strong>
+      Loading current alerts…
+      <a href="alerts.html" class="home-alert-link">Details</a>
+    </p>
+  </aside>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="pix/logo.jpg" alt="East Canyon Resort">
+      </a>
+      <nav class="header-nav" aria-label="Site links">
+        <a href="index.html">Main Page</a>
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-content page-content--wide admin-manage-wide">
+      <p class="admin-back"><a href="admin.html">← Admin tasks</a></p>
+      <h1>Make a reservation</h1>
+      <p id="admin-denied" class="form-message error" hidden>
+        This area is for resort administrators.
+        <a href="admin-login.html">Admin sign in</a>
+      </p>
+
+      <div id="admin-app" hidden>
+        <p class="admin-intro">
+          <span id="admin-whoami"></span>
+          On the phone with a member? Use <strong>Sites taken</strong> first to see what is open, then make the reservation below.
+          <a href="admin-reservations-manage.html">Manage reservations</a> is the list of existing bookings.
+        </p>
+
+        <section class="admin-card" id="admin-sites-taken-card" aria-label="Sites taken">
+            <h2>Sites taken</h2>
+            <p class="admin-help">
+              Lookup only — this does not make a reservation. Pick any from and to dates to see everything taken in that range.
+              Green is open, red is booked, and blue is a stay on the signed-in admin account when it appears.
+              Click a colored site for booked dates in your range — details appear beside the map.
+              <span id="admin-occupancy-names-note" hidden> You can also see member names and booking details on each site.</span>
+            </p>
+            <div class="form-row form-row--4 occupancy-date-row">
+              <div class="form-group">
+                <label for="admin-occupancy-from">From</label>
+                <input type="date" id="admin-occupancy-from" required>
+              </div>
+              <div class="form-group">
+                <label for="admin-occupancy-to">To</label>
+                <input type="date" id="admin-occupancy-to" required>
+              </div>
+              <div class="form-group">
+                <label for="admin-occupancy-rig">RV length <span class="label-optional">(optional)</span></label>
+                <select id="admin-occupancy-rig" name="admin-occupancy-rig">
+                  <option value="">Any length</option>
+                  <option value="25">25'</option>
+                  <option value="30">30'</option>
+                  <option value="35">35'</option>
+                  <option value="40">40'</option>
+                  <option value="45">45'</option>
+                  <option value="50">50'</option>
+                  <option value="55">55'</option>
+                  <option value="60">60'</option>
+                  <option value="65">65'</option>
+                  <option value="70">70'</option>
+                  <option value="75">75'</option>
+                </select>
+              </div>
+              <div class="form-group occupancy-check-wrap">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-primary" id="admin-occupancy-check-btn">Check bookings</button>
+              </div>
+            </div>
+            <p id="admin-occupancy-message" class="form-message" role="status" aria-live="polite"></p>
+            <div class="map-legend occupancy-legend" id="admin-occupancy-map-legend" aria-label="Map legend">
+              <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+              <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+              <span class="legend-item" data-status="member"><span class="legend-swatch member"></span> Your reservation</span>
+              <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
+            </div>
+            <div id="admin-occupancy-map-wrap" class="occupancy-map-wrap" hidden>
+              <div class="map-layout reservation-map-layout">
+                <div class="map-panel">
+                  <div class="reservation-map-toolbar">
+                    <div class="map-zoom-controls" aria-label="Map zoom controls">
+                      <button type="button" class="map-zoom-btn" id="admin-occupancy-zoom-out" aria-label="Zoom out">-</button>
+                      <button type="button" class="map-zoom-btn map-zoom-btn--reset" id="admin-occupancy-zoom-reset" aria-label="Reset zoom">100%</button>
+                      <button type="button" class="map-zoom-btn" id="admin-occupancy-zoom-in" aria-label="Zoom in">+</button>
+                    </div>
+                  </div>
+                  <div class="reservation-map-viewport" id="admin-occupancy-map-viewport">
+                    <div class="map-zoom-stage" id="admin-occupancy-zoom-stage">
+                      <div class="campground-map-frame">
+                        <img
+                          src="pix/map.png"
+                          alt="East Canyon Resort site map"
+                          class="campground-map-photo"
+                          id="admin-occupancy-map-photo"
+                        >
+                        <svg id="admin-occupancy-campground-map" class="campground-map-overlay" role="img" aria-label="Site occupancy overlay">
+                          <g id="admin-occupancy-spots-layer"></g>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <aside
+                  class="map-unit-detail spot-detail reservation-map-detail"
+                  id="admin-occupancy-unit-detail"
+                  aria-label="Site details"
+                  aria-live="polite"
+                >
+                  <p class="spot-detail-placeholder">Click a site on the map to see booked dates in your range.</p>
+                </aside>
+              </div>
+            </div>
+          </section>
+
+        <section class="admin-card" id="admin-create-card">
+          <h2>Reservation for a member</h2>
+          <p class="admin-help">You cannot book for yourself while signed in as admin. Type a name or member number and choose the member from the list that opens under the field. Pick the type and stay dates — the booking map shows which sites are open for those dates. Click a green site to select it. For an RV stay, choose the RV length under Type.</p>
+          <form id="admin-create-booking-form" class="auth-form admin-form">
+            <div class="form-group member-lookup">
+              <label for="booking-member-search">Member</label>
+              <input
+                type="text"
+                id="booking-member-search"
+                placeholder="Name or member number"
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="booking-member-list"
+                aria-autocomplete="list"
+                required
+              >
+              <ul id="booking-member-list" class="member-lookup-list" role="listbox" hidden></ul>
+              <input type="hidden" id="booking-member" value="">
+            </div>
+            <p
+              id="admin-member-current-bookings"
+              class="stay-length-notice"
+              hidden
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div class="form-group">
+              <label for="booking-type">Type</label>
+              <select id="booking-type" required>
+                <option value="condo">Condo</option>
+                <option value="family-reunion">Family reunion</option>
+                <option value="rv">RV</option>
+              </select>
+            </div>
+            <div class="form-group" id="booking-rig-group" hidden>
+              <label for="booking-rig">RV length</label>
+              <select id="booking-rig">
+                <option value="">Select length</option>
+                <option value="25">25'</option>
+                <option value="30">30'</option>
+                <option value="35">35'</option>
+                <option value="40">40'</option>
+                <option value="45">45'</option>
+                <option value="50">50'</option>
+                <option value="55">55'</option>
+                <option value="60">60'</option>
+                <option value="65">65'</option>
+                <option value="70">70'</option>
+                <option value="75">75'</option>
+              </select>
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group">
+                <label for="booking-check-in">Check in</label>
+                <input type="date" id="booking-check-in" required>
+              </div>
+              <div class="form-group">
+                <label for="booking-check-out">Check out</label>
+                <input type="date" id="booking-check-out" required>
+              </div>
+            </div>
+            <section class="reservation-map-section admin-create-map" id="admin-booking-map" aria-label="Booking map">
+              <h2 id="admin-map-section-title">Booking map</h2>
+              <p id="admin-map-summary" class="reservation-map-summary">
+                Availability for the stay dates above. Green is open for the whole stay, yellow is partly booked, and red is booked. For an RV stay, choose the length so sites that are too short show in black. Click a green site to select it for this reservation. Drag to pan, scroll or +/− to zoom.
+              </p>
+              <div class="map-layout reservation-map-layout">
+                <div class="map-panel">
+                  <div class="reservation-map-toolbar">
+                    <div class="map-legend" id="admin-map-legend" aria-label="Map legend">
+                      <span class="legend-item" data-status="available"><span class="legend-swatch available"></span> Available</span>
+                      <span class="legend-item" data-status="partial"><span class="legend-swatch partial"></span> Partially booked</span>
+                      <span class="legend-item" data-status="booked"><span class="legend-swatch booked"></span> Booked</span>
+                      <span class="legend-item" data-status="tooShort"><span class="legend-swatch tooShort"></span> Too short for RV</span>
+                    </div>
+                    <div class="map-zoom-controls" aria-label="Map zoom controls">
+                      <button type="button" class="map-zoom-btn" id="admin-map-zoom-out" aria-label="Zoom out">-</button>
+                      <button type="button" class="map-zoom-btn map-zoom-btn--reset" id="admin-map-zoom-reset" aria-label="Reset zoom">100%</button>
+                      <button type="button" class="map-zoom-btn" id="admin-map-zoom-in" aria-label="Zoom in">+</button>
+                    </div>
+                  </div>
+                  <div class="reservation-map-viewport" id="admin-map-viewport">
+                    <div class="map-zoom-stage" id="admin-map-zoom-stage">
+                      <div class="campground-map-frame">
+                        <p class="map-image-fallback" hidden>
+                          Add the campground map as <code>pix/map.png</code> to show the real site layout.
+                        </p>
+                        <img
+                          src="pix/map.png"
+                          alt="East Canyon Resort site map"
+                          class="campground-map-photo"
+                          id="admin-map-photo"
+                        >
+                        <svg id="admin-campground-map" class="campground-map-overlay" role="img" aria-label="Site availability overlay">
+                          <g id="admin-spots-layer"></g>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <aside
+                  class="map-unit-detail spot-detail reservation-map-detail"
+                  id="admin-map-unit-detail"
+                  aria-label="Site details"
+                  aria-live="polite"
+                >
+                  <p class="spot-detail-placeholder">Click a site on the map to see details.</p>
+                </aside>
+              </div>
+            </section>
+            <div class="form-group">
+              <label for="booking-spot">Spot / unit</label>
+              <input type="text" id="booking-spot" placeholder="Click a site on the map, or type a unit">
+              <p class="selected-spot-banner" id="admin-selected-spot-banner" hidden>
+                Selected: <strong id="admin-selected-spot"></strong>
+                <button type="button" id="admin-clear-spot" class="btn-link">Clear</button>
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="booking-notes">Notes</label>
+              <input type="text" id="booking-notes">
+            </div>
+            <div id="admin-create-rights-notice" class="stay-length-notice" hidden role="status" aria-live="polite"></div>
+            <div class="admin-actions">
+              <button type="submit" class="btn btn-primary">Create reservation</button>
+            </div>
+          </form>
+          <p id="admin-create-booking-result" class="form-message" role="status" aria-live="polite"></p>
+
+        </section>
+
+        <p id="admin-message" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js?v=sb2"></script>
+  <script src="js/supabase.js?v=sb2"></script>
+  <script src="js/supabase-client.js?v=sb4"></script>
+  <script src="js/auth.js?v=sb44"></script>
+  <script src="js/site-header-auth.js?v=4"></script>
+  <script src="js/map-units-generated.js?v=1"></script>
+  <script src="js/spots-data.js?v=12"></script>
+  <script src="js/campground-map.js?v=14"></script>
+  <script src="js/map-zoom.js"></script>
+  <script src="js/membership-rights.js?v=7"></script>
+  <script src="js/booking-limits.js?v=9"></script>
+  <script src="js/booking-rule-flags.js?v=10"></script>
+  <script src="js/admin-common.js?v=sb27"></script>
+  <script src="js/stay-date-fields.js?v=3"></script>
+  <script src="js/admin-reservations-manage.js?v=sb47"></script>
+  <script src="js/alert-banner.js?v=2"></script>
+  <footer class="home-footer">
+    <div class="container home-footer-inner">
+      <p>
+        <strong>East Canyon Resort</strong><br>
+        8896 South Highway 65, Morgan, UT 84050<br>
+        <a href="tel:+18013599030">(801) 359-9030</a><br>
+        <a href="contact.html">Contact Information</a>
+      </p>
+      <nav class="home-footer-links" aria-label="Footer links">
+        <a href="visitors.html">Visitors</a>
+        <a href="members.html">Members</a>
+        <a href="reserve.html">Reservations</a>
+        <a href="alerts.html">Alerts</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

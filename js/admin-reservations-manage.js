@@ -1,34 +1,42 @@
 /**
- * Admin Manage Reservations — create, edit, confirm, cancel.
+ * Admin reservations — Make page (Sites taken + book) or Manage page (list).
  */
 (async function () {
-  const me = await AdminCommon.requireAdmin([
-    "view_reservations",
-    "office_check_in",
-    "make_reservation",
-    "edit_reservation",
-    "confirm_reservation",
-    "cancel_reservation",
-    "override_rule",
-  ]);
+  const isMakePage = document.body?.dataset?.adminReservations === "make";
+  const isManagePage = !isMakePage;
+
+  const me = await AdminCommon.requireAdmin(
+    isMakePage
+      ? ["make_reservation"]
+      : [
+          "view_reservations",
+          "office_check_in",
+          "edit_reservation",
+          "confirm_reservation",
+          "cancel_reservation",
+          "override_rule",
+        ]
+  );
   if (!me) return;
 
-  const canViewList = [
-    "view_reservations",
-    "office_check_in",
-    "edit_reservation",
-    "confirm_reservation",
-    "cancel_reservation",
-    "override_rule",
-  ].some((task) => Auth.hasAdminTask(task));
-  const canMake = Auth.hasAdminTask("make_reservation");
-  const canEditBooking = Auth.hasAdminTask("edit_reservation");
-  const canConfirmStatus = Auth.hasAdminTask("confirm_reservation");
-  const canCancelStatus = Auth.hasAdminTask("cancel_reservation");
+  const canViewList =
+    isManagePage &&
+    [
+      "view_reservations",
+      "office_check_in",
+      "edit_reservation",
+      "confirm_reservation",
+      "cancel_reservation",
+      "override_rule",
+    ].some((task) => Auth.hasAdminTask(task));
+  const canMake = isMakePage || Auth.hasAdminTask("make_reservation");
+  const canEditBooking = isManagePage && Auth.hasAdminTask("edit_reservation");
+  const canConfirmStatus = isManagePage && Auth.hasAdminTask("confirm_reservation");
+  const canCancelStatus = isManagePage && Auth.hasAdminTask("cancel_reservation");
   const canOverride = Auth.hasAdminTask("override_rule");
-  const canCheckIn = Auth.hasAdminTask("office_check_in");
+  const canCheckIn = isManagePage && Auth.hasAdminTask("office_check_in");
 
-  if (!canViewList) {
+  if (isManagePage && !canViewList) {
     document.querySelector(".admin-booking-filters")?.setAttribute("hidden", "");
     document.getElementById("admin-bookings-table")?.closest(".admin-table-wrap")?.setAttribute("hidden", "");
     document
@@ -67,10 +75,25 @@
   let viewingId = null;
   let editMode = "edit";
   let adminMapReady = false;
+  let adminZoomReady = false;
+  let occupancyMapReady = false;
+  let occupancyZoomReady = false;
+  let occupancyRows = [];
+  const showOccupancyNames = Auth.hasAdminTask("occupancy_names");
   const createOverrideSession =
     typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
   const editOverrideSession =
     typeof BookingLimits !== "undefined" ? BookingLimits.createOverrideSession() : null;
+
+  const occFrom = document.getElementById("admin-occupancy-from");
+  const occTo = document.getElementById("admin-occupancy-to");
+  const occRig = document.getElementById("admin-occupancy-rig");
+  const occBtn = document.getElementById("admin-occupancy-check-btn");
+  const occMsg = document.getElementById("admin-occupancy-message");
+  const occWrap = document.getElementById("admin-occupancy-map-wrap");
+  const occDetail = document.getElementById("admin-occupancy-unit-detail");
+  const occNamesNote = document.getElementById("admin-occupancy-names-note");
+  if (occNamesNote) occNamesNote.hidden = !showOccupancyNames;
 
   function todayIso() {
     const now = new Date();
@@ -272,6 +295,67 @@
   function renderBookingMemberOptions() {
     const list = memberListEl();
     if (list && !list.hidden) showMemberList();
+  }
+
+  /**
+   * Same notice pattern as the member reservations / book pages:
+   * yellow when the member has upcoming stays, red at the max of 2.
+   */
+  function refreshMemberCurrentBookings() {
+    const notice = document.getElementById("admin-member-current-bookings");
+    if (!notice) return;
+
+    const userId = bookingMember?.value || "";
+    if (!userId) {
+      notice.hidden = true;
+      notice.textContent = "";
+      notice.classList.remove("stay-length-notice--limit");
+      return;
+    }
+
+    const memberRows = (bookings || []).filter((b) => String(b.user_id) === String(userId));
+    const active =
+      typeof Auth.getActiveBookings === "function"
+        ? Auth.getActiveBookings(memberRows)
+        : memberRows.filter((b) => b.status === "confirmed" && b.check_out && b.check_out > todayIso());
+    const maxActive = window.RESERVATION_MAX_ACTIVE || 2;
+
+    if (!active.length) {
+      notice.hidden = true;
+      notice.textContent = "";
+      notice.classList.remove("stay-length-notice--limit");
+      return;
+    }
+
+    const bookingLines = active
+      .map((b) => {
+        const range = window.SpotAvailability.formatDateRange(b.check_in, b.check_out);
+        const href = `admin-reservations-manage.html?view=${encodeURIComponent(b.id)}`;
+        return `<a class="reservation-id-link" href="${href}">Confirmation #${AdminCommon.escapeHtml(
+          confirmationId(b)
+        )}</a> · ${AdminCommon.escapeHtml(range)}`;
+      })
+      .join("<br>");
+
+    notice.hidden = false;
+    if (active.length >= maxActive) {
+      notice.classList.add("stay-length-notice--limit");
+      notice.innerHTML =
+        `This member has ${active.length} upcoming reservations (maximum ${maxActive}):<br>` +
+        `${bookingLines}<br>` +
+        `Once the office checks them in, or after cancelling one, they can book again.`;
+    } else {
+      notice.classList.remove("stay-length-notice--limit");
+      const remaining = maxActive - active.length;
+      const remainingPhrase =
+        remaining === 1
+          ? "They have one more booking available."
+          : `They may book ${remaining} more.`;
+      notice.innerHTML =
+        `This member has ${active.length} upcoming reservation${active.length === 1 ? "" : "s"}:<br>` +
+        `${bookingLines}<br>` +
+        remainingPhrase;
+    }
   }
 
   function filteredBookings() {
@@ -693,7 +777,10 @@
       if (still) openView(still);
       else closeView();
     }
-    if (adminMapReady && createCard && !createCard.hidden) refreshAdminMap();
+    if (adminMapReady && !document.getElementById("admin-create-card")?.hidden) {
+      refreshAdminMap();
+    }
+    refreshMemberCurrentBookings();
   }
 
   function mapFilterForType(type) {
@@ -767,7 +854,12 @@
   }
 
   function refreshAdminMap() {
-    if (!adminMapReady || typeof CampgroundMap === "undefined") return;
+    if (typeof CampgroundMap === "undefined") return;
+    const createOpen = !document.getElementById("admin-create-card")?.hidden;
+    if (!adminMapReady || CampgroundMap._layer?.id !== "admin-spots-layer") {
+      if (createOpen) ensureAdminMap();
+      return;
+    }
     syncAdminMapBookings();
     const type = document.getElementById("booking-type")?.value || "";
     const checkIn = document.getElementById("booking-check-in")?.value || "";
@@ -824,8 +916,13 @@
   }
 
   function ensureAdminMap() {
-    if (adminMapReady || typeof CampgroundMap === "undefined") return;
+    if (typeof CampgroundMap === "undefined") return;
     if (!document.getElementById("admin-spots-layer") || !document.getElementById("admin-campground-map")) {
+      return;
+    }
+    const boundToCreate = CampgroundMap._layer?.id === "admin-spots-layer";
+    if (adminMapReady && boundToCreate) {
+      refreshAdminMap();
       return;
     }
     syncAdminMapBookings();
@@ -858,7 +955,7 @@
         updateAdminSpotBanner(unit);
       },
     });
-    if (typeof MapZoom !== "undefined") {
+    if (!adminZoomReady && typeof MapZoom !== "undefined") {
       MapZoom.init({
         viewport: document.getElementById("admin-map-viewport"),
         stage: document.getElementById("admin-map-zoom-stage"),
@@ -866,9 +963,276 @@
         zoomOutBtn: document.getElementById("admin-map-zoom-out"),
         resetBtn: document.getElementById("admin-map-zoom-reset"),
       });
+      adminZoomReady = true;
     }
     adminMapReady = true;
+    occupancyMapReady = false;
     refreshAdminMap();
+  }
+
+  function showOccMsg(text, type) {
+    if (!occMsg) return;
+    occMsg.textContent = text || "";
+    occMsg.className = type ? `form-message ${type}` : "form-message";
+  }
+
+  function occupancyPlaceholderHtml() {
+    return `<p class="spot-detail-placeholder">Click a site or condo on the map to see booked dates in your range.</p>`;
+  }
+
+  function openOccupancyDetailOverlay() {
+    if (typeof CampgroundMap?.openDetailOverlay === "function") {
+      CampgroundMap.openDetailOverlay();
+      return;
+    }
+    if (occDetail) occDetail.hidden = false;
+  }
+
+  function closeOccupancyDetailOverlay() {
+    if (typeof CampgroundMap?.closeDetailOverlay === "function") {
+      CampgroundMap.closeDetailOverlay({ clearSelection: true });
+      return;
+    }
+    if (occDetail) {
+      occDetail.hidden = false;
+      occDetail.innerHTML = occupancyPlaceholderHtml();
+    }
+  }
+
+  function occupancyCloseHtml() {
+    if (typeof CampgroundMap?._overlayCloseHtml === "function") {
+      return CampgroundMap._overlayCloseHtml();
+    }
+    return `<div class="map-site-panel-head">
+      <button type="button" class="map-site-panel-close" data-map-detail-close>Clear</button>
+    </div>`;
+  }
+
+  function selectedOccupancyRigLength() {
+    const raw = occRig?.value;
+    if (raw === "" || raw == null) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function applyOccupancyRigLength({ render = true } = {}) {
+    if (typeof CampgroundMap?.setRigLength !== "function") return;
+    CampgroundMap.setRigLength(selectedOccupancyRigLength(), {
+      render: Boolean(render && occupancyMapReady && CampgroundMap._layer?.id === "admin-occupancy-spots-layer"),
+    });
+  }
+
+  function bookedByLabel(booking) {
+    if (booking.booked_by_kind === "admin") {
+      const label =
+        typeof Auth.adminPersonLabel === "function"
+          ? Auth.adminPersonLabel({
+              name: booking.booked_by_name,
+              code: booking.booked_by_code,
+            })
+          : "";
+      return label || "ECR admin";
+    }
+    if (booking.booked_by_kind === "member") return "Member";
+    return "Unknown";
+  }
+
+  /** Confirmed / active bookings only, unique by id (or spot+dates if id missing). */
+  function normalizeOccupancyRows(rows, from, to) {
+    const byKey = new Map();
+    (Array.isArray(rows) ? rows : []).forEach((r) => {
+      if (!r || !r.spot || !r.check_in || !r.check_out) return;
+      if (r.status && r.status !== "confirmed" && r.status !== "active") return;
+      if (!window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)) return;
+      const key =
+        r.id != null && r.id !== ""
+          ? `id:${r.id}`
+          : `stay:${r.spot}|${r.check_in}|${r.check_out}`;
+      if (!byKey.has(key)) byKey.set(key, r);
+    });
+    return Array.from(byKey.values());
+  }
+
+  function ensureOccupancyMap() {
+    if (typeof CampgroundMap === "undefined") return;
+    const bound =
+      occupancyMapReady && CampgroundMap._layer?.id === "admin-occupancy-spots-layer";
+    if (bound) return;
+
+    CampgroundMap.init({
+      layerId: "admin-occupancy-spots-layer",
+      detailId: "admin-occupancy-unit-detail",
+      svgId: "admin-occupancy-campground-map",
+      photoId: "admin-occupancy-map-photo",
+      legendId: "admin-occupancy-map-legend",
+      requireDatesForSpots: true,
+      lookupOnly: true,
+      unitFilter: "all",
+      canBookSelect: () => true,
+      onSpotSelect(unit, status) {
+        showOccupancyDetail(unit, status);
+      },
+    });
+    applyOccupancyRigLength({ render: false });
+    if (!occupancyZoomReady && typeof MapZoom !== "undefined") {
+      MapZoom.init({
+        viewport: document.getElementById("admin-occupancy-map-viewport"),
+        stage: document.getElementById("admin-occupancy-zoom-stage"),
+        zoomInBtn: document.getElementById("admin-occupancy-zoom-in"),
+        zoomOutBtn: document.getElementById("admin-occupancy-zoom-out"),
+        resetBtn: document.getElementById("admin-occupancy-zoom-reset"),
+      });
+      occupancyZoomReady = true;
+    }
+    occupancyMapReady = true;
+    adminMapReady = false;
+  }
+
+  function showOccupancyDetail(unit, status) {
+    if (!occDetail || !unit) return;
+    const from = occFrom?.value || "";
+    const to = occTo?.value || "";
+    const mapStatus =
+      status ||
+      (typeof CampgroundMap?.getUnitStatus === "function"
+        ? CampgroundMap.getUnitStatus(unit)
+        : null);
+    const lengthBit = window.SpotAvailability?.formatUnitLengthBit?.(unit);
+    const title =
+      unit.category === "condo"
+        ? `Condo ${unit.label}`
+        : unit.category === "reunion"
+          ? unit.name || `Family site ${unit.label}`
+          : `Site ${unit.label}`;
+    const titleWithLength = lengthBit ? `${title} · ${lengthBit}` : title;
+    const closeHtml = occupancyCloseHtml();
+    const esc = (v) => AdminCommon.escapeHtml(v);
+
+    if (mapStatus === "tooShort") {
+      const max = window.SpotAvailability?.getUnitMaxLength?.(unit);
+      const rig = selectedOccupancyRigLength();
+      const note =
+        max != null && rig != null
+          ? `This site allows up to ${max}'. Your RV is ${rig}', so it is too short.`
+          : "This site is too short for the selected RV length.";
+      occDetail.innerHTML = `
+        ${closeHtml}
+        <p><strong>${esc(titleWithLength)}</strong>
+          <span class="status-pill tooShort">Too short for your RV</span></p>
+        <p>${esc(note)}</p>`;
+      openOccupancyDetailOverlay();
+      return;
+    }
+
+    const rows = occupancyRows.filter(
+      (r) =>
+        String(r.spot) === String(unit.id) &&
+        window.SpotAvailability.datesOverlap(from, to, r.check_in, r.check_out)
+    );
+    const statusClass =
+      mapStatus === "member"
+        ? "member"
+        : rows.length
+          ? "booked"
+          : "available";
+    const statusLabel =
+      statusClass === "member"
+        ? "Your reservation"
+        : statusClass === "booked"
+          ? "Booked"
+          : "Available";
+
+    if (!rows.length) {
+      occDetail.innerHTML = `
+        ${closeHtml}
+        <p><strong>${esc(titleWithLength)}</strong></p>
+        <p><span class="status-pill ${statusClass}">${statusLabel}</span> for ${esc(
+          window.SpotAvailability.formatDateRange(from, to)
+        )}.</p>`;
+      openOccupancyDetailOverlay();
+      return;
+    }
+
+    const items = rows
+      .map((r) => {
+        const range = window.SpotAvailability.formatDateRange(r.check_in, r.check_out);
+        if (!showOccupancyNames) {
+          return `<li>${esc(range)}</li>`;
+        }
+        const who = [r.full_name, r.member_id ? `ID ${r.member_id}` : "", r.email]
+          .filter(Boolean)
+          .join(" · ");
+        const conf = r.id ? Auth.bookingConfirmationId(r.id) : "";
+        return `<li>
+          <strong>${esc(range)}</strong>
+          ${conf ? ` · ${esc(conf)}` : ""}
+          ${who ? `<br>${esc(who)}` : ""}
+          ${r.notes ? `<br>Notes: ${esc(r.notes)}` : ""}
+          ${r.booked_by_kind ? `<br>Booked by: ${esc(bookedByLabel(r))}` : ""}
+        </li>`;
+      })
+      .join("");
+
+    occDetail.innerHTML = `
+      ${closeHtml}
+      <p><strong>${esc(titleWithLength)}</strong>
+        <span class="status-pill ${statusClass}">${statusLabel}</span></p>
+      <p>Booked dates in your range:</p>
+      <ul class="occupancy-date-list">${items}</ul>`;
+    openOccupancyDetailOverlay();
+  }
+
+  async function runOccupancyCheck() {
+    showOccMsg("", "");
+    const from = occFrom?.value || "";
+    const to = occTo?.value || "";
+    if (!from || !to || to <= from) {
+      showOccMsg("Choose valid from and to dates.", "error");
+      return;
+    }
+    if (occBtn) occBtn.disabled = true;
+    try {
+      const rawRows = await Auth.getSiteOccupancy(from, to);
+      occupancyRows = normalizeOccupancyRows(rawRows, from, to);
+      if (!window.BASE_SPOT_BOOKINGS) {
+        window.BASE_SPOT_BOOKINGS = Array.isArray(window.SPOT_BOOKINGS)
+          ? window.SPOT_BOOKINGS.slice()
+          : [];
+      }
+      window.SPOT_BOOKINGS = occupancyRows.map((r) => ({
+        bookingId: r.id || null,
+        spotId: r.spot,
+        checkIn: r.check_in,
+        checkOut: r.check_out,
+      }));
+      ensureOccupancyMap();
+      if (typeof CampgroundMap?.setOwnBookings === "function") {
+        CampgroundMap.setOwnBookings([], { render: false });
+      }
+      applyOccupancyRigLength({ render: false });
+      CampgroundMap.setUnitFilter("all");
+      CampgroundMap.setDates(from, to);
+      CampgroundMap.render?.();
+      if (occWrap) occWrap.hidden = false;
+      closeOccupancyDetailOverlay();
+      const n = occupancyRows.length;
+      showOccMsg(`${n} booking${n === 1 ? "" : "s"} in that range.`, "success");
+    } catch (err) {
+      showOccMsg(err.message, "error");
+    } finally {
+      if (occBtn) occBtn.disabled = false;
+    }
+  }
+
+  function initOccupancyDefaults() {
+    if (!occFrom || !occTo || !window.SpotAvailability?.getToday) return;
+    const today = window.SpotAvailability.getToday();
+    occFrom.removeAttribute("min");
+    occTo.removeAttribute("min");
+    occFrom.removeAttribute("max");
+    occTo.removeAttribute("max");
+    if (!occFrom.value) occFrom.value = today;
+    if (!occTo.value) occTo.value = window.SpotAvailability.addDays(today, 14);
   }
 
   function overdueViolation(userId) {
@@ -1252,21 +1616,27 @@
 
   const createCard = document.getElementById("admin-create-card");
   const createOpenBtn = document.getElementById("admin-create-open");
-  if (!canMake && createOpenBtn) createOpenBtn.hidden = true;
+  if (createOpenBtn) createOpenBtn.hidden = true;
+
+  function prepareCreateDates() {
+    const checkIn = document.getElementById("booking-check-in");
+    const checkOut = document.getElementById("booking-check-out");
+    checkIn?.removeAttribute("min");
+    checkOut?.removeAttribute("min");
+    checkIn?.removeAttribute("max");
+    checkOut?.removeAttribute("max");
+  }
 
   function setCreateFormOpen(open) {
-    if (!canMake || !createCard) return;
+    if (!isMakePage || !canMake || !createCard) return;
     createCard.hidden = !open;
-    createOpenBtn?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
-      createCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      prepareCreateDates();
       syncAdminRigField();
       window.requestAnimationFrame(() => {
         ensureAdminMap();
         refreshAdminMap();
       });
-      memberSearchField()?.focus();
-      showMemberList();
     }
   }
 
@@ -1326,10 +1696,17 @@
     if (!open) createOpenBtn.focus();
   });
 
-  document.getElementById("admin-create-close")?.addEventListener("click", () => {
-    setCreateFormOpen(false);
-    createOpenBtn?.focus();
-  });
+  if (isMakePage) {
+    initOccupancyDefaults();
+    occBtn?.addEventListener("click", runOccupancyCheck);
+    occRig?.addEventListener("change", () => {
+      if (!occupancyMapReady || occWrap?.hidden || CampgroundMap._layer?.id !== "admin-occupancy-spots-layer") {
+        applyOccupancyRigLength({ render: false });
+        return;
+      }
+      applyOccupancyRigLength({ render: true });
+    });
+  }
 
   document.getElementById("admin-edit-cancel")?.addEventListener("click", () => {
     closeEdit();
@@ -1405,6 +1782,7 @@
     document.getElementById(id)?.addEventListener("change", () => {
       AdminCommon.showMessage(document.getElementById("admin-create-booking-result"), "", "");
       if (id === "booking-type") syncAdminRigField();
+      if (id === "booking-member") refreshMemberCurrentBookings();
       refreshAdminMap();
       refreshCreateRightsNotice();
     });
@@ -1547,13 +1925,15 @@
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
     const viewId = params.get("view");
-    if (canMake && !canViewList) setCreateFormOpen(true);
-    if (editId) {
+    if (isMakePage && canMake) {
+      setCreateFormOpen(true);
+    }
+    if (isManagePage && editId) {
       const booking = bookings.find((b) => b.id === editId);
       if (booking && (canEditBooking || canCheckIn)) {
         openEdit(booking, canEditBooking ? "edit" : "checkin");
       }
-    } else if (viewId && canViewList) {
+    } else if (isManagePage && viewId && canViewList) {
       const booking = bookings.find((b) => b.id === viewId);
       if (booking) openView(booking);
     }

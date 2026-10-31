@@ -4,15 +4,22 @@
 window.AdminCommon = {
   TASKS: [
     {
+      id: "reservations_make",
+      label: "Make a reservation",
+      href: "admin-reservations-make.html",
+      blurb:
+        "Check Sites taken for any dates, then book a stay for a member.",
+      gate: "make_reservation",
+    },
+    {
       id: "reservations_manage",
       label: "Manage reservations",
       href: "admin-reservations-manage.html",
       blurb:
-        "See every reservation and check guests in. Added functions can also book, edit, confirm, cancel, or override a rule.",
+        "See every reservation and check guests in. Added functions can also edit, confirm, cancel, or override a rule.",
       gateAny: [
         "view_reservations",
         "office_check_in",
-        "make_reservation",
         "edit_reservation",
         "confirm_reservation",
         "cancel_reservation",
