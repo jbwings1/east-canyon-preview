@@ -2401,7 +2401,44 @@ a:hover {
 }
 
 .admin-booking-filters {
-  margin-bottom: 0.75rem;
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 0.95rem;
+}
+
+.admin-booking-filter-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  align-items: center;
+  margin: 0;
+}
+
+.admin-booking-filter-checks legend {
+  flex: 0 0 100%;
+  width: 100%;
+  margin-bottom: 0.15rem;
+}
+
+.admin-booking-filters .admin-booking-filter-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1c1916;
+  cursor: pointer;
+}
+
+.admin-booking-filter-row {
+  margin: 0;
+  align-items: end;
+}
+
+.admin-booking-filter-row .form-group--grow {
+  flex: 1 1 14rem;
+  min-width: 12rem;
 }
 
 .admin-table tr.admin-booking-past td {

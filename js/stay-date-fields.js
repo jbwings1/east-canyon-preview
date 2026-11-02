@@ -21,6 +21,8 @@
     "report-type-to",
     "report-override-from",
     "report-override-to",
+    "booking-filter-from",
+    "booking-filter-to",
   ];
 
   const MONTHS = [

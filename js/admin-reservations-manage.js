@@ -62,8 +62,11 @@
   const editForm = document.getElementById("admin-edit-booking-form");
   const editResult = document.getElementById("admin-edit-booking-result");
   const editSummary = document.getElementById("admin-edit-summary");
-  const filterStatus = document.getElementById("booking-filter-status");
   const filterSearch = document.getElementById("booking-filter-search");
+  const filterFrom = document.getElementById("booking-filter-from");
+  const filterTo = document.getElementById("booking-filter-to");
+  const filterShowInputs = () =>
+    Array.from(document.querySelectorAll('input[name="booking-filter-show"]'));
   const checkinPending = document.getElementById("admin-checkin-pending");
   const checkinDone = document.getElementById("admin-checkin-done");
   const checkinResult = document.getElementById("admin-checkin-result");
@@ -152,6 +155,71 @@
       allBookings: bookings,
       memberId: memberIdForUser(booking?.user_id),
     });
+  }
+
+  function selectedFilterShows() {
+    return new Set(
+      filterShowInputs()
+        .filter((input) => input.checked)
+        .map((input) => input.value)
+    );
+  }
+
+  function bookingDisplayLabel(booking) {
+    if (typeof Auth.bookingDisplayStatus === "function") {
+      return Auth.bookingDisplayStatus(booking);
+    }
+    return String(booking?.status || "");
+  }
+
+  function bookingMatchesStatusFilter(booking, selected) {
+    const label = bookingDisplayLabel(booking);
+    if (selected.has("active") && label === "Active") return true;
+    if (selected.has("confirmed") && (label === "Confirmed" || label === "Edit confirmed" || label === "Pending")) {
+      return true;
+    }
+    if (selected.has("completed") && label === "Completed") return true;
+    if (selected.has("past") && label === "Past") return true;
+    if (selected.has("cancelled") && label === "Cancelled") return true;
+    return false;
+  }
+
+  /** Broke a rule or still breaks one — includes overridden stays. */
+  function bookingMatchesRuleFlag(booking) {
+    if (bookingHasOverride(booking)) return true;
+    const flag = ruleFlagForBooking(booking);
+    if (flag && flag.ok === false) return true;
+    if (String(booking?.status || "").toLowerCase() === "cancelled") return false;
+    const today = todayIso();
+    const checkOut = String(booking?.check_out || "").slice(0, 10);
+    if (checkOut && checkOut < today) return false;
+    return Boolean(overdueViolation(booking?.user_id));
+  }
+
+  function bookingMatchesToday(booking) {
+    const today = todayIso();
+    const checkIn = String(booking?.check_in || "").slice(0, 10);
+    const checkOut = String(booking?.check_out || "").slice(0, 10);
+    if (!checkIn || !checkOut) return false;
+    return checkIn <= today && today < checkOut;
+  }
+
+  function bookingOverlapsFilterRange(booking) {
+    const from = String(filterFrom?.value || "").trim();
+    const to = String(filterTo?.value || "").trim();
+    if (!from && !to) return true;
+    const checkIn = String(booking?.check_in || "").slice(0, 10);
+    const checkOut = String(booking?.check_out || "").slice(0, 10);
+    if (!checkIn || !checkOut) return false;
+    if (from && to) {
+      if (to < from) return false;
+      if (typeof window.SpotAvailability?.datesOverlap === "function") {
+        return window.SpotAvailability.datesOverlap(from, to, checkIn, checkOut);
+      }
+      return checkIn < to && from < checkOut;
+    }
+    if (from) return checkOut > from;
+    return checkIn < to;
   }
 
   function memberChoiceLabel(member) {
@@ -359,26 +427,21 @@
   }
 
   function filteredBookings() {
-    const statusFilter = filterStatus?.value || "active";
+    const selected = selectedFilterShows();
     const q = String(filterSearch?.value || "")
       .trim()
       .toLowerCase();
-    const today = todayIso();
 
     return bookings
       .filter((b) => {
-        if (statusFilter === "cancelled") return b.status === "cancelled";
-        if (statusFilter === "flagged") {
-          if (b.status === "cancelled") return false;
-          return bookingHasOverride(b);
-        }
-        if (statusFilter === "active") {
-          if (b.status === "cancelled") return false;
-          if (b.check_out && b.check_out < today) return false;
-          return true;
-        }
-        return true;
+        if (!selected.size) return false;
+        const matchStatus = bookingMatchesStatusFilter(b, selected);
+        const matchRuleFlag = selected.has("rule_flag") && bookingMatchesRuleFlag(b);
+        const matchOverride = selected.has("override") && bookingHasOverride(b);
+        const matchToday = selected.has("today") && bookingMatchesToday(b);
+        return matchStatus || matchRuleFlag || matchOverride || matchToday;
       })
+      .filter((b) => bookingOverlapsFilterRange(b))
       .filter((b) => {
         if (!q) return true;
         const label = memberLabel(b.user_id).toLowerCase();
@@ -672,7 +735,10 @@
     }
     const rows = filteredBookings();
     if (!rows.length) {
-      bookingsBody.innerHTML = `<tr><td colspan="8">No bookings match this filter.</td></tr>`;
+      const emptyMsg = selectedFilterShows().size
+        ? "No bookings match this filter."
+        : "Check at least one status or special box to show bookings.";
+      bookingsBody.innerHTML = `<tr><td colspan="8">${emptyMsg}</td></tr>`;
       return;
     }
     bookingsBody.innerHTML = rows
@@ -764,7 +830,7 @@
     if (flagged) {
       AdminCommon.showMessage(
         message,
-        `${flagged} booking${flagged === 1 ? "" : "s"} with an override. Filter: Rule flags.`,
+        `${flagged} booking${flagged === 1 ? "" : "s"} with an override. Check Override or Rule flag to list them.`,
         ""
       );
     }
@@ -1775,7 +1841,11 @@
       }
     });
 
-  filterStatus?.addEventListener("change", renderBookings);
+  filterShowInputs().forEach((input) => {
+    input.addEventListener("change", renderBookings);
+  });
+  filterFrom?.addEventListener("change", renderBookings);
+  filterTo?.addEventListener("change", renderBookings);
   filterSearch?.addEventListener("input", renderBookings);
 
   ["booking-member", "booking-type", "booking-rig", "booking-check-in", "booking-check-out"].forEach((id) => {

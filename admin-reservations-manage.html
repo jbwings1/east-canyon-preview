@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Reservations | East Canyon Resort</title>
-  <link rel="stylesheet" href="styles.css?v=site72">
+  <link rel="stylesheet" href="styles.css?v=site73">
 </head>
 <body class="page-visitor page-admin" data-admin-reservations="manage">
   <aside class="home-alert-banner" role="status" aria-label="Current alert">
@@ -126,20 +126,35 @@
 
         <section class="admin-card">
           <h2>All bookings</h2>
-          <p class="admin-help">Use <strong>Actions</strong> on each row. You only see the actions you are assigned. Open Check in or Edit for <strong>Office check-in</strong> when the member arrives (on or after check-in day). The confirmation column shows only the confirmation number. A yellow pennant shows only on the reservation where an override was used. Other reservations that break a rule are not flagged. Click the pennant to read who cleared it. A red pennant means an overdue account was overridden. Confirmed stays count toward the max of 2 until office check-in makes them Active. Cancelled stays are hidden unless you choose “Cancelled” or “All”.</p>
-          <div class="admin-form-row admin-booking-filters">
-            <div class="form-group">
-              <label for="booking-filter-status">Show</label>
-              <select id="booking-filter-status">
-                <option value="active" selected>Active / upcoming</option>
-                <option value="flagged">Rule flags</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="all">All</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="booking-filter-search">Search member</label>
-              <input type="search" id="booking-filter-search" placeholder="Name, email, or Member ID">
+          <p class="admin-help">Use <strong>Actions</strong> on each row. You only see the actions you are assigned. Open Check in or Edit for <strong>Office check-in</strong> when the member arrives (on or after check-in day). The confirmation column shows only the confirmation number. Check the boxes for what you want to see — a stay appears if it matches <strong>any</strong> checked box. Optional From / To limits the list to stays that overlap that range. A yellow pennant means an override is on file; a red pennant means an overdue account was overridden. Click a pennant to read who cleared it. Confirmed stays count toward the max of 2 until office check-in makes them Active. <strong>Rule flag</strong> includes stays that broke a rule even after an override. Cancelled stays stay hidden unless you check Cancelled.</p>
+          <div class="admin-booking-filters">
+            <fieldset class="admin-task-fieldset admin-booking-filter-checks">
+              <legend>Show status</legend>
+              <label><input type="checkbox" name="booking-filter-show" value="active" checked> Active</label>
+              <label><input type="checkbox" name="booking-filter-show" value="confirmed" checked> Confirmed</label>
+              <label><input type="checkbox" name="booking-filter-show" value="completed"> Completed</label>
+              <label><input type="checkbox" name="booking-filter-show" value="past"> Past</label>
+              <label><input type="checkbox" name="booking-filter-show" value="cancelled"> Cancelled</label>
+            </fieldset>
+            <fieldset class="admin-task-fieldset admin-booking-filter-checks">
+              <legend>Also show</legend>
+              <label><input type="checkbox" name="booking-filter-show" value="rule_flag"> Rule flag</label>
+              <label><input type="checkbox" name="booking-filter-show" value="override"> Override</label>
+              <label><input type="checkbox" name="booking-filter-show" value="today"> Today</label>
+            </fieldset>
+            <div class="admin-form-row admin-booking-filter-row">
+              <div class="form-group">
+                <label for="booking-filter-from">From</label>
+                <input type="date" id="booking-filter-from">
+              </div>
+              <div class="form-group">
+                <label for="booking-filter-to">To</label>
+                <input type="date" id="booking-filter-to">
+              </div>
+              <div class="form-group form-group--grow">
+                <label for="booking-filter-search">Search member</label>
+                <input type="search" id="booking-filter-search" placeholder="Name, email, Member ID, confirmation, or spot">
+              </div>
             </div>
           </div>
           <div class="admin-table-wrap">
@@ -181,8 +196,8 @@
   <script src="js/booking-limits.js?v=9"></script>
   <script src="js/booking-rule-flags.js?v=10"></script>
   <script src="js/admin-common.js?v=sb27"></script>
-  <script src="js/stay-date-fields.js?v=3"></script>
-  <script src="js/admin-reservations-manage.js?v=sb45"></script>
+  <script src="js/stay-date-fields.js?v=4"></script>
+  <script src="js/admin-reservations-manage.js?v=sb46"></script>
   <script src="js/alert-banner.js?v=2"></script>
   <footer class="home-footer">
     <div class="container home-footer-inner">
